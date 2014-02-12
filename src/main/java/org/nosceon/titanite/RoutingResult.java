@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * @author Johan Siebens
  */
-class RoutingResult {
+final class RoutingResult {
 
     public final Map<String, String> pathParams;
 

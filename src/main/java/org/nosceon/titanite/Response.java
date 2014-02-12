@@ -10,8 +10,7 @@ import io.netty.handler.codec.http.*;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -65,6 +64,16 @@ public final class Response {
         return this;
     }
 
+    public Response cookie(String name, String value) {
+        headers.add(SET_COOKIE, new Cookie(name, value).encode());
+        return this;
+    }
+
+    public Response cookie(Cookie cookie) {
+        headers.add(SET_COOKIE, cookie.encode());
+        return this;
+    }
+
     public Response body(String content) {
         this.body = Unpooled.copiedBuffer(content, UTF8);
         return this;
@@ -75,6 +84,7 @@ public final class Response {
         boolean keepAlive = isKeepAlive(request);
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
         response.headers().add(headers);
+
         if (keepAlive) {
             response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
             response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);

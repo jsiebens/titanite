@@ -4,24 +4,26 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
+import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.Response.internalServerError;
 
 /**
  * @author Johan Siebens
  */
-class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+final class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
@@ -36,11 +38,17 @@ class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         QueryStringDecoder qsd = new QueryStringDecoder(request.getUri());
         RoutingResult routingResult = router.find(qsd.path());
 
+        Map<String, CookieParam> cookies = Optional.ofNullable(request.headers().get(COOKIE))
+            .map(CookieDecoder::decode)
+            .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
+            .orElseGet(Collections::emptyMap);
+
         Request req =
             new Request(
                 request.getMethod(),
                 qsd.path(),
                 new HeaderParams(request.headers()),
+                new CookieParams(cookies),
                 new PathParams(routingResult.pathParams),
                 new QueryParams(qsd.parameters()),
                 getRequestBody(request)
@@ -81,54 +89,6 @@ class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         @Override
         public InputStream asStream() {
             return new ByteBufInputStream(content);
-        }
-
-    }
-
-    private static class HeaderParams extends Params {
-
-        private HttpHeaders headers;
-
-        private HeaderParams(HttpHeaders headers) {
-            this.headers = headers;
-        }
-
-        @Override
-        public Optional<String> getString(String name) {
-            return Optional.ofNullable(headers.get(name));
-        }
-
-    }
-
-    private static class PathParams extends Params {
-
-        private Map<String, String> values;
-
-        private PathParams(Map<String, String> values) {
-            this.values = values;
-        }
-
-        @Override
-        public Optional<String> getString(String name) {
-            return Optional.ofNullable(values.get(name));
-        }
-
-    }
-
-    private static class QueryParams extends Params {
-
-        private Map<String, List<String>> values;
-
-        private QueryParams(Map<String, List<String>> values) {
-            this.values = values;
-        }
-
-        @Override
-        public Optional<String> getString(String name) {
-            return
-                Optional.ofNullable(values.get(name))
-                    .filter(l -> !l.isEmpty())
-                    .map((l) -> l.get(0));
         }
 
     }
