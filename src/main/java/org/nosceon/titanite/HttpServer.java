@@ -86,6 +86,11 @@ public final class HttpServer {
         return add(HttpMethod.DELETE, pattern, function);
     }
 
+    public HttpServer register(Controller controller) {
+        routings.addAll(controller.routings());
+        return this;
+    }
+
     private HttpServer add(HttpMethod method, String pattern, Function<Request, Response> function) {
         routings.add(new Routing(method, pattern, function));
         return this;

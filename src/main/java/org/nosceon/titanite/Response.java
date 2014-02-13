@@ -21,41 +21,13 @@ public final class Response {
 
     public static final Charset UTF8 = Charset.forName("UTF8");
 
-    public static Response status(int status) {
-        return new Response(HttpResponseStatus.valueOf(status));
-    }
-
-    public static Response status(int status, String content) {
-        return status(status).body(content);
-    }
-
-    public static Response ok() {
-        return new Response(HttpResponseStatus.OK);
-    }
-
-    public static Response ok(String content) {
-        return ok().body(content);
-    }
-
-    public static Response notFound() {
-        return new Response(HttpResponseStatus.NOT_FOUND);
-    }
-
-    public static Response methodNotAllowed() {
-        return new Response(HttpResponseStatus.METHOD_NOT_ALLOWED);
-    }
-
-    public static Response internalServerError() {
-        return new Response(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-    }
-
     private HttpResponseStatus status;
 
     private HttpHeaders headers = new DefaultHttpHeaders();
 
     private ByteBuf body;
 
-    private Response(HttpResponseStatus status) {
+    Response(HttpResponseStatus status) {
         this.status = status;
     }
 

@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.nosceon.titanite.Response.methodNotAllowed;
-import static org.nosceon.titanite.Response.notFound;
+import static org.nosceon.titanite.Responses.methodNotAllowed;
+import static org.nosceon.titanite.Responses.notFound;
 
 /**
  * @author Johan Siebens
@@ -47,7 +47,7 @@ final class Router {
             map = new HashMap<>();
             mapping.put(pp, map);
         }
-        if (map.putIfAbsent(method, function) != null) {
+        if (map.putIfAbsent(method, function) == null) {
             log.info("Http Server registered handler for " + method + " " + pattern);
         }
         return this;

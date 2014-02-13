@@ -16,7 +16,7 @@ public class HttpServerException extends RuntimeException {
     }
 
     public static <T> T propagate(Callable<T> callable) throws HttpServerException {
-        return propagate(callable, e -> Response.internalServerError());
+        return propagate(callable, e -> Responses.internalServerError());
     }
 
     public static <T> T propagate(Callable<T> callable, Function<Exception, Response> translator) throws HttpServerException {

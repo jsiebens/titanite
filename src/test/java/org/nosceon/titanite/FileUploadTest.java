@@ -15,7 +15,7 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.nosceon.titanite.Response.ok;
+import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
