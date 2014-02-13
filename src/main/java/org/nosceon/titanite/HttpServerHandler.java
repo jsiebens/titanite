@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static java.util.stream.Collectors.toMap;
@@ -36,7 +35,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReques
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         QueryStringDecoder qsd = new QueryStringDecoder(request.getUri());
-        RoutingResult routingResult = router.find(qsd.path());
+        RoutingResult routing = router.find(request.getMethod(), qsd.path());
 
         Map<String, CookieParam> cookies = Optional.ofNullable(request.headers().get(COOKIE))
             .map(CookieDecoder::decode)
@@ -49,16 +48,14 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReques
                 qsd.path(),
                 new HeaderParams(request.headers()),
                 new CookieParams(cookies),
-                new PathParams(routingResult.pathParams),
+                new PathParams(routing.pathParams),
                 new QueryParams(qsd.parameters()),
                 getRequestBody(request)
             );
 
-        Function<Request, Response> function = routingResult.selector.get(req.method, req.path);
-
         try {
             Optional
-                .of(function.apply(req))
+                .of(routing.function.apply(req))
                 .ifPresent(r -> r.apply(request, ctx));
         }
         catch (Exception e) {

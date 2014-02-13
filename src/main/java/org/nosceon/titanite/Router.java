@@ -17,20 +17,11 @@ final class Router {
 
     private static final Logger log = LoggerFactory.getLogger(HttpServer.class);
 
-    private static class MethodSelector implements Selector {
+    public static final RoutingResult NOT_FOUND = new RoutingResult(Collections.emptyMap(), (r) -> notFound());
 
-        private final Map<HttpMethod, Selector> selectors = new HashMap<>();
+    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed());
 
-        @Override
-        public Function<Request, Response> get(HttpMethod method, String path) {
-            return selectors.containsKey(method) ? selectors.get(method).get(method, path) : (r) -> methodNotAllowed();
-        }
-
-        public boolean add(HttpMethod method, Selector selector) {
-            return selectors.putIfAbsent(method, selector) == null;
-        }
-
-    }
+    private final Map<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> mapping = new LinkedHashMap<>();
 
     public Router(List<Routing> routings) {
         for (Routing r : routings) {
@@ -38,30 +29,25 @@ final class Router {
         }
     }
 
-    private final Map<ParameterizedPattern, MethodSelector> mapping = new LinkedHashMap<>();
-
-    public RoutingResult find(String pattern) {
-        for (Map.Entry<ParameterizedPattern, MethodSelector> entry : mapping.entrySet()) {
+    public RoutingResult find(HttpMethod method, String pattern) {
+        for (Map.Entry<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> entry : mapping.entrySet()) {
             ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
             if (matcher.matches()) {
-                return new RoutingResult(matcher.parameters(), entry.getValue());
+                Function<Request, Response> f = entry.getValue().get(method);
+                return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
             }
         }
-        return new RoutingResult(Collections.emptyMap(), (method, path) -> (r) -> notFound());
+        return NOT_FOUND;
     }
 
     private Router add(HttpMethod method, String pattern, Function<Request, Response> function) {
-        return add(method, pattern, (m, p) -> function);
-    }
-
-    private Router add(HttpMethod method, String pattern, Selector selector) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
-        MethodSelector byMethod = mapping.get(pp);
-        if (byMethod == null) {
-            byMethod = new MethodSelector();
-            mapping.put(pp, byMethod);
+        Map<HttpMethod, Function<Request, Response>> map = mapping.get(pp);
+        if (map == null) {
+            map = new HashMap<>();
+            mapping.put(pp, map);
         }
-        if (byMethod.add(method, selector)) {
+        if (map.putIfAbsent(method, function) != null) {
             log.info("Http Server registered handler for " + method + " " + pattern);
         }
         return this;
