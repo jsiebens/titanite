@@ -7,10 +7,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,13 +105,10 @@ public final class HttpServer {
 
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
-
                     ch.pipeline()
                         .addLast(new HttpRequestDecoder())
                         .addLast(new HttpResponseEncoder())
-                        .addLast(new HttpObjectAggregator(maxRequestSize))
-                        .addLast(new ChunkedWriteHandler())
-                        .addLast(eventExecutor, new HttpServerHandler(router));
+                        .addLast(eventExecutor, new HttpServerHandler(maxRequestSize, router));
                 }
 
             })

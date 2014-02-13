@@ -5,8 +5,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.Optional;
 
 /**
-* @author Johan Siebens
-*/
+ * @author Johan Siebens
+ */
 public final class HeaderParams extends Params {
 
     private HttpHeaders headers;
