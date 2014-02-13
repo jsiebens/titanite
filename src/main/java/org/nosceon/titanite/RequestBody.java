@@ -9,4 +9,8 @@ public interface RequestBody {
 
     InputStream asStream();
 
+    boolean isForm();
+
+    FormParams asForm();
+
 }

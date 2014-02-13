@@ -8,6 +8,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private HttpRequest request;
 
-    private CompositeByteBuf content;
+    private Aggregator aggregator;
 
     private int maxRequestSize;
 
@@ -52,7 +53,7 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
             this.request = (HttpRequest) msg;
-            this.content = ctx.alloc().compositeBuffer();
+            this.aggregator = newAggregator(request, ctx);
 
             if (is100ContinueExpected(request)) {
                 ctx.writeAndFlush(CONTINUE).addListener(future -> {
@@ -70,12 +71,12 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
             HttpContent chunk = (HttpContent) msg;
 
-            if (content.readableBytes() > maxRequestSize - chunk.content().readableBytes()) {
+            if (aggregator.length() > maxRequestSize - chunk.content().readableBytes()) {
                 tooLongFrameFound = true;
 
                 // release current message to prevent leaks
-                content.release();
-                content = null;
+                aggregator.release();
+                aggregator = null;
 
                 ctx.writeAndFlush(TOO_LARGE).addListener(ChannelFutureListener.CLOSE);
                 return;
@@ -83,9 +84,7 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
             // Append the content of the chunk
             if (chunk.content().isReadable()) {
-                chunk.retain();
-                content.addComponent(chunk.content());
-                content.writerIndex(content.writerIndex() + chunk.content().readableBytes());
+                aggregator.offer(chunk);
             }
 
             if (chunk instanceof LastHttpContent) {
@@ -101,11 +100,11 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     new Request(
                         request.getMethod(),
                         qsd.path(),
-                        new HeaderParams(request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, content.readableBytes())),
+                        new HeaderParams(request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length())),
                         new CookieParams(cookies),
                         new PathParams(routing.pathParams),
                         new QueryParams(qsd.parameters()),
-                        new DefaultRequestBody(content)
+                        aggregator.newRequestBody()
                     );
 
                 try {
@@ -113,7 +112,11 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         .of(routing.function.apply(req))
                         .ifPresent(r -> r.apply(request, ctx));
 
-                    content.release();
+                    aggregator.release();
+                }
+                catch (HttpServerException e) {
+                    logger.error("error processing request", e);
+                    e.getResponse().apply(request, ctx);
                 }
                 catch (Exception e) {
                     logger.error("error processing request", e);
@@ -130,6 +133,117 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         ctx.channel().close();
     }
 
+    private Aggregator newAggregator(HttpRequest request, ChannelHandlerContext ctx) {
+        String contentType = request.headers().get(HttpHeaders.Names.CONTENT_TYPE);
+        if (contentType != null) {
+            HttpMethod method = request.getMethod();
+            String lowerCaseContentType = contentType.toLowerCase();
+            boolean isURLEncoded = lowerCaseContentType.startsWith(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED);
+            boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
+
+            if ((isMultiPart || isURLEncoded) &&
+                (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
+
+                return new FormAggregator(maxRequestSize, new HttpPostRequestDecoder(request));
+            }
+        }
+        return new DefaultAggregator(maxRequestSize, ctx.alloc().compositeBuffer());
+    }
+
+    private static interface Aggregator {
+
+        boolean maxRequestSizeExceeded(HttpContent chunk);
+
+        long length();
+
+        void offer(HttpContent chunk);
+
+        void release();
+
+        RequestBody newRequestBody();
+
+    }
+
+    private static class DefaultAggregator implements Aggregator {
+
+        private long maxRequestSize;
+
+        private CompositeByteBuf content;
+
+        private DefaultAggregator(long maxRequestSize, CompositeByteBuf content) {
+            this.maxRequestSize = maxRequestSize;
+            this.content = content;
+        }
+
+        @Override
+        public boolean maxRequestSizeExceeded(HttpContent chunk) {
+            return content.readableBytes() > maxRequestSize - chunk.content().readableBytes();
+        }
+
+        @Override
+        public long length() {
+            return content.readableBytes();
+        }
+
+        @Override
+        public void offer(HttpContent chunk) {
+            chunk.retain();
+            content.addComponent(chunk.content());
+            content.writerIndex(content.writerIndex() + chunk.content().readableBytes());
+        }
+
+        @Override
+        public void release() {
+            content.release();
+        }
+
+        @Override
+        public RequestBody newRequestBody() {
+            return new DefaultRequestBody(content);
+        }
+
+    }
+
+    private static class FormAggregator implements Aggregator {
+
+        private long maxRequestSize;
+
+        private long length;
+
+        private HttpPostRequestDecoder decoder;
+
+        private FormAggregator(long maxRequestSize, HttpPostRequestDecoder decoder) {
+            this.maxRequestSize = maxRequestSize;
+            this.decoder = decoder;
+        }
+
+        @Override
+        public boolean maxRequestSizeExceeded(HttpContent chunk) {
+            return length > maxRequestSize - chunk.content().readableBytes();
+        }
+
+        @Override
+        public long length() {
+            return length;
+        }
+
+        @Override
+        public void offer(HttpContent chunk) {
+            decoder.offer(chunk);
+            length += chunk.content().readableBytes();
+        }
+
+        @Override
+        public void release() {
+            decoder.destroy();
+        }
+
+        @Override
+        public RequestBody newRequestBody() {
+            return new FormRequestBody(decoder);
+        }
+    }
+
     private static class DefaultRequestBody implements RequestBody {
 
         private ByteBuf content;
@@ -139,8 +253,43 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
+        public boolean isForm() {
+            return false;
+        }
+
+        @Override
         public InputStream asStream() {
             return new ByteBufInputStream(content);
+        }
+
+        @Override
+        public FormParams asForm() {
+            throw new UnsupportedOperationException("asForm not supported");
+        }
+
+    }
+
+    private static class FormRequestBody implements RequestBody {
+
+        private FormParams form;
+
+        private FormRequestBody(HttpPostRequestDecoder decoder) {
+            this.form = new FormParams(decoder);
+        }
+
+        @Override
+        public boolean isForm() {
+            return true;
+        }
+
+        @Override
+        public InputStream asStream() {
+            throw new UnsupportedOperationException("asStream not supported");
+        }
+
+        @Override
+        public FormParams asForm() {
+            return form;
         }
 
     }
