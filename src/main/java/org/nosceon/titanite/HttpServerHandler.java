@@ -107,21 +107,20 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         aggregator.newRequestBody()
                     );
 
+                Response response = null;
                 try {
-                    Optional
-                        .of(routing.function.apply(req))
-                        .ifPresent(r -> r.apply(request, ctx));
-
-                    aggregator.release();
+                    response = routing.function.apply(req);
                 }
                 catch (HttpServerException e) {
                     logger.error("error processing request", e);
-                    e.getResponse().apply(request, ctx);
+                    response = e.getResponse();
                 }
                 catch (Exception e) {
                     logger.error("error processing request", e);
                     ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
                 }
+
+                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx));
             }
         }
 
