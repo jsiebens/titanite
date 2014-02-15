@@ -6,15 +6,19 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import static io.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
+import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.internalServerError;
@@ -58,18 +62,23 @@ public final class Response {
         return this;
     }
 
+    public Response json(Object entity) {
+        this.body = new JsonBody(entity);
+        return this;
+    }
+
     public Response stream(StreamingOutput consumer) {
         this.body = new StreamBody(consumer);
         return this;
     }
 
-    public Response view(View view) {
-        this.body = new ViewBody(view);
+    public Response file(File file) {
+        this.body = new FileBody(file);
         return this;
     }
 
-    public Response json(Object entity) {
-        this.body = new JsonBody(entity);
+    public Response view(View view) {
+        this.body = new ViewBody(view);
         return this;
     }
 
@@ -96,11 +105,9 @@ public final class Response {
             boolean keepAlive = isKeepAlive(request);
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
+            setContentLength(response, content.readableBytes());
+            setKeepAlive(response, keepAlive);
 
-            if (keepAlive) {
-                response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-                response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-            }
             ChannelFuture future = ctx.writeAndFlush(response);
             if (!keepAlive) {
                 future.addListener(ChannelFutureListener.CLOSE);
@@ -114,7 +121,8 @@ public final class Response {
         protected void stream(ChannelHandlerContext ctx, StreamingOutput consumer1) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
-            HttpHeaders.setTransferEncodingChunked(response);
+            setTransferEncodingChunked(response);
+
             ctx.write(response);
             propagate(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
@@ -177,6 +185,47 @@ public final class Response {
                 headers.set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
             }
             stream(ctx, (o) -> mapper.writeValue(o, entity));
+        }
+
+    }
+
+    private class FileBody implements Body {
+
+        private final File file;
+
+        private FileBody(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+            boolean keepAlive = isKeepAlive(request);
+
+            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
+            response.headers().add(headers);
+
+            RandomAccessFile raf;
+            long length;
+            try {
+                raf = new RandomAccessFile(file, "r");
+                length = raf.length();
+            }
+            catch (IOException e) {
+                logger.error("error writing file to response", e);
+                internalServerError().apply(request, ctx, viewRenderer, mapper);
+                return;
+            }
+
+            setContentLength(response, length);
+            setKeepAlive(response, keepAlive);
+
+            ctx.write(response);
+            ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+            ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+
+            if (!keepAlive) {
+                lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+            }
         }
 
     }
