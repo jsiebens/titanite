@@ -21,6 +21,7 @@ import java.util.Optional;
 import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
 import static java.util.stream.Collectors.toMap;
+import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
  * @author Johan Siebens
@@ -170,7 +171,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     }
 
-    private static class DefaultAggregator implements Aggregator {
+    private class DefaultAggregator implements Aggregator {
 
         private long maxRequestSize;
 
@@ -210,7 +211,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     }
 
-    private static class FormAggregator implements Aggregator {
+    private class FormAggregator implements Aggregator {
 
         private long maxRequestSize;
 
@@ -250,7 +251,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
     }
 
-    private static class DefaultRequestBody implements RequestBody {
+    private class DefaultRequestBody implements RequestBody {
 
         private ByteBuf content;
 
@@ -269,13 +270,18 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
+        public <T> T asJson(Class<T> type) {
+            return propagate(() -> mapper.readValue(asStream(), type));
+        }
+
+        @Override
         public FormParams asForm() {
             throw new UnsupportedOperationException("asForm not supported");
         }
 
     }
 
-    private static class FormRequestBody implements RequestBody {
+    private class FormRequestBody implements RequestBody {
 
         private FormParams form;
 
@@ -291,6 +297,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public InputStream asStream() {
             throw new UnsupportedOperationException("asStream not supported");
+        }
+
+        @Override
+        public <T> T asJson(Class<T> type) {
+            throw new UnsupportedOperationException("asJson not supported");
         }
 
         @Override

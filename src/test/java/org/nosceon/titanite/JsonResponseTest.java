@@ -16,7 +16,10 @@ public class JsonResponseTest extends AbstractE2ETest {
 
     public static class Hello {
 
-        private final String name;
+        private String name;
+
+        public Hello() {
+        }
 
         public Hello(String name) {
             this.name = name;
@@ -24,6 +27,10 @@ public class JsonResponseTest extends AbstractE2ETest {
 
         public String getName() {
             return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
 
     }
@@ -38,6 +45,10 @@ public class JsonResponseTest extends AbstractE2ETest {
         shutdownable =
             newServer()
                 .get("/json", (r) -> ok().json(new Hello("world")))
+                .post("/json", (r) -> {
+                    Hello hello = r.body.asJson(Hello.class);
+                    return ok().json(new Hello(hello.getName().toUpperCase()));
+                })
                 .start(port);
     }
 
@@ -52,7 +63,15 @@ public class JsonResponseTest extends AbstractE2ETest {
             .expect()
             .statusCode(200)
             .header(HttpHeaders.Names.CONTENT_TYPE, equalTo("application/json"))
-            .body(equalTo("{\"name\":\"world\"}")).when().get(uri(port, "/json"));
+            .body(equalTo("{\"name\":\"world\"}"))
+            .when().get(uri(port, "/json"));
+
+        given()
+            .body("{\"name\":\"world\"}")
+            .expect()
+            .statusCode(200)
+            .body(equalTo("{\"name\":\"WORLD\"}"))
+            .when().post(uri(port, "/json"));
     }
 
 }
