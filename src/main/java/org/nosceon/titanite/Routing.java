@@ -7,15 +7,15 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-final class Routing {
+final class Routing<I, O> {
 
     private final HttpMethod method;
 
     private final String pattern;
 
-    private final Function<Request, Response> function;
+    private final Function<I, O> function;
 
-    Routing(HttpMethod method, String pattern, Function<Request, Response> function) {
+    Routing(HttpMethod method, String pattern, Function<I, O> function) {
         this.method = method;
         this.pattern = pattern;
         this.function = function;
@@ -29,7 +29,7 @@ final class Routing {
         return pattern;
     }
 
-    public Function<Request, Response> function() {
+    public Function<I, O> function() {
         return function;
     }
 

@@ -50,8 +50,8 @@ public class ControllersTest extends AbstractE2ETest {
         port = findFreePort();
         stopable =
             newServer()
-                .register(new ControllerA())
-                .register(new ControllerB())
+                .registerRoutings(new ControllerA())
+                .registerRoutings(new ControllerB())
                 .start(port);
     }
 

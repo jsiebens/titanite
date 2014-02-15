@@ -23,9 +23,9 @@ final class Router {
 
     private final Map<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> mapping = new LinkedHashMap<>();
 
-    public Router(List<Routing> routings) {
-        for (Routing r : routings) {
-            add(r.method(), r.pattern(), r.function());
+    public Router(List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings) {
+        for (Routing<Request, Response> r : routings) {
+            add(filters, r.method(), r.pattern(), r.function());
         }
     }
 
@@ -40,17 +40,29 @@ final class Router {
         return NOT_FOUND;
     }
 
-    private Router add(HttpMethod method, String pattern, Function<Request, Response> function) {
+    private Router add(List<Filter<Request, Response, Request, Response>> filters, HttpMethod method, String pattern, Function<Request, Response> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
         Map<HttpMethod, Function<Request, Response>> map = mapping.get(pp);
         if (map == null) {
             map = new HashMap<>();
             mapping.put(pp, map);
         }
-        if (map.putIfAbsent(method, function) == null) {
+        if (map.putIfAbsent(method, createFunction(filters, function)) == null) {
             log.info("Http Server registered handler for " + method + " " + pattern);
         }
         return this;
+    }
+
+    public static Function<Request, Response> createFunction(List<Filter<Request, Response, Request, Response>> filters, Function<Request, Response> function) {
+        if (filters.isEmpty()) {
+            return function;
+        }
+
+        Filter<Request, Response, Request, Response> result = (r, f) -> f.apply(r);
+        for (Filter<Request, Response, Request, Response> filter : filters) {
+            result = result.andThen(filter);
+        }
+        return result.andThen(function);
     }
 
 }

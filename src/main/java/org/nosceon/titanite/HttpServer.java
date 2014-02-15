@@ -22,11 +22,17 @@ import java.util.function.Supplier;
  */
 public final class HttpServer {
 
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
+
     private int ioWorkerCount = Runtime.getRuntime().availableProcessors() * 2;
 
     private int executorThreadCount = 16;
 
     private int maxRequestSize = 1024 * 1024 * 10;
+
+    private final List<Routing<Request, Response>> routings = new LinkedList<>();
+
+    private final List<Filter<Request, Response, Request, Response>> filters = new LinkedList<>();
 
     public HttpServer() {
     }
@@ -41,10 +47,6 @@ public final class HttpServer {
         this.executorThreadCount = executorThreadCount;
         this.maxRequestSize = maxRequestSize;
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
-
-    private final List<Routing> routings = new LinkedList<>();
 
     public HttpServer get(String pattern, Supplier<Response> function) {
         return add(HttpMethod.GET, pattern, (r) -> function.get());
@@ -86,20 +88,25 @@ public final class HttpServer {
         return add(HttpMethod.DELETE, pattern, function);
     }
 
-    public HttpServer register(Controller controller) {
-        routings.addAll(controller.routings());
+    public HttpServer registerFilter(Filter<Request, Response, Request, Response> filter) {
+        this.filters.add(filter);
+        return this;
+    }
+
+    public HttpServer registerRoutings(Routings<Request, Response> routings) {
+        this.routings.addAll(routings.get());
         return this;
     }
 
     private HttpServer add(HttpMethod method, String pattern, Function<Request, Response> function) {
-        routings.add(new Routing(method, pattern, function));
+        this.routings.add(new Routing<>(method, pattern, function));
         return this;
     }
 
     public Stopable start(int port) {
         logger.info("Http Server starting");
 
-        Router router = new Router(routings);
+        Router router = new Router(filters, routings);
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
         EventLoopGroup eventExecutor = new NioEventLoopGroup(executorThreadCount);
 

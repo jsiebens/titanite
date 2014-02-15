@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
