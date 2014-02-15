@@ -44,7 +44,7 @@ public class MethodsTest extends AbstractE2ETest {
                 .put("/resource", (r) -> ok(r.method.name()))
                 .delete("/resource", (r) -> ok(r.method.name()))
                 .patch("/resource", (r) -> ok(r.method.name()))
-                .registerRoutings(new MyController())
+                .register(new MyController())
                 .start(port);
     }
 

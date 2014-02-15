@@ -34,7 +34,7 @@ public class FiltersTest extends AbstractE2ETest {
         port = findFreePort();
         stopable =
             newServer()
-                .registerRoutings(TEXT.andThen(TO_UPPER).andThen(new TextController()))
+                .register(TEXT.andThen(TO_UPPER).andThen(new TextController()))
                 .post("/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
                 .start(port);
     }

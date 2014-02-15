@@ -43,8 +43,8 @@ public class GlobalFiltersTest extends AbstractE2ETest {
         port = findFreePort();
         stopable =
             newServer()
-                .registerFilter(SECURITY)
-                .registerFilter(CONTENT_TYPE_JSON)
+                .register(SECURITY)
+                .register(CONTENT_TYPE_JSON)
                 .get("/resource", (r) -> ok("hello"))
                 .start(port);
     }

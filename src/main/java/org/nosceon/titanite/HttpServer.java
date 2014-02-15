@@ -88,12 +88,12 @@ public final class HttpServer {
         return add(HttpMethod.DELETE, pattern, function);
     }
 
-    public HttpServer registerFilter(Filter<Request, Response, Request, Response> filter) {
+    public HttpServer register(Filter<Request, Response, Request, Response> filter) {
         this.filters.add(filter);
         return this;
     }
 
-    public HttpServer registerRoutings(Routings<Request, Response> routings) {
+    public HttpServer register(Routings<Request, Response> routings) {
         this.routings.addAll(routings.get());
         return this;
     }
