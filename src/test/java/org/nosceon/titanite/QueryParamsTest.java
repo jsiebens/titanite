@@ -12,14 +12,14 @@ import static org.hamcrest.CoreMatchers.equalTo;
  */
 public class QueryParamsTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .get("/a", (r) -> Responses.ok(r.queryParams.getString("p").get()))
                 .get("/b", (r) -> Responses.ok(String.valueOf(r.queryParams.getShort("p").get())))
@@ -33,7 +33,7 @@ public class QueryParamsTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

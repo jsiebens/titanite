@@ -14,7 +14,7 @@ import static org.nosceon.titanite.Responses.status;
  */
 public class GlobalFiltersTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
@@ -41,7 +41,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .register(SECURITY)
                 .register(CONTENT_TYPE_JSON)
@@ -51,7 +51,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

@@ -13,14 +13,14 @@ import static org.nosceon.titanite.Responses.ok;
  */
 public class CookiesTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .get("/a", (r) -> ok(r.cookies.getString("p").orElse("default value")))
                 .get("/cookie", () -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")))
@@ -29,7 +29,7 @@ public class CookiesTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

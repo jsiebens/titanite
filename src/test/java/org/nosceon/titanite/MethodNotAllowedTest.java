@@ -11,14 +11,14 @@ import static com.jayway.restassured.RestAssured.given;
  */
 public class MethodNotAllowedTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .get("/resource", (r) -> Responses.ok(r.method.name()))
                 .delete("/resource", (r) -> Responses.ok(r.method.name()))
@@ -27,7 +27,7 @@ public class MethodNotAllowedTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

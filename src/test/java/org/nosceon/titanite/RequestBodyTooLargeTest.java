@@ -14,14 +14,14 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             new HttpServer(2, 5, 5)
                 .post("/post", (r) -> Responses.ok())
                 .start(port);
@@ -29,7 +29,7 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

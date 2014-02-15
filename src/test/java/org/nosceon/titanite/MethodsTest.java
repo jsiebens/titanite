@@ -14,7 +14,7 @@ import static org.nosceon.titanite.Responses.ok;
  */
 public class MethodsTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
@@ -37,7 +37,7 @@ public class MethodsTest extends AbstractE2ETest {
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .get("/resource", (r) -> ok(r.method.name()))
                 .post("/resource", (r) -> ok(r.method.name()))
@@ -50,7 +50,7 @@ public class MethodsTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

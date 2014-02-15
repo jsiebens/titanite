@@ -18,14 +18,14 @@ public class RequestBodyTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .post("/post", (r) -> ok(convertStreamToString(r.body.asStream())))
                 .start(port);
@@ -33,7 +33,7 @@ public class RequestBodyTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

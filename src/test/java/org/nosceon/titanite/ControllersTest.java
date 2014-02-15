@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
  */
 public class ControllersTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
@@ -48,7 +48,7 @@ public class ControllersTest extends AbstractE2ETest {
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .register(new ControllerA())
                 .register(new ControllerB())
@@ -57,7 +57,7 @@ public class ControllersTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

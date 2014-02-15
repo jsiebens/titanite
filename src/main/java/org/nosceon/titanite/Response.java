@@ -6,6 +6,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -14,11 +16,14 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.Responses.internalServerError;
 
 /**
  * @author Johan Siebens
  */
 public final class Response {
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     public static final Charset UTF8 = Charset.forName("UTF8");
 
@@ -47,23 +52,28 @@ public final class Response {
         return this;
     }
 
-    public Response body(String content) {
+    public Response text(String content) {
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
-    public Response body(StreamingOutput consumer) {
+    public Response stream(StreamingOutput consumer) {
         this.body = new StreamBody(consumer);
         return this;
     }
 
-    void apply(HttpRequest request, ChannelHandlerContext ctx) {
-        body.apply(request, ctx);
+    public Response view(View view) {
+        this.body = new ViewBody(view);
+        return this;
+    }
+
+    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+        body.apply(request, ctx, viewRenderer);
     }
 
     private static interface Body {
 
-        void apply(HttpRequest request, ChannelHandlerContext ctx);
+        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer);
 
     }
 
@@ -76,7 +86,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
             boolean keepAlive = isKeepAlive(request);
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
@@ -93,7 +103,25 @@ public final class Response {
 
     }
 
-    private class StreamBody implements Body {
+    private abstract class AbstractStreamingBody implements Body {
+
+        protected void stream(ChannelHandlerContext ctx, StreamingOutput consumer1) {
+            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
+            response.headers().add(headers);
+            HttpHeaders.setTransferEncodingChunked(response);
+            ctx.write(response);
+            propagate(() -> {
+                try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
+                    consumer1.apply(out);
+                }
+                return true;
+            });
+            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+        }
+
+    }
+
+    private class StreamBody extends AbstractStreamingBody {
 
         private StreamingOutput consumer;
 
@@ -102,18 +130,29 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx) {
-            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
-            response.headers().add(headers);
-            HttpHeaders.setTransferEncodingChunked(response);
-            ctx.write(response);
-            propagate(() -> {
-                try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
-                    consumer.apply(out);
-                }
-                return true;
-            });
-            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+            stream(ctx, consumer);
+        }
+
+    }
+
+    private class ViewBody extends AbstractStreamingBody {
+
+        private View view;
+
+        private ViewBody(View view) {
+            this.view = view;
+        }
+
+        @Override
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+            if (viewRenderer.isTemplateAvailable(view)) {
+                stream(ctx, (o) -> viewRenderer.render(request, view, o));
+            }
+            else {
+                logger.error("view template [" + view.template + "] is not available");
+                internalServerError().apply(request, ctx, viewRenderer);
+            }
         }
 
     }

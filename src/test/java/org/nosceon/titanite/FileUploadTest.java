@@ -24,7 +24,7 @@ public class FileUploadTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
@@ -38,7 +38,7 @@ public class FileUploadTest extends AbstractE2ETest {
         uploadFolder = temporaryFolder.newFolder("upload");
 
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .post("/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
@@ -49,7 +49,7 @@ public class FileUploadTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

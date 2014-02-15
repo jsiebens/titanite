@@ -19,16 +19,16 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
-                .get("/resource", (r) -> ok().body(o -> {
+                .get("/resource", (r) -> ok().stream(o -> {
                     IOUtils.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
                 }))
                 .start(port);
@@ -36,7 +36,7 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

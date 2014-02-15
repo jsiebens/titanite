@@ -13,14 +13,14 @@ import static org.nosceon.titanite.Responses.ok;
  */
 public class PathParamsTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .get("/a/{p}", (r) -> ok(r.pathParams.getString("p").get()))
                 .get("/b/{p}", (r) -> ok(String.valueOf(r.pathParams.getShort("p").get())))
@@ -34,7 +34,7 @@ public class PathParamsTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

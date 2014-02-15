@@ -13,7 +13,7 @@ import static org.nosceon.titanite.Responses.ok;
  */
 public class FiltersTest extends AbstractE2ETest {
 
-    private Stopable stopable;
+    private Shutdownable shutdownable;
 
     private int port;
 
@@ -32,7 +32,7 @@ public class FiltersTest extends AbstractE2ETest {
     @Before
     public void setUp() {
         port = findFreePort();
-        stopable =
+        shutdownable =
             newServer()
                 .register(TEXT.andThen(TO_UPPER).andThen(new TextController()))
                 .post("/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
@@ -41,7 +41,7 @@ public class FiltersTest extends AbstractE2ETest {
 
     @After
     public void tearDown() {
-        stopable.stop();
+        shutdownable.stop();
     }
 
     @Test

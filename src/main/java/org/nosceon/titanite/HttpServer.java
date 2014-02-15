@@ -103,10 +103,11 @@ public final class HttpServer {
         return this;
     }
 
-    public Stopable start(int port) {
+    public Shutdownable start(int port) {
         logger.info("Http Server starting");
 
         Router router = new Router(filters, routings);
+        ViewRenderer renderer = new ViewRenderer();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
         EventLoopGroup eventExecutor = new NioEventLoopGroup(executorThreadCount);
 
@@ -120,7 +121,7 @@ public final class HttpServer {
                     ch.pipeline()
                         .addLast(new HttpRequestDecoder())
                         .addLast(new HttpResponseEncoder())
-                        .addLast(eventExecutor, new HttpServerHandler(maxRequestSize, router));
+                        .addLast(eventExecutor, new HttpServerHandler(maxRequestSize, router, renderer));
                 }
 
             })

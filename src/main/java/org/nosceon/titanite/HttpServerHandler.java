@@ -36,6 +36,8 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final Router router;
 
+    private final ViewRenderer renderer;
+
     private HttpRequest request;
 
     private Aggregator aggregator;
@@ -44,9 +46,10 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private boolean tooLongFrameFound;
 
-    public HttpServerHandler(int maxRequestSize, Router router) {
+    public HttpServerHandler(int maxRequestSize, Router router, ViewRenderer renderer) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
+        this.renderer = renderer;
     }
 
     @Override
@@ -120,7 +123,7 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
                 }
 
-                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx));
+                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx, renderer));
             }
         }
 

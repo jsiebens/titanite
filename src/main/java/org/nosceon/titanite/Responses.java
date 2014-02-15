@@ -12,7 +12,7 @@ public abstract class Responses {
     }
 
     public static Response status(int status, String content) {
-        return status(status).body(content);
+        return status(status).text(content);
     }
 
     public static Response ok() {
@@ -20,7 +20,7 @@ public abstract class Responses {
     }
 
     public static Response ok(String content) {
-        return ok().body(content);
+        return ok().text(content);
     }
 
     public static Response notFound() {
