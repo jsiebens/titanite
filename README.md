@@ -2,6 +2,7 @@
 
 __titanite__ is a small web framework for Java 8, inspired by others like [Sinatra](http://www.sinatrarb.com/) and [Finatra](http://finatra.info/), running on top of [Netty](http://netty.io/)
 
+
 ```
 public class HelloController extends Controller {
 
