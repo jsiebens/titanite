@@ -1,5 +1,6 @@
 package org.nosceon.titanite;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -67,13 +68,18 @@ public final class Response {
         return this;
     }
 
-    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
-        body.apply(request, ctx, viewRenderer);
+    public Response json(Object entity) {
+        this.body = new JsonBody(entity);
+        return this;
+    }
+
+    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+        body.apply(request, ctx, viewRenderer, mapper);
     }
 
     private static interface Body {
 
-        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer);
+        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper);
 
     }
 
@@ -86,7 +92,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
             boolean keepAlive = isKeepAlive(request);
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
@@ -130,7 +136,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
             stream(ctx, consumer);
         }
 
@@ -145,14 +151,32 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
             if (viewRenderer.isTemplateAvailable(view)) {
                 stream(ctx, (o) -> viewRenderer.render(request, view, o));
             }
             else {
                 logger.error("view template [" + view.template + "] is not available");
-                internalServerError().apply(request, ctx, viewRenderer);
+                internalServerError().apply(request, ctx, viewRenderer, mapper);
             }
+        }
+
+    }
+
+    private class JsonBody extends AbstractStreamingBody {
+
+        private Object entity;
+
+        private JsonBody(Object entity) {
+            this.entity = entity;
+        }
+
+        @Override
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+            if (!headers.contains(HttpHeaders.Names.CONTENT_TYPE)) {
+                headers.set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+            }
+            stream(ctx, (o) -> mapper.writeValue(o, entity));
         }
 
     }

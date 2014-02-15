@@ -1,5 +1,6 @@
 package org.nosceon.titanite;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
@@ -38,6 +39,8 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final ViewRenderer renderer;
 
+    private final ObjectMapper mapper;
+
     private HttpRequest request;
 
     private Aggregator aggregator;
@@ -46,10 +49,11 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private boolean tooLongFrameFound;
 
-    public HttpServerHandler(int maxRequestSize, Router router, ViewRenderer renderer) {
+    public HttpServerHandler(int maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
         this.renderer = renderer;
+        this.mapper = mapper;
     }
 
     @Override
@@ -123,7 +127,7 @@ class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
                 }
 
-                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx, renderer));
+                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx, renderer, mapper));
             }
         }
 

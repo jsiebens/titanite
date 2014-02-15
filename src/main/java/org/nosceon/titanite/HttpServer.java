@@ -1,5 +1,6 @@
 package org.nosceon.titanite;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -108,6 +109,7 @@ public final class HttpServer {
 
         Router router = new Router(filters, routings);
         ViewRenderer renderer = new ViewRenderer();
+        ObjectMapper mapper = new ObjectMapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
         EventLoopGroup eventExecutor = new NioEventLoopGroup(executorThreadCount);
 
@@ -121,7 +123,7 @@ public final class HttpServer {
                     ch.pipeline()
                         .addLast(new HttpRequestDecoder())
                         .addLast(new HttpResponseEncoder())
-                        .addLast(eventExecutor, new HttpServerHandler(maxRequestSize, router, renderer));
+                        .addLast(eventExecutor, new HttpServerHandler(maxRequestSize, router, renderer, mapper));
                 }
 
             })
