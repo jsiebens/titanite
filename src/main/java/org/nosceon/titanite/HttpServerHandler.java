@@ -25,7 +25,7 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @author Johan Siebens
  */
-class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
+final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private static final FullHttpResponse CONTINUE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
 

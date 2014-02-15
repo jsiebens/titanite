@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter;
 /**
  * @author Johan Siebens
  */
-public class ViewRenderer {
+public final class ViewRenderer {
 
     private static final MustacheFactory mustacheFactory = new DefaultMustacheFactory();
 

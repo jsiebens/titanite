@@ -6,7 +6,7 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-public class HttpServerException extends RuntimeException {
+public final class HttpServerException extends RuntimeException {
 
     private Response response;
 
