@@ -43,7 +43,11 @@ public final class Response {
         this.status = status;
     }
 
-    public Response header(String name, String value) {
+    public int status() {
+        return status.code();
+    }
+
+    public Response header(String name, Object value) {
         headers.add(name, value);
         return this;
     }

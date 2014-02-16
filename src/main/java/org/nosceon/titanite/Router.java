@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.nosceon.titanite.Responses.methodNotAllowed;
-import static org.nosceon.titanite.Responses.notFound;
 
 /**
  * @author Johan Siebens
@@ -17,13 +16,14 @@ final class Router {
 
     private static final Logger log = LoggerFactory.getLogger(HttpServer.class);
 
-    public static final RoutingResult NOT_FOUND = new RoutingResult(Collections.emptyMap(), (r) -> notFound());
-
     public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed());
 
     private final Map<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> mapping = new LinkedHashMap<>();
 
-    public Router(List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings) {
+    private final RoutingResult fallback;
+
+    public Router(List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings, Function<Request, Response> fallback) {
+        this.fallback = new RoutingResult(Collections.emptyMap(), fallback);
         for (Routing<Request, Response> r : routings) {
             add(filters, r.method(), r.pattern(), r.function());
         }
@@ -37,7 +37,7 @@ final class Router {
                 return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
             }
         }
-        return NOT_FOUND;
+        return fallback;
     }
 
     private Router add(List<Filter<Request, Response, Request, Response>> filters, HttpMethod method, String pattern, Function<Request, Response> function) {

@@ -29,7 +29,7 @@ public class FileResponseBodyTest extends AbstractE2ETest {
 
     @Before
     public void setUp() throws IOException {
-        File file = temporaryFolder.newFile("hello.txt");
+        File file = temporaryFolder.newFile("hello1.txt");
         FileUtils.writeStringToFile(file, TEXT);
 
         port = findFreePort();

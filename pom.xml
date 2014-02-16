@@ -46,6 +46,16 @@
       <artifactId>guava</artifactId>
       <version>16.0.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>9.1.0.v20131115</version>
+    </dependency>
+    <dependency>
+      <groupId>org.webjars</groupId>
+      <artifactId>webjars-locator</artifactId>
+      <version>0.10</version>
+    </dependency>
 
     <dependency>
       <groupId>ch.qos.logback</groupId>

@@ -53,14 +53,14 @@ public class FileUploadTest extends AbstractE2ETest {
 
     @Test
     public void test() throws IOException {
-        File file = temporaryFolder.newFile("hello.txt");
+        File file = temporaryFolder.newFile("hello1.txt");
         FileUtils.writeStringToFile(file, TEXT);
 
         given()
             .formParam("lorem", "ipsum")
             .multiPart("file", file).expect().statusCode(200).body(equalTo("ipsum")).when().post(uri(port, "/post"));
 
-        File uploadedFile = new File(uploadFolder, "hello.txt");
+        File uploadedFile = new File(uploadFolder, "hello1.txt");
 
         assertThat(uploadedFile.exists(), is(true));
         assertThat(readFileToString(uploadedFile), equalTo(TEXT));

@@ -104,11 +104,13 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
                     .orElseGet(Collections::emptyMap);
 
+                request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length());
+
                 Request req =
                     new Request(
                         request.getMethod(),
                         qsd.path(),
-                        new HeaderParams(request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length())),
+                        new HeaderParams(request),
                         new CookieParams(cookies),
                         new PathParams(routing.pathParams),
                         new QueryParams(qsd.parameters()),

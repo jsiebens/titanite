@@ -17,6 +17,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.nosceon.titanite.Chain.newChain;
+import static org.nosceon.titanite.service.ResourceService.PUBLIC_RESOURCES;
+import static org.nosceon.titanite.service.ResourceService.WEBJAR_RESOURCES;
+
 /**
  * @author Johan Siebens
  */
@@ -29,6 +33,8 @@ public final class HttpServer {
     private int executorThreadCount = 16;
 
     private int maxRequestSize = 1024 * 1024 * 10;
+
+    private Function<Request, Response> fallback = newChain(PUBLIC_RESOURCES).fallbackTo(WEBJAR_RESOURCES);
 
     private final List<Routing<Request, Response>> routings = new LinkedList<>();
 
@@ -78,6 +84,11 @@ public final class HttpServer {
         return this;
     }
 
+    public HttpServer notFound(Function<Request, Response> fallback) {
+        this.fallback = fallback;
+        return this;
+    }
+
     private HttpServer add(HttpMethod method, String pattern, Function<Request, Response> function) {
         this.routings.add(new Routing<>(method, pattern, function));
         return this;
@@ -86,7 +97,7 @@ public final class HttpServer {
     public Shutdownable start(int port) {
         logger.info("Http Server starting");
 
-        Router router = new Router(filters, routings);
+        Router router = new Router(filters, routings, fallback);
         ViewRenderer renderer = new ViewRenderer();
         ObjectMapper mapper = new ObjectMapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);

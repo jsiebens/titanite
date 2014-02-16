@@ -19,6 +19,10 @@ public abstract class Responses {
         return new Response(HttpResponseStatus.NOT_FOUND);
     }
 
+    public static Response notModified() {
+        return new Response(HttpResponseStatus.NOT_MODIFIED);
+    }
+
     public static Response methodNotAllowed() {
         return new Response(HttpResponseStatus.METHOD_NOT_ALLOWED);
     }
