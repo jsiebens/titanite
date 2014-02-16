@@ -15,7 +15,6 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
@@ -42,7 +41,7 @@ public class FileUploadTest extends AbstractE2ETest {
             newServer()
                 .post("/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
-                    return ok(r.body.asForm().getString("lorem").get());
+                    return ok().body(r.body.asForm().getString("lorem").get());
                 })
                 .start(port);
     }

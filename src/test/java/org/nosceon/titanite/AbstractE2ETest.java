@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 /**
  * @author Johan Siebens
  */
-public class AbstractE2ETest {
+public class AbstractE2ETest extends Responses {
 
     protected HttpServer newServer() {
         return new HttpServer(2, 5);

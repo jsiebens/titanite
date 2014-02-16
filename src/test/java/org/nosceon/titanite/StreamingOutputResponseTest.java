@@ -10,7 +10,6 @@ import java.io.ByteArrayInputStream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens

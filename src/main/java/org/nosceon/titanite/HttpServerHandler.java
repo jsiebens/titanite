@@ -79,7 +79,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
             HttpContent chunk = (HttpContent) msg;
 
-            if (aggregator.length() > maxRequestSize - chunk.content().readableBytes()) {
+            if (aggregator.maxRequestSizeExceeded(chunk)) {
                 tooLongFrameFound = true;
 
                 // release current message to prevent leaks

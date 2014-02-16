@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
@@ -29,7 +28,7 @@ public class MethodsTest extends AbstractE2ETest {
         }
 
         private Response handle(Request request) {
-            return ok(request.method.name());
+            return ok().body(request.method.name());
         }
 
     }
@@ -39,11 +38,11 @@ public class MethodsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/resource", (r) -> ok(r.method.name()))
-                .post("/resource", (r) -> ok(r.method.name()))
-                .put("/resource", (r) -> ok(r.method.name()))
-                .delete("/resource", (r) -> ok(r.method.name()))
-                .patch("/resource", (r) -> ok(r.method.name()))
+                .get("/resource", (r) -> ok().body(r.method.name()))
+                .post("/resource", (r) -> ok().body(r.method.name()))
+                .put("/resource", (r) -> ok().body(r.method.name()))
+                .delete("/resource", (r) -> ok().body(r.method.name()))
+                .patch("/resource", (r) -> ok().body(r.method.name()))
                 .register(new MyController())
                 .start(port);
     }

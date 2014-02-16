@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
@@ -22,13 +21,13 @@ public class HeadersTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/a", (r) -> ok(r.headers.getString("p").get()).header("m", r.headers.getString("p").get()))
-                .get("/b", (r) -> ok(String.valueOf(r.headers.getShort("p").get())))
-                .get("/c", (r) -> ok(String.valueOf(r.headers.getInt("p").get())))
-                .get("/d", (r) -> ok(String.valueOf(r.headers.getLong("p").get())))
-                .get("/e", (r) -> ok(String.valueOf(r.headers.getFloat("p").get())))
-                .get("/f", (r) -> ok(String.valueOf(r.headers.getDouble("p").get())))
-                .get("/g", (r) -> ok(String.valueOf(r.headers.getBoolean("p").get())))
+                .get("/a", (r) -> ok().body(r.headers.getString("p").get()).header("m", r.headers.getString("p").get()))
+                .get("/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p").get())))
+                .get("/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p").get())))
+                .get("/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p").get())))
+                .get("/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p").get())))
+                .get("/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p").get())))
+                .get("/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p").get())))
                 .start(port);
     }
 

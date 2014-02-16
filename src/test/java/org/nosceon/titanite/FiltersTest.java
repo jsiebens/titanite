@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
@@ -17,7 +16,7 @@ public class FiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final Filter<Request, Response, String, String> TEXT = (request, function) -> ok(function.apply(request.method.name().toLowerCase()));
+    private static final Filter<Request, Response, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase()));
 
     private static final Filter<String, String, String, String> TO_UPPER = (s, function) -> function.apply(s).toUpperCase();
 

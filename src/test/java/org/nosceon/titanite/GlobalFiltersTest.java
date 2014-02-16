@@ -6,8 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.nosceon.titanite.Responses.ok;
-import static org.nosceon.titanite.Responses.status;
 
 /**
  * @author Johan Siebens
@@ -45,7 +43,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
             newServer()
                 .register(SECURITY)
                 .register(CONTENT_TYPE_JSON)
-                .get("/resource", (r) -> ok("hello"))
+                .get("/resource", (r) -> ok().body("hello"))
                 .start(port);
     }
 

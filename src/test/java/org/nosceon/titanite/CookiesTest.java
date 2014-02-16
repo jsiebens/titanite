@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
@@ -22,8 +21,8 @@ public class CookiesTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/a", (r) -> ok(r.cookies.getString("p").orElse("default value")))
-                .get("/cookie", () -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")))
+                .get("/a", (r) -> ok().body(r.cookies.getString("p").orElse("default value")))
+                .get("/cookie", (r) -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")))
                 .start(port);
     }
 

@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
@@ -49,40 +48,20 @@ public final class HttpServer {
         this.maxRequestSize = maxRequestSize;
     }
 
-    public HttpServer get(String pattern, Supplier<Response> function) {
-        return add(HttpMethod.GET, pattern, (r) -> function.get());
-    }
-
     public HttpServer get(String pattern, Function<Request, Response> function) {
         return add(HttpMethod.GET, pattern, function);
-    }
-
-    public HttpServer post(String pattern, Supplier<Response> function) {
-        return add(HttpMethod.POST, pattern, (r) -> function.get());
     }
 
     public HttpServer post(String pattern, Function<Request, Response> function) {
         return add(HttpMethod.POST, pattern, function);
     }
 
-    public HttpServer put(String pattern, Supplier<Response> function) {
-        return add(HttpMethod.PUT, pattern, (r) -> function.get());
-    }
-
     public HttpServer put(String pattern, Function<Request, Response> function) {
         return add(HttpMethod.PUT, pattern, function);
     }
 
-    public HttpServer patch(String pattern, Supplier<Response> function) {
-        return add(HttpMethod.PATCH, pattern, (r) -> function.get());
-    }
-
     public HttpServer patch(String pattern, Function<Request, Response> function) {
         return add(HttpMethod.PATCH, pattern, function);
-    }
-
-    public HttpServer delete(String pattern, Supplier<Response> function) {
-        return add(HttpMethod.DELETE, pattern, (r) -> function.get());
     }
 
     public HttpServer delete(String pattern, Function<Request, Response> function) {

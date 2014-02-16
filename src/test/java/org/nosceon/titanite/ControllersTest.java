@@ -28,7 +28,7 @@ public class ControllersTest extends AbstractE2ETest {
         }
 
         private Response handle(Request request) {
-            return ok(request.method.name());
+            return ok().body(request.method.name());
         }
 
     }
@@ -36,11 +36,11 @@ public class ControllersTest extends AbstractE2ETest {
     public static class ControllerB extends Controller {
 
         {
-            get("/b", (r) -> ok(r.method.name()));
-            post("/b", (r) -> ok(r.method.name()));
-            put("/b", (r) -> ok(r.method.name()));
-            delete("/b", (r) -> ok(r.method.name()));
-            patch("/b", (r) -> ok(r.method.name()));
+            get("/b", (r) -> ok().body(r.method.name()));
+            post("/b", (r) -> ok().body(r.method.name()));
+            put("/b", (r) -> ok().body(r.method.name()));
+            delete("/b", (r) -> ok().body(r.method.name()));
+            patch("/b", (r) -> ok().body(r.method.name()));
         }
 
     }

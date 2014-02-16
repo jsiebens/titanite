@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -57,12 +58,25 @@ public final class Response {
         return this;
     }
 
+    public Response body(String content) {
+        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
+        return this;
+    }
+
     public Response text(String content) {
+        headers.add(CONTENT_TYPE, "text/plain");
+        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
+        return this;
+    }
+
+    public Response html(String content) {
+        headers.add(CONTENT_TYPE, "text/html");
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
     public Response json(Object entity) {
+        headers.add(CONTENT_TYPE, "application/json");
         this.body = new JsonBody(entity);
         return this;
     }
@@ -181,9 +195,6 @@ public final class Response {
 
         @Override
         public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
-            if (!headers.contains(HttpHeaders.Names.CONTENT_TYPE)) {
-                headers.set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-            }
             stream(ctx, (o) -> mapper.writeValue(o, entity));
         }
 

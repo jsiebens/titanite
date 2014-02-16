@@ -11,16 +11,8 @@ public abstract class Responses {
         return new Response(HttpResponseStatus.valueOf(status));
     }
 
-    public static Response status(int status, String content) {
-        return status(status).text(content);
-    }
-
     public static Response ok() {
         return new Response(HttpResponseStatus.OK);
-    }
-
-    public static Response ok(String content) {
-        return ok().text(content);
     }
 
     public static Response notFound() {
