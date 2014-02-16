@@ -1,6 +1,9 @@
 package org.nosceon.titanite;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+
+import java.util.Optional;
 
 /**
  * @author Johan Siebens
@@ -29,6 +32,10 @@ public final class Request {
         this.queryParams = queryParams;
         this.pathParams = pathParams;
         this.body = body;
+    }
+
+    public Optional<MediaType> contentType() {
+        return headers.getString(HttpHeaders.Names.CONTENT_TYPE).map(MediaType::valueOf);
     }
 
 }

@@ -48,6 +48,11 @@ public final class Response {
         return this;
     }
 
+    public Response contentType(MediaType type) {
+        headers.add(CONTENT_TYPE, type.toString());
+        return this;
+    }
+
     public Response cookie(String name, String value) {
         headers.add(SET_COOKIE, new Cookie(name, value).encode());
         return this;
@@ -64,19 +69,19 @@ public final class Response {
     }
 
     public Response text(String content) {
-        headers.add(CONTENT_TYPE, "text/plain");
+        this.contentType(MediaType.TEXT_PLAIN);
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
     public Response html(String content) {
-        headers.add(CONTENT_TYPE, "text/html");
+        this.contentType(MediaType.TEXT_HTML);
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
     public Response json(Object entity) {
-        headers.add(CONTENT_TYPE, "application/json");
+        this.contentType(MediaType.APPLICATION_JSON);
         this.body = new JsonBody(entity);
         return this;
     }
