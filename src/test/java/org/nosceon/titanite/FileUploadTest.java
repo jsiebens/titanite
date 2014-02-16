@@ -1,6 +1,7 @@
 package org.nosceon.titanite;
 
-import org.apache.commons.io.FileUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -54,7 +54,7 @@ public class FileUploadTest extends AbstractE2ETest {
     @Test
     public void test() throws IOException {
         File file = temporaryFolder.newFile("hello1.txt");
-        FileUtils.writeStringToFile(file, TEXT);
+        Files.write(TEXT, file, Charsets.UTF_8);
 
         given()
             .formParam("lorem", "ipsum")
@@ -63,7 +63,7 @@ public class FileUploadTest extends AbstractE2ETest {
         File uploadedFile = new File(uploadFolder, "hello1.txt");
 
         assertThat(uploadedFile.exists(), is(true));
-        assertThat(readFileToString(uploadedFile), equalTo(TEXT));
+        assertThat(Files.toString(file, Charsets.UTF_8), equalTo(TEXT));
     }
 
 }

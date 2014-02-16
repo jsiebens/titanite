@@ -1,6 +1,7 @@
 package org.nosceon.titanite;
 
-import org.apache.commons.io.FileUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,7 +31,7 @@ public class FileResponseBodyTest extends AbstractE2ETest {
     @Before
     public void setUp() throws IOException {
         File file = temporaryFolder.newFile("hello1.txt");
-        FileUtils.writeStringToFile(file, TEXT);
+        Files.write(TEXT, file, Charsets.UTF_8);
 
         port = findFreePort();
         shutdownable =

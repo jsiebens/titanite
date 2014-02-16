@@ -1,7 +1,7 @@
 package org.nosceon.titanite;
 
+import com.google.common.io.ByteStreams;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
         shutdownable =
             newServer()
                 .get("/resource", (r) -> ok().stream(o -> {
-                    IOUtils.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
+                    ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
                 }))
                 .start(port);
     }
