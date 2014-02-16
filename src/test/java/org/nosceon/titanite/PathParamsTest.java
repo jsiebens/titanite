@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.*;
 
 /**
  * @author Johan Siebens
@@ -21,13 +22,13 @@ public class PathParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/a/{p}", (r) -> ok().body(r.pathParams.getString("p").get()))
-                .get("/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p").get())))
-                .get("/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p").get())))
-                .get("/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p").get())))
-                .get("/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p").get())))
-                .get("/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p").get())))
-                .get("/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p").get())))
+                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.getString("p").get()))
+                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p").get())))
+                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p").get())))
+                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p").get())))
+                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p").get())))
+                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p").get())))
+                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p").get())))
                 .start(port);
     }
 

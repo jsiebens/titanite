@@ -9,19 +9,19 @@ import java.util.function.Function;
  */
 final class Routing<I, O> {
 
-    private final HttpMethod method;
+    private final Method method;
 
     private final String pattern;
 
     private final Function<I, O> function;
 
-    Routing(HttpMethod method, String pattern, Function<I, O> function) {
+    Routing(Method method, String pattern, Function<I, O> function) {
         this.method = method;
         this.pattern = pattern;
         this.function = function;
     }
 
-    public HttpMethod method() {
+    public Method method() {
         return method;
     }
 

@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.nosceon.titanite.Method.DELETE;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -20,8 +22,8 @@ public class MethodNotAllowedTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/resource", (r) -> Responses.ok().body(r.method.name()))
-                .delete("/resource", (r) -> Responses.ok().body(r.method.name()))
+                .register(GET, "/resource", (r) -> Responses.ok().body(r.method.name()))
+                .register(DELETE, "/resource", (r) -> Responses.ok().body(r.method.name()))
                 .start(port);
     }
 

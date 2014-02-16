@@ -15,6 +15,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.nosceon.titanite.Method.POST;
 
 /**
  * @author Johan Siebens
@@ -39,7 +40,7 @@ public class FileUploadTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .post("/post", (r) -> {
+                .register(POST, "/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
                     return ok().body(r.body.asForm().getString("lorem").get());
                 })

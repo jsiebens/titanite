@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.POST;
 
 /**
  * @author Johan Siebens
@@ -34,7 +35,7 @@ public class FiltersTest extends AbstractE2ETest {
         shutdownable =
             newServer()
                 .register(TEXT.andThen(TO_UPPER).andThen(new TextController()))
-                .post("/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
+                .register(POST, "/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
                 .start(port);
     }
 

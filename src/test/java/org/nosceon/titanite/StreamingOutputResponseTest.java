@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -27,7 +28,7 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/resource", (r) -> ok().stream(o -> {
+                .register(GET, "/resource", (r) -> ok().stream(o -> {
                     ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
                 }))
                 .start(port);

@@ -1,7 +1,5 @@
 package org.nosceon.titanite;
 
-import io.netty.handler.codec.http.HttpMethod;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -21,24 +19,9 @@ public abstract class RouterBuilder<R extends RouterBuilder> {
 
     private final List<Filter<Request, Response, Request, Response>> filters = new LinkedList<>();
 
-    public final R get(String pattern, Function<Request, Response> function) {
-        return register(HttpMethod.GET, pattern, function);
-    }
-
-    public final R post(String pattern, Function<Request, Response> function) {
-        return register(HttpMethod.POST, pattern, function);
-    }
-
-    public final R put(String pattern, Function<Request, Response> function) {
-        return register(HttpMethod.PUT, pattern, function);
-    }
-
-    public final R patch(String pattern, Function<Request, Response> function) {
-        return register(HttpMethod.PATCH, pattern, function);
-    }
-
-    public final R delete(String pattern, Function<Request, Response> function) {
-        return register(HttpMethod.DELETE, pattern, function);
+    public final R register(Method method, String pattern, Function<Request, Response> function) {
+        this.routings.add(new Routing<>(method, pattern, function));
+        return self();
     }
 
     public final R register(Routings<Request, Response> routings) {
@@ -48,11 +31,6 @@ public abstract class RouterBuilder<R extends RouterBuilder> {
 
     public final R register(Filter<Request, Response, Request, Response> filter) {
         this.filters.add(filter);
-        return self();
-    }
-
-    public final R register(HttpMethod method, String pattern, Function<Request, Response> function) {
-        this.routings.add(new Routing<>(method, pattern, function));
         return self();
     }
 

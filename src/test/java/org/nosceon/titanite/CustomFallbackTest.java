@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -21,7 +22,7 @@ public class CustomFallbackTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/a", (r) -> ok().text("ok"))
+                .register(GET, "/a", (r) -> ok().text("ok"))
                 .notFound((r) -> ok().text("notFound"))
                 .start(port);
     }

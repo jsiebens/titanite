@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -38,10 +39,10 @@ public class ViewsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/hello1", (r) -> ok().view(new HelloView("hello", "world")))
-                .get("/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")))
-                .get("/hello3", (r) -> ok().view(new HelloView("/hello", "world")))
-                .get("/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")))
+                .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")))
+                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")))
+                .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")))
+                .register(GET, "/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")))
                 .start(port);
     }
 

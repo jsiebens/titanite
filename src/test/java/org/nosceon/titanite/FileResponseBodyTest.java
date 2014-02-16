@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -36,7 +37,7 @@ public class FileResponseBodyTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/file", (r) -> ok().file(file))
+                .register(GET, "/file", (r) -> ok().file(file))
                 .start(port);
     }
 

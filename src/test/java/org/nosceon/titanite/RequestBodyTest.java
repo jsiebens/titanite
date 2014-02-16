@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.POST;
 
 /**
  * @author Johan Siebens
@@ -26,7 +27,7 @@ public class RequestBodyTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .post("/post", (r) -> ok().body(convertStreamToString(r.body.asStream())))
+                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body.asStream())))
                 .start(port);
     }
 

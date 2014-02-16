@@ -1,7 +1,5 @@
 package org.nosceon.titanite;
 
-import io.netty.handler.codec.http.HttpMethod;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -21,23 +19,23 @@ public class Routings<I, O> extends Responses {
     }
 
     protected final void get(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(HttpMethod.GET, pattern, function));
+        routings.add(new Routing<>(Method.GET, pattern, function));
     }
 
     protected final void post(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(HttpMethod.POST, pattern, function));
+        routings.add(new Routing<>(Method.POST, pattern, function));
     }
 
     protected final void put(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(HttpMethod.PUT, pattern, function));
+        routings.add(new Routing<>(Method.PUT, pattern, function));
     }
 
     protected final void patch(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(HttpMethod.PATCH, pattern, function));
+        routings.add(new Routing<>(Method.PATCH, pattern, function));
     }
 
     protected final void delete(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(HttpMethod.DELETE, pattern, function));
+        routings.add(new Routing<>(Method.DELETE, pattern, function));
     }
 
     final List<Routing<I, O>> get() {

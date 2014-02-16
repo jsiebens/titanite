@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.*;
 
 /**
  * @author Johan Siebens
@@ -21,13 +22,13 @@ public class QueryParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/a", (r) -> Responses.ok().body(r.queryParams.getString("p").get()))
-                .get("/b", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getShort("p").get())))
-                .get("/c", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getInt("p").get())))
-                .get("/d", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getLong("p").get())))
-                .get("/e", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getFloat("p").get())))
-                .get("/f", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getDouble("p").get())))
-                .get("/g", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getBoolean("p").get())))
+                .register(GET, "/a", (r) -> Responses.ok().body(r.queryParams.getString("p").get()))
+                .register(GET, "/b", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getShort("p").get())))
+                .register(GET, "/c", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getInt("p").get())))
+                .register(GET, "/d", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getLong("p").get())))
+                .register(GET, "/e", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getFloat("p").get())))
+                .register(GET, "/f", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getDouble("p").get())))
+                .register(GET, "/g", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getBoolean("p").get())))
                 .start(port);
     }
 

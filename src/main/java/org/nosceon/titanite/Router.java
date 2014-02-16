@@ -18,7 +18,7 @@ public final class Router {
 
     public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed());
 
-    private final Map<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> mapping = new LinkedHashMap<>();
+    private final Map<ParameterizedPattern, Map<Method, Function<Request, Response>>> mapping = new LinkedHashMap<>();
 
     private final RoutingResult fallback;
 
@@ -32,20 +32,26 @@ public final class Router {
         }
     }
 
-    public RoutingResult find(HttpMethod method, String pattern) {
-        for (Map.Entry<ParameterizedPattern, Map<HttpMethod, Function<Request, Response>>> entry : mapping.entrySet()) {
-            ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
-            if (matcher.matches()) {
-                Function<Request, Response> f = entry.getValue().get(method);
-                return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
+    RoutingResult find(HttpMethod method, String pattern) {
+        Method map = map(method);
+        if (map != null) {
+            for (Map.Entry<ParameterizedPattern, Map<Method, Function<Request, Response>>> entry : mapping.entrySet()) {
+                ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
+                if (matcher.matches()) {
+                    Function<Request, Response> f = entry.getValue().get(map);
+                    return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
+                }
             }
+            return fallback;
         }
-        return fallback;
+        else {
+            return METHOD_NOT_ALLOWED;
+        }
     }
 
-    private Router add(List<Filter<Request, Response, Request, Response>> filters, HttpMethod method, String pattern, Function<Request, Response> function) {
+    private Router add(List<Filter<Request, Response, Request, Response>> filters, Method method, String pattern, Function<Request, Response> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
-        Map<HttpMethod, Function<Request, Response>> map = mapping.get(pp);
+        Map<Method, Function<Request, Response>> map = mapping.get(pp);
         if (map == null) {
             map = new HashMap<>();
             mapping.put(pp, map);
@@ -66,6 +72,15 @@ public final class Router {
             result = result.andThen(filter);
         }
         return result.andThen(function);
+    }
+
+    private Method map(HttpMethod method) {
+        try {
+            return Method.valueOf(method.name());
+        }
+        catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
 }

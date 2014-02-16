@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Method.POST;
 
 /**
  * @author Johan Siebens
@@ -43,8 +45,8 @@ public class JsonResponseTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .get("/json", (r) -> ok().json(new Hello("world")))
-                .post("/json", (r) -> {
+                .register(GET, "/json", (r) -> ok().json(new Hello("world")))
+                .register(POST, "/json", (r) -> {
                     Hello hello = r.body.asJson(Hello.class);
                     return ok().json(new Hello(hello.getName().toUpperCase()));
                 })
