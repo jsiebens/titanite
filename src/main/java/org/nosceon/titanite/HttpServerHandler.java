@@ -46,11 +46,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private Aggregator aggregator;
 
-    private int maxRequestSize;
+    private long maxRequestSize;
 
     private boolean tooLongFrameFound;
 
-    public HttpServerHandler(int maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
+    public HttpServerHandler(long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
         this.renderer = renderer;

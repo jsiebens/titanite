@@ -12,9 +12,9 @@ import static org.nosceon.titanite.Responses.methodNotAllowed;
 /**
  * @author Johan Siebens
  */
-final class Router {
+public final class Router {
 
-    private static final Logger log = LoggerFactory.getLogger(HttpServer.class);
+    private static final Logger log = LoggerFactory.getLogger(Router.class);
 
     public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed());
 
@@ -22,7 +22,10 @@ final class Router {
 
     private final RoutingResult fallback;
 
-    public Router(List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings, Function<Request, Response> fallback) {
+    private final String id;
+
+    public Router(String id, List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings, Function<Request, Response> fallback) {
+        this.id = id;
         this.fallback = new RoutingResult(Collections.emptyMap(), fallback);
         for (Routing<Request, Response> r : routings) {
             add(filters, r.method(), r.pattern(), r.function());
@@ -48,7 +51,7 @@ final class Router {
             mapping.put(pp, map);
         }
         if (map.putIfAbsent(method, createFunction(filters, function)) == null) {
-            log.info("Http Server registered handler for " + method + " " + pattern);
+            log.info("Router [" + id + "] registered handler for " + method + " " + pattern);
         }
         return this;
     }
