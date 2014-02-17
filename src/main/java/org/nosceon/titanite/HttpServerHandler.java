@@ -83,8 +83,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 tooLongFrameFound = true;
 
                 // release current message to prevent leaks
-                aggregator.release();
-                aggregator = null;
+                reset();
 
                 ctx.writeAndFlush(TOO_LARGE).addListener(ChannelFutureListener.CLOSE);
                 return;
@@ -136,9 +135,23 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     }
 
+    private void reset() {
+        if (aggregator != null) {
+            aggregator.release();
+            aggregator = null;
+        }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        reset();
+    }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.warn("error handling request", cause);
+        reset();
         ctx.channel().close();
     }
 
