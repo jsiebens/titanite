@@ -1,8 +1,12 @@
 package org.nosceon.titanite;
 
+import com.google.common.net.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.Locale;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -17,6 +21,10 @@ public class HeadersTest extends AbstractE2ETest {
 
     private int port;
 
+    private static final Date DATE = new Date(5000);
+
+    private static final Locale LOCALE = Locale.ITALY;
+
     @Before
     public void setUp() {
         port = findFreePort();
@@ -29,6 +37,12 @@ public class HeadersTest extends AbstractE2ETest {
                 .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p").get())))
                 .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p").get())))
                 .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p").get())))
+                .register(GET, "/headers", (r) ->
+                    ok()
+                        .type(MediaType.APPLICATION_XML)
+                        .language(LOCALE)
+                        .lastModified(DATE)
+                )
                 .start(port);
     }
 
@@ -46,6 +60,14 @@ public class HeadersTest extends AbstractE2ETest {
         given().header("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().get(uri(port, "/e"));
         given().header("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().get(uri(port, "/f"));
         given().header("p", "true").expect().statusCode(200).body(equalTo("true")).when().get(uri(port, "/g"));
+
+        given()
+            .expect()
+            .statusCode(200)
+            .header(HttpHeaders.CONTENT_TYPE, equalTo("application/xml"))
+            .header(HttpHeaders.LAST_MODIFIED, equalTo("Thu, 01 Jan 1970 00:00:05 GMT"))
+            .header(HttpHeaders.CONTENT_LANGUAGE, equalTo("it_IT"))
+            .when().get(uri(port, "/headers"));
     }
 
 }

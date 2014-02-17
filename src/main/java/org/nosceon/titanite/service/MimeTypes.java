@@ -1,6 +1,7 @@
 package org.nosceon.titanite.service;
 
 import com.google.common.io.Resources;
+import org.nosceon.titanite.MediaType;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.IOException;
@@ -21,8 +22,8 @@ class MimeTypes {
         }
     }
 
-    public static String contentType(String name) {
-        return map.getContentType(name);
+    public static MediaType contentType(String name) {
+        return MediaType.valueOf(map.getContentType(name));
     }
 
 }

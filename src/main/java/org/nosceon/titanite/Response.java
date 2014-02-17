@@ -15,10 +15,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Date;
+import java.util.Locale;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
+import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static org.nosceon.titanite.HttpServerException.propagate;
@@ -52,8 +54,23 @@ public final class Response {
         return this;
     }
 
-    public Response contentType(MediaType type) {
-        headers.add(CONTENT_TYPE, type.toString());
+    public Response location(URI location) {
+        headers.set(LOCATION, location);
+        return this;
+    }
+
+    public Response type(MediaType type) {
+        headers.set(CONTENT_TYPE, type.toString());
+        return this;
+    }
+
+    public Response language(Locale language) {
+        headers.set(CONTENT_LANGUAGE, language);
+        return this;
+    }
+
+    public Response lastModified(Date date) {
+        headers.set(LAST_MODIFIED, date);
         return this;
     }
 
@@ -73,19 +90,19 @@ public final class Response {
     }
 
     public Response text(String content) {
-        this.contentType(MediaType.TEXT_PLAIN);
+        this.type(MediaType.TEXT_PLAIN);
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
     public Response html(String content) {
-        this.contentType(MediaType.TEXT_HTML);
+        this.type(MediaType.TEXT_HTML);
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
         return this;
     }
 
     public Response json(Object entity) {
-        this.contentType(MediaType.APPLICATION_JSON);
+        this.type(MediaType.APPLICATION_JSON);
         this.body = new JsonBody(entity);
         return this;
     }

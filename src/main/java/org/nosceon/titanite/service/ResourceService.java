@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
 import static org.nosceon.titanite.Responses.notModified;
 import static org.nosceon.titanite.Responses.ok;
@@ -46,7 +46,7 @@ public final class ResourceService implements Function<Request, Response> {
 
         if (lastModified <= 0) {
             return ok()
-                .header(CONTENT_TYPE, MimeTypes.contentType(resource.getName()))
+                .type(MimeTypes.contentType(resource.getName()))
                 .stream((o) -> {
                     ByteStreams.copy(resource.getInputStream(), o);
                 });
@@ -58,8 +58,8 @@ public final class ResourceService implements Function<Request, Response> {
                     .map((d) -> notModified())
                     .orElseGet(() ->
                         ok()
-                            .header(CONTENT_TYPE, MimeTypes.contentType(resource.getName()))
-                            .header(LAST_MODIFIED, new Date(lastModified))
+                            .type(MimeTypes.contentType(resource.getName()))
+                            .lastModified(new Date(lastModified))
                             .stream((o) -> {
                                 ByteStreams.copy(resource.getInputStream(), o);
                             }));

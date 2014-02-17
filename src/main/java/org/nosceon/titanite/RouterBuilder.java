@@ -4,10 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.nosceon.titanite.Chain.newChain;
-import static org.nosceon.titanite.service.ResourceService.PUBLIC_RESOURCES;
-import static org.nosceon.titanite.service.ResourceService.WEBJAR_RESOURCES;
-
 /**
  * @author Johan Siebens
  */

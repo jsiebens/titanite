@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static org.nosceon.titanite.Responses.notModified;
 import static org.nosceon.titanite.Responses.ok;
 
@@ -41,7 +41,7 @@ public final class FileService implements Function<Request, Response> {
         if (lastModified <= 0) {
             return
                 ok()
-                    .header(CONTENT_TYPE, MimeTypes.contentType(file.getName()))
+                    .type(MimeTypes.contentType(file.getName()))
                     .file(file);
         }
         else {
@@ -51,8 +51,8 @@ public final class FileService implements Function<Request, Response> {
                     .map((d) -> notModified())
                     .orElseGet(() ->
                         ok()
-                            .header(CONTENT_TYPE, MimeTypes.contentType(file.getName()))
-                            .header(LAST_MODIFIED, new Date(lastModified))
+                            .type(MimeTypes.contentType(file.getName()))
+                            .lastModified(new Date(lastModified))
                             .file(file));
         }
     }
