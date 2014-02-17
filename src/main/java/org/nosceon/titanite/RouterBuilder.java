@@ -13,7 +13,7 @@ import static org.nosceon.titanite.service.ResourceService.WEBJAR_RESOURCES;
  */
 public abstract class RouterBuilder<R extends RouterBuilder> {
 
-    private Function<Request, Response> fallback = newChain(PUBLIC_RESOURCES).fallbackTo(WEBJAR_RESOURCES);
+    private Function<Request, Response> fallback = (r) -> Responses.notFound();
 
     private final List<Routing<Request, Response>> routings = new LinkedList<>();
 

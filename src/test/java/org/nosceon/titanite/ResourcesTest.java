@@ -6,6 +6,9 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Chain.newChain;
+
+import static org.nosceon.titanite.service.ResourceService.*;
 
 /**
  * @author Johan Siebens
@@ -19,7 +22,10 @@ public class ResourcesTest extends AbstractE2ETest {
     @Before
     public void setUp() {
         port = findFreePort();
-        shutdownable = newServer().start(port);
+        shutdownable =
+            newServer()
+                .notFound(newChain(PUBLIC_RESOURCES).fallbackTo(WEBJAR_RESOURCES))
+                .start(port);
     }
 
     @After
