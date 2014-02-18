@@ -2,14 +2,8 @@ package org.nosceon.titanite;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,26 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Johan Siebens
  */
-public final class HttpServer extends RouterBuilder<HttpServer> {
+public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
-
-    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, EventLoopGroup executors, long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
-        return new ServerBootstrap()
-            .group(ioWorkers)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(new ChannelInitializer<SocketChannel>() {
-
-                @Override
-                protected void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline()
-                        .addLast(new HttpRequestDecoder())
-                        .addLast(new HttpResponseEncoder())
-                        .addLast(executors, new HttpServerHandler(maxRequestSize, router, renderer, mapper));
-                }
-
-            });
-    }
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
@@ -68,7 +45,7 @@ public final class HttpServer extends RouterBuilder<HttpServer> {
 
         Router router = router(id);
         ViewRenderer renderer = new ViewRenderer();
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = mapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
         EventLoopGroup eventExecutor = new NioEventLoopGroup(executorThreadCount);
 
