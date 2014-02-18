@@ -9,6 +9,8 @@ public interface RequestBody {
 
     InputStream asStream();
 
+    String asText();
+
     <T> T asJson(Class<T> type);
 
     boolean isForm();

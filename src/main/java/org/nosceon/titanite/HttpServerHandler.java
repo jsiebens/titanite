@@ -1,6 +1,7 @@
 package org.nosceon.titanite;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.CharStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
@@ -14,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -285,6 +288,15 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
+        public String asText() {
+            return propagate(() -> {
+                try (Reader in = new InputStreamReader(asStream())) {
+                    return CharStreams.toString(in);
+                }
+            });
+        }
+
+        @Override
         public <T> T asJson(Class<T> type) {
             return propagate(() -> mapper.readValue(asStream(), type));
         }
@@ -312,6 +324,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public InputStream asStream() {
             throw new UnsupportedOperationException("asStream not supported");
+        }
+
+        @Override
+        public String asText() {
+            throw new UnsupportedOperationException("asText not supported");
         }
 
         @Override

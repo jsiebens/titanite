@@ -1,5 +1,6 @@
 package org.nosceon.titanite;
 
+import com.google.common.base.Strings;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public final class Router {
             mapping.put(pp, map);
         }
         if (map.putIfAbsent(method, createFunction(filters, function)) == null) {
-            log.info("Router [" + id + "] registered handler for " + method + " " + pattern);
+            log.info("Router [" + id + "] registered handler for " + Strings.padEnd(method.toString(), 6, ' ') + " " + pattern);
         }
         return this;
     }
