@@ -38,4 +38,8 @@ public final class Request {
         return headers.getString(HttpHeaders.Names.CONTENT_TYPE).map(MediaType::valueOf);
     }
 
+    public String baseUri() {
+        return "http://" + headers.getString(HttpHeaders.Names.HOST).get();
+    }
+
 }
