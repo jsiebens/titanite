@@ -25,6 +25,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.Responses.badRequest;
 
 /**
  * @author Johan Siebens
@@ -122,6 +123,9 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 Response response = null;
                 try {
                     response = routing.function.apply(req);
+                }
+                catch (NoLogHttpServerException e) {
+                    response = e.getResponse();
                 }
                 catch (HttpServerException e) {
                     logger.error("error processing request", e);
@@ -298,7 +302,12 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public <T> T asJson(Class<T> type) {
-            return propagate(() -> mapper.readValue(asStream(), type));
+            if (content.readableBytes() > 0) {
+                return propagate(() -> mapper.readValue(asStream(), type));
+            }
+            else {
+                throw new NoLogHttpServerException(badRequest());
+            }
         }
 
         @Override
