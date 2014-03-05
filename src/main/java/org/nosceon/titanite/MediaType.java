@@ -1,9 +1,11 @@
 package org.nosceon.titanite;
 
+import java.util.function.Predicate;
+
 /**
  * @author Johan Siebens
  */
-public final class MediaType {
+public final class MediaType implements Predicate<MediaType> {
 
     public final static MediaType APPLICATION_XML = valueOf("application/xml");
 
@@ -46,6 +48,11 @@ public final class MediaType {
     }
 
     public boolean is(MediaType mediaType) {
+        return delegate.is(mediaType.delegate);
+    }
+
+    @Override
+    public boolean test(MediaType mediaType) {
         return delegate.is(mediaType.delegate);
     }
 
