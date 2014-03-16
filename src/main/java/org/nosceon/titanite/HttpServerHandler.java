@@ -20,6 +20,8 @@ import java.io.Reader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
@@ -120,26 +122,44 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         aggregator.newRequestBody()
                     );
 
-                Response response = null;
-                try {
-                    response = routing.function.apply(req);
-                }
-                catch (NoLogHttpServerException e) {
-                    response = e.getResponse();
-                }
-                catch (HttpServerException e) {
-                    logger.error("error processing request", e);
-                    response = e.getResponse();
-                }
-                catch (Exception e) {
-                    logger.error("error processing request", e);
-                    ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
-                }
 
-                Optional.ofNullable(response).ifPresent((r) -> r.apply(request, ctx, renderer, mapper));
+                CompletableFuture
+                    .completedFuture(req)
+                    .<Response>thenCompose(routing.function::apply)
+                    .whenComplete((response, e) -> {
+                        Response r = response;
+                        if (e != null) {
+                            if (e instanceof CompletionException) {
+                                e = lookupCause((CompletionException) e);
+                            }
+
+                            if (e instanceof NoLogHttpServerException) {
+                                r = ((NoLogHttpServerException) e).getResponse();
+                            }
+                            else if (e instanceof HttpServerException) {
+                                logger.error("error processing request", e);
+                                r = ((HttpServerException) e).getResponse();
+                            }
+                            else {
+                                logger.error("error processing request", e);
+                                ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
+                                return;
+                            }
+                        }
+                        r.apply(request, ctx, renderer, mapper);
+                    });
+
             }
         }
 
+    }
+
+    private Throwable lookupCause(CompletionException e) {
+        Throwable cause = e.getCause();
+        if (cause != null) {
+            return cause;
+        }
+        return e;
     }
 
     private void reset() {

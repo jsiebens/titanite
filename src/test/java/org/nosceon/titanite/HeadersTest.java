@@ -30,18 +30,19 @@ public class HeadersTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a", (r) -> ok().body(r.headers.getString("p").get()).header("m", r.headers.getString("p").get()))
-                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p").get())))
-                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p").get())))
-                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p").get())))
-                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p").get())))
-                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p").get())))
-                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p").get())))
+                .register(GET, "/a", (r) -> ok().body(r.headers.getString("p").get()).header("m", r.headers.getString("p").get()).completed())
+                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p").get())).completed())
+                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p").get())).completed())
+                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p").get())).completed())
+                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p").get())).completed())
+                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p").get())).completed())
+                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p").get())).completed())
                 .register(GET, "/headers", (r) ->
                     ok()
                         .type(MediaType.APPLICATION_XML)
                         .language(LOCALE)
                         .lastModified(DATE)
+                        .completed()
                 )
                 .start(port);
     }

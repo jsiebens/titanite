@@ -1,7 +1,5 @@
 package org.nosceon.titanite;
 
-import io.netty.handler.codec.http.HttpMethod;
-
 import java.util.function.Function;
 
 /**

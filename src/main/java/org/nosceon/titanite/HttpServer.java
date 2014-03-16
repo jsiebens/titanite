@@ -20,21 +20,17 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
     private int ioWorkerCount = Runtime.getRuntime().availableProcessors() * 2;
 
-    private int executorThreadCount = 16;
-
     private int maxRequestSize = 1024 * 1024 * 10;
 
     public HttpServer() {
     }
 
-    public HttpServer(int ioWorkerCount, int executorThreadCount) {
+    public HttpServer(int ioWorkerCount) {
         this.ioWorkerCount = ioWorkerCount;
-        this.executorThreadCount = executorThreadCount;
     }
 
-    public HttpServer(int ioWorkerCount, int executorThreadCount, int maxRequestSize) {
+    public HttpServer(int ioWorkerCount, int maxRequestSize) {
         this.ioWorkerCount = ioWorkerCount;
-        this.executorThreadCount = executorThreadCount;
         this.maxRequestSize = maxRequestSize;
     }
 
@@ -47,16 +43,12 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
         ViewRenderer renderer = new ViewRenderer();
         ObjectMapper mapper = mapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
-        EventLoopGroup eventExecutor = new NioEventLoopGroup(executorThreadCount);
 
-        newHttpServerBootstrap(eventLoopGroup, eventExecutor, maxRequestSize, router, renderer, mapper).bind(port).syncUninterruptibly();
+        newHttpServerBootstrap(eventLoopGroup, maxRequestSize, router, renderer, mapper).bind(port).syncUninterruptibly();
 
         logger.info("Http Server [" + id + "] started, listening on port " + port);
 
-        return () -> {
-            eventExecutor.shutdownGracefully();
-            eventLoopGroup.shutdownGracefully();
-        };
+        return eventLoopGroup::shutdownGracefully;
     }
 
     @Override

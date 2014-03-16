@@ -45,10 +45,10 @@ public class JsonResponseTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/json", (r) -> ok().json(new Hello("world")))
+                .register(GET, "/json", (r) -> ok().json(new Hello("world")).completed())
                 .register(POST, "/json", (r) -> {
                     Hello hello = r.body.asJson(Hello.class);
-                    return ok().json(new Hello(hello.getName().toUpperCase()));
+                    return ok().json(new Hello(hello.getName().toUpperCase())).completed();
                 })
                 .start(port);
     }

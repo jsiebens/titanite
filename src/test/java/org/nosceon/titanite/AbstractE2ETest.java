@@ -8,7 +8,7 @@ import java.net.ServerSocket;
 public class AbstractE2ETest extends Responses {
 
     protected HttpServer newServer() {
-        return new HttpServer(2, 5);
+        return new HttpServer(2);
     }
 
     protected int findFreePort() {

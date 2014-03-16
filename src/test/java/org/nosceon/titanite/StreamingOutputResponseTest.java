@@ -30,7 +30,7 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
             newServer()
                 .register(GET, "/resource", (r) -> ok().stream(o -> {
                     ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
-                }))
+                }).completed())
                 .start(port);
     }
 

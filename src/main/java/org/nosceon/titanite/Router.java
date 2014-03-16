@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static org.nosceon.titanite.Responses.methodNotAllowed;
@@ -17,18 +18,18 @@ public final class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
-    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed());
+    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed().completed());
 
-    private final Map<ParameterizedPattern, Map<Method, Function<Request, Response>>> mapping = new LinkedHashMap<>();
+    private final Map<ParameterizedPattern, Map<Method, Function<Request, CompletableFuture<Response>>>> mapping = new LinkedHashMap<>();
 
     private final RoutingResult fallback;
 
     private final String id;
 
-    public Router(String id, List<Filter<Request, Response, Request, Response>> filters, List<Routing<Request, Response>> routings, Function<Request, Response> fallback) {
+    public Router(String id, List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters, List<Routing<Request, CompletableFuture<Response>>> routings, Function<Request, CompletableFuture<Response>> fallback) {
         this.id = id;
         this.fallback = new RoutingResult(Collections.emptyMap(), fallback);
-        for (Routing<Request, Response> r : routings) {
+        for (Routing<Request, CompletableFuture<Response>> r : routings) {
             add(filters, r.method(), r.pattern(), r.function());
         }
     }
@@ -36,10 +37,10 @@ public final class Router {
     RoutingResult find(HttpMethod method, String pattern) {
         Method map = map(method);
         if (map != null) {
-            for (Map.Entry<ParameterizedPattern, Map<Method, Function<Request, Response>>> entry : mapping.entrySet()) {
+            for (Map.Entry<ParameterizedPattern, Map<Method, Function<Request, CompletableFuture<Response>>>> entry : mapping.entrySet()) {
                 ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
                 if (matcher.matches()) {
-                    Function<Request, Response> f = entry.getValue().get(map);
+                    Function<Request, CompletableFuture<Response>> f = entry.getValue().get(map);
                     return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
                 }
             }
@@ -50,9 +51,9 @@ public final class Router {
         }
     }
 
-    private Router add(List<Filter<Request, Response, Request, Response>> filters, Method method, String pattern, Function<Request, Response> function) {
+    private Router add(List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
-        Map<Method, Function<Request, Response>> map = mapping.get(pp);
+        Map<Method, Function<Request, CompletableFuture<Response>>> map = mapping.get(pp);
         if (map == null) {
             map = new HashMap<>();
             mapping.put(pp, map);
@@ -63,13 +64,13 @@ public final class Router {
         return this;
     }
 
-    public static Function<Request, Response> createFunction(List<Filter<Request, Response, Request, Response>> filters, Function<Request, Response> function) {
+    public static Function<Request, CompletableFuture<Response>> createFunction(List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters, Function<Request, CompletableFuture<Response>> function) {
         if (filters.isEmpty()) {
             return function;
         }
 
-        Filter<Request, Response, Request, Response> result = (r, f) -> f.apply(r);
-        for (Filter<Request, Response, Request, Response> filter : filters) {
+        Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> result = (r, f) -> f.apply(r);
+        for (Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter : filters) {
             result = result.andThen(filter);
         }
         return result.andThen(function);

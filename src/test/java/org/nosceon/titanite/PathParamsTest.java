@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Method.*;
+import static org.nosceon.titanite.Method.GET;
 
 /**
  * @author Johan Siebens
@@ -22,13 +22,13 @@ public class PathParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.getString("p").get()))
-                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p").get())))
-                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p").get())))
-                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p").get())))
-                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p").get())))
-                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p").get())))
-                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p").get())))
+                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.getString("p").get()).completed())
+                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p").get())).completed())
+                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p").get())).completed())
+                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p").get())).completed())
+                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p").get())).completed())
+                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p").get())).completed())
+                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p").get())).completed())
                 .start(port);
     }
 

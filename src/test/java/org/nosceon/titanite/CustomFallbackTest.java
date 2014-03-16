@@ -22,8 +22,8 @@ public class CustomFallbackTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a", (r) -> ok().text("ok"))
-                .notFound((r) -> ok().text("notFound"))
+                .register(GET, "/a", (r) -> ok().text("ok").completed())
+                .notFound((r) -> ok().text("notFound").completed())
                 .start(port);
     }
 

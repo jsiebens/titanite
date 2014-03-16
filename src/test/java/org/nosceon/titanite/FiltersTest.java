@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
@@ -17,7 +19,7 @@ public class FiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final Filter<Request, Response, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase()));
+    private static final Filter<Request, CompletableFuture<Response>, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase())).completed();
 
     private static final Filter<String, String, String, String> TO_UPPER = (s, function) -> function.apply(s).toUpperCase();
 

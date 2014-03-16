@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Method.POST;
 
 /**
@@ -24,8 +23,8 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            new HttpServer(2, 5, 5)
-                .register(POST, "/post", (r) -> Responses.ok())
+            new HttpServer(2, 5)
+                .register(POST, "/post", (r) -> Responses.ok().completed())
                 .start(port);
     }
 

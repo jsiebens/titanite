@@ -22,8 +22,8 @@ public class MethodNotAllowedTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/resource", (r) -> Responses.ok().body(r.method.name()))
-                .register(DELETE, "/resource", (r) -> Responses.ok().body(r.method.name()))
+                .register(GET, "/resource", (r) -> Responses.ok().body(r.method.name()).completed())
+                .register(DELETE, "/resource", (r) -> Responses.ok().body(r.method.name()).completed())
                 .start(port);
     }
 

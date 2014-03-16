@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -27,8 +29,8 @@ public class ControllersTest extends AbstractE2ETest {
             patch("/a", this::handle);
         }
 
-        private Response handle(Request request) {
-            return ok().body(request.method.name());
+        private CompletableFuture<Response> handle(Request request) {
+            return ok().body(request.method.name()).completed();
         }
 
     }
@@ -36,11 +38,11 @@ public class ControllersTest extends AbstractE2ETest {
     public static class ControllerB extends Controller {
 
         {
-            get("/b", (r) -> ok().body(r.method.name()));
-            post("/b", (r) -> ok().body(r.method.name()));
-            put("/b", (r) -> ok().body(r.method.name()));
-            delete("/b", (r) -> ok().body(r.method.name()));
-            patch("/b", (r) -> ok().body(r.method.name()));
+            get("/b", (r) -> ok().body(r.method.name()).completed());
+            post("/b", (r) -> ok().body(r.method.name()).completed());
+            put("/b", (r) -> ok().body(r.method.name()).completed());
+            delete("/b", (r) -> ok().body(r.method.name()).completed());
+            patch("/b", (r) -> ok().body(r.method.name()).completed());
         }
 
     }

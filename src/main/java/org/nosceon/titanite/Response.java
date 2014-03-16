@@ -19,10 +19,12 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.internalServerError;
 
@@ -120,6 +122,10 @@ public final class Response {
     public Response view(View view) {
         this.body = new ViewBody(view);
         return this;
+    }
+
+    public CompletableFuture<Response> completed() {
+        return completedFuture(this);
     }
 
     void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {

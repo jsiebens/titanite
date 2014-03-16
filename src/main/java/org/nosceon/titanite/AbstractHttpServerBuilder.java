@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
@@ -19,42 +20,42 @@ import java.util.function.Function;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, EventLoopGroup executors, long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
+    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
         return new ServerBootstrap()
-                .group(ioWorkers)
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
+            .group(ioWorkers)
+            .channel(NioServerSocketChannel.class)
+            .childHandler(new ChannelInitializer<SocketChannel>() {
 
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline()
-                                .addLast(new HttpRequestDecoder())
-                                .addLast(new HttpResponseEncoder())
-                                .addLast(executors, new HttpServerHandler(maxRequestSize, router, renderer, mapper));
-                    }
+                @Override
+                protected void initChannel(SocketChannel ch) throws Exception {
+                    ch.pipeline()
+                        .addLast(new HttpRequestDecoder())
+                        .addLast(new HttpResponseEncoder())
+                        .addLast(new HttpServerHandler(maxRequestSize, router, renderer, mapper));
+                }
 
-                });
+            });
     }
 
-    private Function<Request, Response> fallback = (r) -> Responses.notFound();
+    private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().completed();
 
-    private final List<Routing<Request, Response>> routings = new LinkedList<>();
+    private final List<Routing<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
 
-    private final List<Filter<Request, Response, Request, Response>> filters = new LinkedList<>();
+    private final List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters = new LinkedList<>();
 
     private Optional<ObjectMapper> mapper = Optional.empty();
 
-    public final R register(Method method, String pattern, Function<Request, Response> function) {
+    public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         this.routings.add(new Routing<>(method, pattern, function));
         return self();
     }
 
-    public final R register(Routings<Request, Response> routings) {
+    public final R register(Routings<Request, CompletableFuture<Response>> routings) {
         this.routings.addAll(routings.get());
         return self();
     }
 
-    public final R register(Filter<Request, Response, Request, Response> filter) {
+    public final R register(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter) {
         this.filters.add(filter);
         return self();
     }
@@ -64,7 +65,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return self();
     }
 
-    public final R notFound(Function<Request, Response> fallback) {
+    public final R notFound(Function<Request, CompletableFuture<Response>> fallback) {
         this.fallback = fallback;
         return self();
     }

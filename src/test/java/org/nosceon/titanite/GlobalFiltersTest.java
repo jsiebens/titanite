@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.nosceon.titanite.Method.GET;
 
@@ -17,23 +19,23 @@ public class GlobalFiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final SimpleFilter<Request, Response> SECURITY = (r, f) -> {
-        String s = r.headers.getString(HttpHeaders.Names.AUTHORIZATION).orElse("");
+    private static final SimpleFilter<Request, CompletableFuture<Response>> SECURITY = (req, f) -> {
+        String s = req.headers.getString(HttpHeaders.Names.AUTHORIZATION).orElse("");
         if ("admin".equals(s)) {
-            return f.apply(r).header("x-titanite-a", "lorem");
+            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").completed());
         }
         else {
-            return status(401);
+            return status(401).completed();
         }
     };
 
-    private static final SimpleFilter<Request, Response> CONTENT_TYPE_JSON = (r, f) -> {
-        String s = r.headers.getString(HttpHeaders.Names.CONTENT_TYPE).orElse("");
+    private static final SimpleFilter<Request, CompletableFuture<Response>> CONTENT_TYPE_JSON = (req, f) -> {
+        String s = req.headers.getString(HttpHeaders.Names.CONTENT_TYPE).orElse("");
         if ("application/json".equals(s)) {
-            return f.apply(r).header("x-titanite-b", "ipsum");
+            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").completed());
         }
         else {
-            return status(415);
+            return status(415).completed();
         }
     };
 
@@ -44,7 +46,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
             newServer()
                 .register(SECURITY)
                 .register(CONTENT_TYPE_JSON)
-                .register(GET, "/resource", (r) -> ok().body("hello"))
+                .register(GET, "/resource", (r) -> ok().body("hello").completed())
                 .start(port);
     }
 

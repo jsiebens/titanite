@@ -45,11 +45,12 @@ public final class ResourceService implements Function<Request, Response> {
         long lastModified = resource.lastModified();
 
         if (lastModified <= 0) {
-            return ok()
-                .type(MimeTypes.contentType(resource.getName()))
-                .stream((o) -> {
-                    ByteStreams.copy(resource.getInputStream(), o);
-                });
+            return
+                ok()
+                    .type(MimeTypes.contentType(resource.getName()))
+                    .stream((o) -> {
+                        ByteStreams.copy(resource.getInputStream(), o);
+                    });
         }
         else {
             return

@@ -42,7 +42,7 @@ public class FileUploadTest extends AbstractE2ETest {
             newServer()
                 .register(POST, "/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
-                    return ok().body(r.body.asForm().getString("lorem").get());
+                    return ok().body(r.body.asForm().getString("lorem").get()).completed();
                 })
                 .start(port);
     }

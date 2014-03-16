@@ -10,6 +10,10 @@ public final class HttpServerException extends RuntimeException {
 
     private Response response;
 
+    public HttpServerException(Response response) {
+        this.response = response;
+    }
+
     public HttpServerException(Throwable cause, Response response) {
         super(cause);
         this.response = response;

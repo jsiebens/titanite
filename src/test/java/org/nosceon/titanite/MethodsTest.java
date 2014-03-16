@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.*;
@@ -28,8 +30,8 @@ public class MethodsTest extends AbstractE2ETest {
             patch("/controller", this::handle);
         }
 
-        private Response handle(Request request) {
-            return ok().body(request.method.name());
+        private CompletableFuture<Response> handle(Request request) {
+            return ok().body(request.method.name()).completed();
         }
 
     }
@@ -39,11 +41,11 @@ public class MethodsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/resource", (r) -> ok().body(r.method.name()))
-                .register(POST, "/resource", (r) -> ok().body(r.method.name()))
-                .register(PUT, "/resource", (r) -> ok().body(r.method.name()))
-                .register(DELETE, "/resource", (r) -> ok().body(r.method.name()))
-                .register(PATCH, "/resource", (r) -> ok().body(r.method.name()))
+                .register(GET, "/resource", (r) -> ok().body(r.method.name()).completed())
+                .register(POST, "/resource", (r) -> ok().body(r.method.name()).completed())
+                .register(PUT, "/resource", (r) -> ok().body(r.method.name()).completed())
+                .register(DELETE, "/resource", (r) -> ok().body(r.method.name()).completed())
+                .register(PATCH, "/resource", (r) -> ok().body(r.method.name()).completed())
                 .register(new MyController())
                 .start(port);
     }
