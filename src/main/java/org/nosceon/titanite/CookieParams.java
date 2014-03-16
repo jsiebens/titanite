@@ -19,13 +19,13 @@ public final class CookieParams extends Params {
         this.cookies = cookies;
     }
 
-    public Optional<CookieParam> get(String name) {
-        return Optional.ofNullable(cookies.get(name));
+    public CookieParam getCookie(String name) {
+        return cookies.get(name);
     }
 
     @Override
-    public Optional<String> getString(String name) {
-        return get(name).map(CookieParam::value);
+    public String get(String name) {
+        return Optional.ofNullable(cookies.get(name)).map(CookieParam::value).orElse(null);
     }
 
 }

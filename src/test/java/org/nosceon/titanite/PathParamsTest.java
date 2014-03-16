@@ -22,13 +22,13 @@ public class PathParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.getString("p").get()).completed())
-                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p").get())).completed())
-                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p").get())).completed())
-                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p").get())).completed())
-                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p").get())).completed())
-                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p").get())).completed())
-                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p").get())).completed())
+                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.get("p")).completed())
+                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p"))).completed())
+                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p"))).completed())
+                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p"))).completed())
+                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p"))).completed())
+                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p"))).completed())
+                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p"))).completed())
                 .start(port);
     }
 

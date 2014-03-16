@@ -16,11 +16,12 @@ public final class QueryParams extends Params {
     }
 
     @Override
-    public Optional<String> getString(String name) {
+    public String get(String name) {
         return
             Optional.ofNullable(values.get(name))
                 .filter(l -> !l.isEmpty())
-                .map((l) -> l.get(0));
+                .map((l) -> l.get(0))
+                .orElse(null);
     }
 
 }

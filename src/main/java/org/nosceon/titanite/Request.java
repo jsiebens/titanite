@@ -3,7 +3,7 @@ package org.nosceon.titanite;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 
-import java.util.Optional;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Johan Siebens
@@ -34,12 +34,12 @@ public final class Request {
         this.body = body;
     }
 
-    public Optional<MediaType> contentType() {
-        return headers.getString(HttpHeaders.Names.CONTENT_TYPE).map(MediaType::valueOf);
+    public MediaType contentType() {
+        return ofNullable(headers.get(HttpHeaders.Names.CONTENT_TYPE)).map(MediaType::valueOf).orElse(null);
     }
 
     public String baseUri() {
-        return "http://" + headers.getString(HttpHeaders.Names.HOST).get();
+        return "http://" + headers.get(HttpHeaders.Names.HOST);
     }
 
 }

@@ -22,7 +22,7 @@ public class CookiesTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a", (r) -> ok().body(r.cookies.getString("p").orElse("default value")).completed())
+                .register(GET, "/a", (r) -> ok().body(r.cookies.get("p", "default value")).completed())
                 .register(GET, "/cookie", (r) -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")).completed())
                 .start(port);
     }

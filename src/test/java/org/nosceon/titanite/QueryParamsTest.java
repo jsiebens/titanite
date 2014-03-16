@@ -22,13 +22,13 @@ public class QueryParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a", (r) -> Responses.ok().body(r.queryParams.getString("p").get()).completed())
-                .register(GET, "/b", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getShort("p").get())).completed())
-                .register(GET, "/c", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getInt("p").get())).completed())
-                .register(GET, "/d", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getLong("p").get())).completed())
-                .register(GET, "/e", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getFloat("p").get())).completed())
-                .register(GET, "/f", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getDouble("p").get())).completed())
-                .register(GET, "/g", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getBoolean("p").get())).completed())
+                .register(GET, "/a", (r) -> Responses.ok().body(r.queryParams.get("p")).completed())
+                .register(GET, "/b", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getShort("p"))).completed())
+                .register(GET, "/c", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getInt("p"))).completed())
+                .register(GET, "/d", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getLong("p"))).completed())
+                .register(GET, "/e", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getFloat("p"))).completed())
+                .register(GET, "/f", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getDouble("p"))).completed())
+                .register(GET, "/g", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getBoolean("p"))).completed())
                 .start(port);
     }
 

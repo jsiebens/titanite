@@ -28,7 +28,7 @@ public final class FormParams extends Params {
     }
 
     @Override
-    public Optional<String> getString(String name) {
+    public String get(String name) {
         return
             ofNullable(decoder.getBodyHttpData(name))
                 .flatMap(p ->
@@ -42,7 +42,8 @@ public final class FormParams extends Params {
                         else {
                             return empty();
                         }
-                    }));
+                    }))
+                .orElse(null);
     }
 
 }

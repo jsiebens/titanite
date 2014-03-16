@@ -35,6 +35,24 @@ public final class HttpServerException extends RuntimeException {
         }
     }
 
+    public static <R, S> Function<R, S> wrap(Function<R, S> f) throws HttpServerException {
+        return wrap(f, e -> Responses.internalServerError());
+    }
+
+    public static <R, S> Function<R, S> wrap(Function<R, S> f, Function<Exception, Response> translator) throws HttpServerException {
+        return s -> {
+            try {
+                return f.apply(s);
+            }
+            catch (HttpServerException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new HttpServerException(e, translator.apply(e));
+            }
+        };
+    }
+
     public Response getResponse() {
         return response;
     }

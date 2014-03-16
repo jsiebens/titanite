@@ -11,6 +11,11 @@ public final class NoLogHttpServerException extends RuntimeException {
         this.response = response;
     }
 
+    public NoLogHttpServerException(Throwable cause, Response response) {
+        super(cause);
+        this.response = response;
+    }
+
     public Response getResponse() {
         return response;
     }

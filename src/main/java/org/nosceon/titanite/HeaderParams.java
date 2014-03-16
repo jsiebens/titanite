@@ -19,11 +19,11 @@ public final class HeaderParams extends Params {
     }
 
     @Override
-    public Optional<String> getString(String name) {
-        return Optional.ofNullable(HttpHeaders.getHeader(message, name));
+    public String get(String name) {
+        return HttpHeaders.getHeader(message, name);
     }
 
-    public Optional<Date> getDate(String name) {
+    public Date getDate(String name) {
         return Optional.ofNullable(HttpHeaders.getHeader(message, name))
             .flatMap((o) -> {
                 try {
@@ -32,7 +32,7 @@ public final class HeaderParams extends Params {
                 catch (ParseException e) {
                     return Optional.empty();
                 }
-            });
+            }).orElse(null);
     }
 
 }

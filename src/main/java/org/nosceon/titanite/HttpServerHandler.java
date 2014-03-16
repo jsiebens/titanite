@@ -28,6 +28,7 @@ import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.badRequest;
+import static org.nosceon.titanite.Responses.internalServerError;
 
 /**
  * @author Johan Siebens
@@ -126,27 +127,26 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 CompletableFuture
                     .completedFuture(req)
                     .<Response>thenCompose(routing.function::apply)
-                    .whenComplete((response, e) -> {
-                        Response r = response;
+                    .whenComplete((r, e) -> {
+                        Response response = r;
                         if (e != null) {
                             if (e instanceof CompletionException) {
                                 e = lookupCause((CompletionException) e);
                             }
 
                             if (e instanceof NoLogHttpServerException) {
-                                r = ((NoLogHttpServerException) e).getResponse();
+                                response = ((NoLogHttpServerException) e).getResponse();
                             }
                             else if (e instanceof HttpServerException) {
                                 logger.error("error processing request", e);
-                                r = ((HttpServerException) e).getResponse();
+                                response = ((HttpServerException) e).getResponse();
                             }
                             else {
                                 logger.error("error processing request", e);
-                                ctx.writeAndFlush(INTERNAL_SERVER_ERROR).addListener(ChannelFutureListener.CLOSE);
-                                return;
+                                response = internalServerError();
                             }
                         }
-                        r.apply(request, ctx, renderer, mapper);
+                        response.apply(request, ctx, renderer, mapper);
                     });
 
             }

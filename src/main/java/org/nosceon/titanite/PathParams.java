@@ -1,7 +1,6 @@
 package org.nosceon.titanite;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Johan Siebens
@@ -15,8 +14,8 @@ public final class PathParams extends Params {
     }
 
     @Override
-    public Optional<String> getString(String name) {
-        return Optional.ofNullable(values.get(name));
+    public String get(String name) {
+        return values.get(name);
     }
 
 }

@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.util.concurrent.CompletableFuture;
 
 import static com.jayway.restassured.RestAssured.given;
+import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Method.GET;
 
 /**
@@ -20,7 +21,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     private int port;
 
     private static final SimpleFilter<Request, CompletableFuture<Response>> SECURITY = (req, f) -> {
-        String s = req.headers.getString(HttpHeaders.Names.AUTHORIZATION).orElse("");
+        String s = ofNullable(req.headers.get(HttpHeaders.Names.AUTHORIZATION)).orElse("");
         if ("admin".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").completed());
         }
@@ -30,7 +31,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     };
 
     private static final SimpleFilter<Request, CompletableFuture<Response>> CONTENT_TYPE_JSON = (req, f) -> {
-        String s = req.headers.getString(HttpHeaders.Names.CONTENT_TYPE).orElse("");
+        String s = ofNullable(req.headers.get(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
         if ("application/json".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").completed());
         }
