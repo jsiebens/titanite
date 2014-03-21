@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import static org.nosceon.titanite.HttpServerException.propagate;
+
 /**
  * @author Johan Siebens
  */
@@ -53,6 +55,11 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     public final R register(Routings<Request, CompletableFuture<Response>> routings) {
         this.routings.addAll(routings.get());
         return self();
+    }
+
+    public final R register(Class<? extends Controller> c) {
+        Controller controller = propagate(c::newInstance);
+        return register(controller);
     }
 
     public final R register(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter) {

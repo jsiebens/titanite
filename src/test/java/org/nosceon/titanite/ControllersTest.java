@@ -53,7 +53,7 @@ public class ControllersTest extends AbstractE2ETest {
         shutdownable =
             newServer()
                 .register(new ControllerA())
-                .register(new ControllerB())
+                .register(ControllerB.class)
                 .start(port);
     }
 
