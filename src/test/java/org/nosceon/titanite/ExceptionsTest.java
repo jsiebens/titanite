@@ -32,9 +32,6 @@ public class ExceptionsTest extends AbstractE2ETest {
                 .register(GET, "/c", (r) -> {
                     throw new HttpServerException(Responses.status(503));
                 })
-                .register(GET, "/d", (r) -> {
-                    throw new NoLogHttpServerException(Responses.status(503));
-                })
                 .start(port);
     }
 
@@ -48,7 +45,6 @@ public class ExceptionsTest extends AbstractE2ETest {
         given().expect().statusCode(500).when().get(uri(port, "/a"));
         given().expect().statusCode(500).when().get(uri(port, "/b"));
         given().expect().statusCode(503).when().get(uri(port, "/c"));
-        given().expect().statusCode(503).when().get(uri(port, "/d"));
     }
 
 }
