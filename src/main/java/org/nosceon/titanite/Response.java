@@ -56,6 +56,11 @@ public final class Response {
         return this;
     }
 
+    public Response location(String location) {
+        headers.set(LOCATION, location);
+        return this;
+    }
+
     public Response location(URI location) {
         headers.set(LOCATION, location);
         return this;
