@@ -21,10 +21,6 @@ import static org.nosceon.titanite.Responses.ok;
  */
 public final class ResourceService implements Function<Request, Response> {
 
-    public static final Function<Request, Response> WEBJAR_RESOURCES = new ResourceService("/META-INF/resources/webjars");
-
-    public static final Function<Request, Response> PUBLIC_RESOURCES = new ResourceService("/public");
-
     private String baseResource;
 
     public ResourceService(String baseResource) {
