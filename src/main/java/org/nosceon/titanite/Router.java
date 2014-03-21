@@ -18,7 +18,7 @@ public final class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
 
-    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed().completed());
+    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed().toFuture());
 
     private final Map<ParameterizedPattern, Map<Method, Function<Request, CompletableFuture<Response>>>> mapping = new LinkedHashMap<>();
 

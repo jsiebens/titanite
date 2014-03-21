@@ -129,7 +129,7 @@ public final class Response {
         return this;
     }
 
-    public CompletableFuture<Response> completed() {
+    public CompletableFuture<Response> toFuture() {
         return completedFuture(this);
     }
 

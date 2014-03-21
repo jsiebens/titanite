@@ -24,7 +24,7 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             new HttpServer(2, 5)
-                .register(POST, "/post", (r) -> Responses.ok().completed())
+                .register(POST, "/post", (r) -> Responses.ok().toFuture())
                 .start(port);
     }
 

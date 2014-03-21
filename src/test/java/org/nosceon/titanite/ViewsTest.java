@@ -39,10 +39,10 @@ public class ViewsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).completed())
-                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")).completed())
-                .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).completed())
-                .register(GET, "/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")).completed())
+                .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).toFuture())
+                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")).toFuture())
+                .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).toFuture())
+                .register(GET, "/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")).toFuture())
                 .start(port);
     }
 

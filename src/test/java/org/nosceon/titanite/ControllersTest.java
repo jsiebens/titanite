@@ -30,7 +30,7 @@ public class ControllersTest extends AbstractE2ETest {
         }
 
         private CompletableFuture<Response> handle(Request request) {
-            return ok().body(request.method.name()).completed();
+            return ok().body(request.method.name()).toFuture();
         }
 
     }
@@ -38,11 +38,11 @@ public class ControllersTest extends AbstractE2ETest {
     public static class ControllerB extends Controller {
 
         {
-            get("/b", (r) -> ok().body(r.method.name()).completed());
-            post("/b", (r) -> ok().body(r.method.name()).completed());
-            put("/b", (r) -> ok().body(r.method.name()).completed());
-            delete("/b", (r) -> ok().body(r.method.name()).completed());
-            patch("/b", (r) -> ok().body(r.method.name()).completed());
+            get("/b", (r) -> ok().body(r.method.name()).toFuture());
+            post("/b", (r) -> ok().body(r.method.name()).toFuture());
+            put("/b", (r) -> ok().body(r.method.name()).toFuture());
+            delete("/b", (r) -> ok().body(r.method.name()).toFuture());
+            patch("/b", (r) -> ok().body(r.method.name()).toFuture());
         }
 
     }

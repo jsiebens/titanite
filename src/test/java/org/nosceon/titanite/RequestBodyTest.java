@@ -27,7 +27,7 @@ public class RequestBodyTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body.asStream())).completed())
+                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body.asStream())).toFuture())
                 .start(port);
     }
 

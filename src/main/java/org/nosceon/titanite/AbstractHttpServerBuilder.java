@@ -39,7 +39,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             });
     }
 
-    private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().completed();
+    private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().toFuture();
 
     private final List<Routing<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
 

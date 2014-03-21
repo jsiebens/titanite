@@ -30,19 +30,19 @@ public class HeadersTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/a", (r) -> ok().body(r.headers.get("p")).header("m", r.headers.get("p")).completed())
-                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).completed())
-                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).completed())
-                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p"))).completed())
-                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p"))).completed())
-                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p"))).completed())
-                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p"))).completed())
+                .register(GET, "/a", (r) -> ok().body(r.headers.get("p")).header("m", r.headers.get("p")).toFuture())
+                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).toFuture())
+                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).toFuture())
+                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p"))).toFuture())
+                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p"))).toFuture())
+                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p"))).toFuture())
+                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p"))).toFuture())
                 .register(GET, "/headers", (r) ->
                     ok()
                         .type(MediaType.APPLICATION_XML)
                         .language(LOCALE)
                         .lastModified(DATE)
-                        .completed()
+                        .toFuture()
                 )
                 .start(port);
     }

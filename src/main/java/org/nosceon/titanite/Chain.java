@@ -19,7 +19,7 @@ public final class Chain implements Function<Request, CompletableFuture<Response
     }
 
     private Chain(Function<Request, CompletableFuture<Response>> function) {
-        this((r) -> notFound().completed(), function);
+        this((r) -> notFound().toFuture(), function);
     }
 
     private Chain(Function<Request, CompletableFuture<Response>> first, Function<Request, CompletableFuture<Response>> second) {

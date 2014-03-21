@@ -23,20 +23,20 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     private static final SimpleFilter<Request, CompletableFuture<Response>> SECURITY = (req, f) -> {
         String s = ofNullable(req.headers.get(HttpHeaders.Names.AUTHORIZATION)).orElse("");
         if ("admin".equals(s)) {
-            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").completed());
+            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").toFuture());
         }
         else {
-            return status(401).completed();
+            return status(401).toFuture();
         }
     };
 
     private static final SimpleFilter<Request, CompletableFuture<Response>> CONTENT_TYPE_JSON = (req, f) -> {
         String s = ofNullable(req.headers.get(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
         if ("application/json".equals(s)) {
-            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").completed());
+            return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").toFuture());
         }
         else {
-            return status(415).completed();
+            return status(415).toFuture();
         }
     };
 
@@ -47,7 +47,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
             newServer()
                 .register(SECURITY)
                 .register(CONTENT_TYPE_JSON)
-                .register(GET, "/resource", (r) -> ok().body("hello").completed())
+                .register(GET, "/resource", (r) -> ok().body("hello").toFuture())
                 .start(port);
     }
 

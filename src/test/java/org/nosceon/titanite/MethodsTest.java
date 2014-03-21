@@ -31,7 +31,7 @@ public class MethodsTest extends AbstractE2ETest {
         }
 
         private CompletableFuture<Response> handle(Request request) {
-            return ok().body(request.method.name()).completed();
+            return ok().body(request.method.name()).toFuture();
         }
 
     }
@@ -41,11 +41,11 @@ public class MethodsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
-                .register(GET, "/resource", (r) -> ok().body(r.method.name()).completed())
-                .register(POST, "/resource", (r) -> ok().body(r.method.name()).completed())
-                .register(PUT, "/resource", (r) -> ok().body(r.method.name()).completed())
-                .register(DELETE, "/resource", (r) -> ok().body(r.method.name()).completed())
-                .register(PATCH, "/resource", (r) -> ok().body(r.method.name()).completed())
+                .register(GET, "/resource", (r) -> ok().body(r.method.name()).toFuture())
+                .register(POST, "/resource", (r) -> ok().body(r.method.name()).toFuture())
+                .register(PUT, "/resource", (r) -> ok().body(r.method.name()).toFuture())
+                .register(DELETE, "/resource", (r) -> ok().body(r.method.name()).toFuture())
+                .register(PATCH, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(new MyController())
                 .start(port);
     }

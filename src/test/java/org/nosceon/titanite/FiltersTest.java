@@ -19,7 +19,7 @@ public class FiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final Filter<Request, CompletableFuture<Response>, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase())).completed();
+    private static final Filter<Request, CompletableFuture<Response>, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase())).toFuture();
 
     private static final Filter<String, String, String, String> TO_UPPER = (s, function) -> function.apply(s).toUpperCase();
 
