@@ -15,7 +15,7 @@ public class HelloWorld {
         httpServer()
             .register(GET, "/hello/{name}", r -> {
                 String name = r.pathParams.get("name");
-                return ok().text("hello " + name).completed();
+                return ok().text("hello " + name).toFuture();
             })
             .start(8080);
 
@@ -31,7 +31,7 @@ public class HelloWorldController extends Controller {
     {
         get("/hello/{name}", req -> {
             String name = req.pathParams.get("name");
-            return ok().text("hello " + name.toUpperCase()).completed();
+            return ok().text("hello " + name.toUpperCase()).toFuture();
         });
     }
 
