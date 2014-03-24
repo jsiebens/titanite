@@ -2,6 +2,8 @@ package org.nosceon.titanite;
 
 import org.nosceon.titanite.service.FileService;
 import org.nosceon.titanite.service.ResourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -12,6 +14,8 @@ import java.util.function.Function;
  * @author Johan Siebens
  */
 public final class Titanite extends Responses {
+
+    static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
 
     public static final Function<Request, Response> WEBJAR_RESOURCES = resourceService("/META-INF/resources/webjars");
 

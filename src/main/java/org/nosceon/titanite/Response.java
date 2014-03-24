@@ -8,8 +8,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +30,6 @@ import static org.nosceon.titanite.Responses.internalServerError;
  * @author Johan Siebens
  */
 public final class Response {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     public static final Charset UTF8 = Charset.forName("UTF8");
 
@@ -215,7 +211,7 @@ public final class Response {
                 stream(ctx, (o) -> viewRenderer.render(request, view, o));
             }
             else {
-                logger.error("view template [" + view.template + "] is not available");
+                Titanite.LOG.error("view template [" + view.template + "] is not available");
                 internalServerError().apply(request, ctx, viewRenderer, mapper);
             }
         }
@@ -259,7 +255,7 @@ public final class Response {
                 length = raf.length();
             }
             catch (IOException e) {
-                logger.error("error writing file to response", e);
+                Titanite.LOG.error("error writing file to response", e);
                 internalServerError().apply(request, ctx, viewRenderer, mapper);
                 return;
             }

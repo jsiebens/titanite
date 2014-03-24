@@ -11,8 +11,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,10 +35,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     private static final FullHttpResponse CONTINUE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
 
     private static final FullHttpResponse TOO_LARGE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE, Unpooled.EMPTY_BUFFER);
-
-    private static final FullHttpResponse INTERNAL_SERVER_ERROR = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.EMPTY_BUFFER);
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     private final Router router;
 
@@ -134,11 +128,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                             }
 
                             if (e instanceof HttpServerException) {
-                                logger.error("error processing request", e);
+                                Titanite.LOG.error("error processing request", e);
                                 response = ((HttpServerException) e).getResponse();
                             }
                             else {
-                                logger.error("error processing request", e);
+                                Titanite.LOG.error("error processing request", e);
                                 response = internalServerError();
                             }
                         }
@@ -173,7 +167,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.warn("error handling request", cause);
+        Titanite.LOG.warn("error handling request", cause);
         reset();
         ctx.channel().close();
     }

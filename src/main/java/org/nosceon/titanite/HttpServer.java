@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,8 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     private int ioWorkerCount = Runtime.getRuntime().availableProcessors() * 2;
 
@@ -37,7 +33,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     public Shutdownable start(int port) {
         String id = Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0');
 
-        logger.info("Http Server [" + id + "] starting");
+        Titanite.LOG.info("Http Server [" + id + "] starting");
 
         Router router = router(id);
         ViewRenderer renderer = new ViewRenderer();
@@ -46,7 +42,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
         newHttpServerBootstrap(eventLoopGroup, maxRequestSize, router, renderer, mapper).bind(port).syncUninterruptibly();
 
-        logger.info("Http Server [" + id + "] started, listening on port " + port);
+        Titanite.LOG.info("Http Server [" + id + "] started, listening on port " + port);
 
         return eventLoopGroup::shutdownGracefully;
     }
