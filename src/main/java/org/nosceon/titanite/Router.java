@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.nosceon.titanite.Responses.methodNotAllowed;
@@ -23,20 +22,16 @@ public final class Router {
 
     private final String id;
 
-    private final SimpleFilter<Request, CompletableFuture<Response>> errorFilter;
-
     public Router(
         String id,
-        Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> errorHandlers,
-        List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters,
+        Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter,
         List<Routing<Request, CompletableFuture<Response>>> routings,
         Function<Request, CompletableFuture<Response>> fallback) {
 
         this.id = id;
-        this.errorFilter = new ErrorFilter(errorHandlers);
-        this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filters, fallback));
+        this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filter, fallback));
         for (Routing<Request, CompletableFuture<Response>> r : routings) {
-            add(filters, r.method(), r.pattern(), r.function());
+            add(filter, r.method(), r.pattern(), r.function());
         }
     }
 
@@ -57,30 +52,21 @@ public final class Router {
         }
     }
 
-    private Router add(List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
+    private Router add(Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
         Map<Method, Function<Request, CompletableFuture<Response>>> map = mapping.get(pp);
         if (map == null) {
             map = new HashMap<>();
             mapping.put(pp, map);
         }
-        if (map.putIfAbsent(method, createFunction(filters, function)) == null) {
+        if (map.putIfAbsent(method, createFunction(filter, function)) == null) {
             Titanite.LOG.info("Router [" + id + "] registered handler for " + Strings.padEnd(method.toString(), 6, ' ') + " " + pattern);
         }
         return this;
     }
 
-    private Function<Request, CompletableFuture<Response>> createFunction(List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters, Function<Request, CompletableFuture<Response>> function) {
-        if (filters.isEmpty()) {
-            return errorFilter.andThen(function);
-        }
-
-        Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> result = errorFilter;
-        for (Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter : filters) {
-            result = result.andThen(filter);
-        }
-
-        return result.andThen(function);
+    private Function<Request, CompletableFuture<Response>> createFunction(Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Function<Request, CompletableFuture<Response>> function) {
+        return filter.isPresent() ? filter.get().andThen(function) : function;
     }
 
     private Method map(HttpMethod method) {

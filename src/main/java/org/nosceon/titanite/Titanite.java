@@ -33,6 +33,10 @@ public final class Titanite extends Responses {
         return new HttpServer(ioWorkerCount, maxRequestSize);
     }
 
+    public static ErrorFilter errors() {
+        return new ErrorFilter();
+    }
+
     @SafeVarargs
     public static Function<Request, CompletableFuture<Response>> compose(Function<Request, CompletableFuture<Response>> function, Function<Request, CompletableFuture<Response>>... functions) {
         Chain chain = new Chain(function);

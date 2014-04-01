@@ -6,18 +6,33 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.nosceon.titanite.Responses.internalServerError;
 
 /**
  * @author Johan Siebens
  */
-final class ErrorFilter implements SimpleFilter<Request, CompletableFuture<Response>> {
+public final class ErrorFilter implements SimpleFilter<Request, CompletableFuture<Response>> {
 
-    private final Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
+    private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
 
-    public ErrorFilter(Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers) {
-        this.handlers.putAll(handlers);
+    public ErrorFilter() {
+
+    }
+
+    private ErrorFilter(Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers) {
+        this.handlers = handlers;
+    }
+
+    public <T extends Throwable> ErrorFilter match(Class<T> type, BiFunction<Request, T, Response> handler) {
+        Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> newHandlers = new LinkedHashMap<>(this.handlers);
+        newHandlers.put(type, (BiFunction<Request, Throwable, Response>) handler);
+        return new ErrorFilter(newHandlers);
+    }
+
+    public <T extends Throwable> ErrorFilter match(Class<T> type, Supplier<Response> handler) {
+        return match(type, (req, t) -> handler.get());
     }
 
     @Override

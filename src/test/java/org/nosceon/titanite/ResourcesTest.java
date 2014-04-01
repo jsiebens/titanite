@@ -22,6 +22,7 @@ public class ResourcesTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer()
+                .register(Method.GET, "/a", (r) -> ok().toFuture())
                 .notFound(
                     compose(
                         sync(PUBLIC_RESOURCES),

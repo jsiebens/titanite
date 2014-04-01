@@ -9,11 +9,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.nosceon.titanite.HttpServerException.propagate;
 
@@ -43,14 +43,29 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private final List<Routing<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
 
-    private final List<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filters = new LinkedList<>();
-
-    private final Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> errorHandlers = new LinkedHashMap<>();
+    private Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter = Optional.empty();
 
     private Optional<ObjectMapper> mapper = Optional.empty();
 
-    public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
-        this.routings.add(new Routing<>(method, pattern, function));
+    @SafeVarargs
+    public final R setFilter(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter, Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>... additionalFilters) {
+        Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> f = filter;
+        if (additionalFilters != null) {
+            for (Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> additionalFilter : additionalFilters) {
+                f = f.andThen(additionalFilter);
+            }
+        }
+        this.filter = Optional.of(f);
+        return self();
+    }
+
+    public final R setMapper(ObjectMapper mapper) {
+        this.mapper = Optional.of(mapper);
+        return self();
+    }
+
+    public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> handler) {
+        this.routings.add(new Routing<>(method, pattern, handler));
         return self();
     }
 
@@ -64,33 +79,13 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return register(controller);
     }
 
-    public final R register(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter) {
-        this.filters.add(filter);
-        return self();
-    }
-
-    public final R register(ObjectMapper mapper) {
-        this.mapper = Optional.of(mapper);
-        return self();
-    }
-
-    public final R notFound(Function<Request, CompletableFuture<Response>> fallback) {
-        this.fallback = fallback;
-        return self();
-    }
-
-    public final <T extends Throwable> R error(Class<T> type, BiFunction<Request, T, Response> function) {
-        this.errorHandlers.putIfAbsent(type, (BiFunction<Request, Throwable, Response>) function);
-        return self();
-    }
-
-    public final <T extends Throwable> R error(Class<T> type, Supplier<Response> supplier) {
-        this.errorHandlers.putIfAbsent(type, (r, e) -> supplier.get());
+    public final R notFound(Function<Request, CompletableFuture<Response>> handler) {
+        this.fallback = handler;
         return self();
     }
 
     protected final Router router(String id) {
-        return new Router(id, errorHandlers, filters, routings, fallback);
+        return new Router(id, filter, routings, fallback);
     }
 
     protected final ObjectMapper mapper() {
