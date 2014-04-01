@@ -5,7 +5,9 @@ import com.google.common.base.Strings;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Johan Siebens
@@ -38,7 +40,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
         Router router = router(id);
         ViewRenderer renderer = new ViewRenderer();
         ObjectMapper mapper = mapper();
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount);
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount, new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
 
         newHttpServerBootstrap(eventLoopGroup, maxRequestSize, router, renderer, mapper).bind(port).syncUninterruptibly();
 
@@ -50,6 +52,23 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     @Override
     protected HttpServer self() {
         return this;
+    }
+
+    private static class NamedThreadFactory implements ThreadFactory {
+
+        private final AtomicLong counter = new AtomicLong();
+
+        private final String prefix;
+
+        public NamedThreadFactory(String prefix) {
+            this.prefix = prefix;
+        }
+
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, prefix + counter.incrementAndGet());
+        }
+
     }
 
 }
