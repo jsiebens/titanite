@@ -24,6 +24,7 @@ public class HelloWorld {
 }
 ```
 ```
+import org.nosceon.titanite.Controller;
 import static org.nosceon.titanite.Titanite.httpServer;
 
 public class HelloWorldController extends Controller {
