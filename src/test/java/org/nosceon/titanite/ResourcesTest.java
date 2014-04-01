@@ -55,6 +55,7 @@ public class ResourcesTest extends AbstractE2ETest {
     @Test
     public void test() {
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri(port, "/hello1.txt"));
+        given().expect().statusCode(403).when().get(uri(port, "/../public/hello1.txt"));
         given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri(port, "/hello2.txt"));
         given().expect().statusCode(404).when().get(uri(port, "/hello3.txt"));
     }

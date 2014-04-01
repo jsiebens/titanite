@@ -26,8 +26,7 @@ import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.Responses.notModified;
-import static org.nosceon.titanite.Responses.ok;
+import static org.nosceon.titanite.Responses.*;
 
 /**
  * @author Johan Siebens
@@ -42,9 +41,13 @@ public final class FileService implements Function<Request, Response> {
 
     @Override
     public Response apply(Request request) {
+        if (request.path.contains("..")) {
+            return forbidden();
+        }
+
         return
             ofNullable(new File(docRoot, request.path))
-                .filter((r) -> r.exists() && r.canRead() && !r.isDirectory())
+                .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
                 .orElseGet(Responses::notFound);
     }
