@@ -15,6 +15,28 @@
   <packaging>jar</packaging>
 
   <name>Titanite</name>
+  <url>https://github.com/nosceon/titanite</url>
+
+  <inceptionYear>2014</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Johan Siebens</name>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:nosceon/titanite.git</connection>
+    <url>https://github.com/nosceon/titanite</url>
+    <developerConnection>scm:git:git@github.com:nosceon/titanite.git</developerConnection>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
