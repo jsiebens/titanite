@@ -20,18 +20,15 @@ public final class Router {
 
     private final RoutingResult fallback;
 
-    private final String id;
-
     public Router(
         String id,
         Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter,
         List<Routing<Request, CompletableFuture<Response>>> routings,
         Function<Request, CompletableFuture<Response>> fallback) {
 
-        this.id = id;
         this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filter, fallback));
         for (Routing<Request, CompletableFuture<Response>> r : routings) {
-            add(filter, r.method(), r.pattern(), r.function());
+            add(id, filter, r.method(), r.pattern(), r.function());
         }
     }
 
@@ -52,7 +49,7 @@ public final class Router {
         }
     }
 
-    private Router add(Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
+    private Router add(String id, Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
         Map<Method, Function<Request, CompletableFuture<Response>>> map = mapping.get(pp);
         if (map == null) {
