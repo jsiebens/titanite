@@ -44,3 +44,13 @@ public class HelloWorldController extends Controller {
 
 }
 ```
+
+### Maven
+Releases of titanite are available in the maven central repository.
+```
+<dependency>
+    <groupId>org.nosceon.titanite</groupId>
+    <artifactId>titanite</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
