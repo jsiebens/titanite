@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.nosceon.titanite.json.JsonMapper;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,7 +55,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
         Router router = router(id);
         ViewRenderer renderer = new ViewRenderer();
-        ObjectMapper mapper = mapper();
+        JsonMapper mapper = mapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount, new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
 
         newHttpServerBootstrap(eventLoopGroup, maxRequestSize, router, renderer, mapper).bind(port).syncUninterruptibly();

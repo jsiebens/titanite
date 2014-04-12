@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -26,6 +25,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,7 +55,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final ViewRenderer renderer;
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
 
     private HttpRequest request;
 
@@ -65,7 +65,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private boolean tooLongFrameFound;
 
-    public HttpServerHandler(long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
+    public HttpServerHandler(long maxRequestSize, Router router, ViewRenderer renderer, JsonMapper mapper) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
         this.renderer = renderer;
@@ -114,45 +114,44 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 RoutingResult routing = router.find(request.getMethod(), qsd.path());
 
                 Map<String, CookieParam> cookies = Optional.ofNullable(request.headers().get(COOKIE))
-                    .map(CookieDecoder::decode)
-                    .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
-                    .orElseGet(Collections::emptyMap);
+                        .map(CookieDecoder::decode)
+                        .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
+                        .orElseGet(Collections::emptyMap);
 
                 request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length());
 
                 Request req =
-                    new Request(
-                        request.getMethod(),
-                        qsd.path(),
-                        new HeaderParams(request),
-                        new CookieParams(cookies),
-                        new PathParams(routing.pathParams),
-                        new QueryParams(qsd.parameters()),
-                        aggregator.newRequestBody()
-                    );
+                        new Request(
+                                request.getMethod(),
+                                qsd.path(),
+                                new HeaderParams(request),
+                                new CookieParams(cookies),
+                                new PathParams(routing.pathParams),
+                                new QueryParams(qsd.parameters()),
+                                aggregator.newRequestBody()
+                        );
 
 
                 CompletableFuture
-                    .completedFuture(req)
-                    .<Response>thenCompose(routing.function::apply)
-                    .whenComplete((r, e) -> {
-                        Response response = r;
-                        if (e != null) {
-                            if (e instanceof CompletionException) {
-                                e = lookupCause((CompletionException) e);
-                            }
+                        .completedFuture(req)
+                        .<Response>thenCompose(routing.function::apply)
+                        .whenComplete((r, e) -> {
+                            Response response = r;
+                            if (e != null) {
+                                if (e instanceof CompletionException) {
+                                    e = lookupCause((CompletionException) e);
+                                }
 
-                            if (e instanceof HttpServerException) {
-                                Titanite.LOG.error("error processing request", e);
-                                response = ((HttpServerException) e).getResponse();
+                                if (e instanceof HttpServerException) {
+                                    Titanite.LOG.error("error processing request", e);
+                                    response = ((HttpServerException) e).getResponse();
+                                } else {
+                                    Titanite.LOG.error("error processing request", e);
+                                    response = internalServerError();
+                                }
                             }
-                            else {
-                                Titanite.LOG.error("error processing request", e);
-                                response = internalServerError();
-                            }
-                        }
-                        response.apply(request, ctx, renderer, mapper);
-                    });
+                            response.apply(request, ctx, renderer, mapper);
+                        });
 
             }
         }
@@ -196,7 +195,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
 
             if ((isMultiPart || isURLEncoded) &&
-                (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
+                    (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
 
                 return new FormAggregator(maxRequestSize, new HttpPostRequestDecoder(request));
             }
@@ -328,9 +327,8 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public <T> T asJson(Class<T> type) {
             if (content.readableBytes() > 0) {
-                return propagate(() -> mapper.readValue(asStream(), type));
-            }
-            else {
+                return mapper.read(asStream(), type);
+            } else {
                 return null;
             }
         }

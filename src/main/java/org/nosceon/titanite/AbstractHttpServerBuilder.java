@@ -23,6 +23,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import org.nosceon.titanite.json.JacksonJsonMapper;
+import org.nosceon.titanite.json.JsonMapper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +39,7 @@ import static org.nosceon.titanite.HttpServerException.propagate;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, long maxRequestSize, Router router, ViewRenderer renderer, ObjectMapper mapper) {
+    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, long maxRequestSize, Router router, ViewRenderer renderer, JsonMapper mapper) {
         return new ServerBootstrap()
             .group(ioWorkers)
             .channel(NioServerSocketChannel.class)
@@ -60,7 +62,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter = Optional.empty();
 
-    private Optional<ObjectMapper> mapper = Optional.empty();
+    private Optional<JsonMapper> mapper = Optional.empty();
 
     @SafeVarargs
     public final R setFilter(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter, Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>... additionalFilters) {
@@ -74,7 +76,12 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return self();
     }
 
+    @Deprecated
     public final R setMapper(ObjectMapper mapper) {
+        return setMapper(new JacksonJsonMapper(mapper));
+    }
+
+    public final R setMapper(JsonMapper mapper) {
         this.mapper = Optional.of(mapper);
         return self();
     }
@@ -103,8 +110,8 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return new Router(id, filter, routings, fallback);
     }
 
-    protected final ObjectMapper mapper() {
-        return mapper.orElseGet(ObjectMapper::new);
+    protected final JsonMapper mapper() {
+        return mapper.orElseGet(JacksonJsonMapper::new);
     }
 
     protected abstract R self();

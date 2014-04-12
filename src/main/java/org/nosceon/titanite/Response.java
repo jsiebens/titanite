@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -23,6 +22,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
+import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,13 +144,13 @@ public final class Response {
         return completedFuture(this);
     }
 
-    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
         body.apply(request, ctx, viewRenderer, mapper);
     }
 
     private static interface Body {
 
-        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper);
+        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
 
     }
 
@@ -163,7 +163,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             boolean keepAlive = isKeepAlive(request);
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
@@ -180,7 +180,7 @@ public final class Response {
 
     private abstract class AbstractStreamingBody implements Body {
 
-        protected void stream(ChannelHandlerContext ctx, StreamingOutput consumer1) {
+        protected void stream(ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -188,7 +188,7 @@ public final class Response {
             ctx.write(response);
             propagate(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
-                    consumer1.apply(out);
+                    streamingOutput.apply(out);
                 }
                 return true;
             });
@@ -206,7 +206,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             stream(ctx, consumer);
         }
 
@@ -221,7 +221,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             if (viewRenderer.isTemplateAvailable(view)) {
                 stream(ctx, (o) -> viewRenderer.render(request, view, o));
             }
@@ -242,8 +242,8 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
-            stream(ctx, (o) -> mapper.writeValue(o, entity));
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            stream(ctx, (o) -> mapper.write(o, entity));
         }
 
     }
@@ -257,7 +257,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, ObjectMapper mapper) {
+        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             boolean keepAlive = isKeepAlive(request);
 
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
