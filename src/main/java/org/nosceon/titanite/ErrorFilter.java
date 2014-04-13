@@ -28,6 +28,7 @@ import static org.nosceon.titanite.Responses.internalServerError;
 /**
  * @author Johan Siebens
  */
+@SuppressWarnings("unchecked")
 public final class ErrorFilter implements SimpleFilter<Request, CompletableFuture<Response>> {
 
     private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
@@ -73,11 +74,11 @@ public final class ErrorFilter implements SimpleFilter<Request, CompletableFutur
             return function.apply(request, t);
         }
 
+        Titanite.LOG.error("error processing request", e);
+
         if (e instanceof HttpServerException) {
             return ((HttpServerException) e).getResponse();
         }
-
-        Titanite.LOG.error("error processing request", e);
 
         return internalServerError().text("Internal Server Error");
     }
