@@ -36,10 +36,10 @@ public class MethodNotAllowedTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/resource", (r) -> Responses.ok().body(r.method.name()).toFuture())
                 .register(DELETE, "/resource", (r) -> Responses.ok().body(r.method.name()).toFuture())
-                .start(port);
+                .start();
     }
 
     @After

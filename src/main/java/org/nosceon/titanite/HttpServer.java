@@ -32,23 +32,31 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    private int ioWorkerCount = Runtime.getRuntime().availableProcessors() * 2;
+    private final int port;
 
-    private int maxRequestSize = 1024 * 1024 * 10;
+    private final int ioWorkerCount;
+
+    private final int maxRequestSize;
 
     public HttpServer() {
+        this(8080);
     }
 
-    public HttpServer(int ioWorkerCount) {
-        this.ioWorkerCount = ioWorkerCount;
+    public HttpServer(int port) {
+        this(port, Titanite.DEFAULT_IO_WORKER_COUNT);
     }
 
-    public HttpServer(int ioWorkerCount, int maxRequestSize) {
+    public HttpServer(int port, int ioWorkerCount) {
+        this(port, ioWorkerCount, Titanite.DEFAULT_MAX_REQUEST_SIZE);
+    }
+
+    public HttpServer(int port, int ioWorkerCount, int maxRequestSize) {
+        this.port = port;
         this.ioWorkerCount = ioWorkerCount;
         this.maxRequestSize = maxRequestSize;
     }
 
-    public Shutdownable start(int port) {
+    public Shutdownable start() {
         String id = Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0');
 
         Titanite.LOG.info("Http Server [" + id + "] starting");

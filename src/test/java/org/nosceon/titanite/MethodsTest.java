@@ -55,14 +55,14 @@ public class MethodsTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(POST, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(PUT, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(DELETE, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(PATCH, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(new MyController())
-                .start(port);
+                .start();
     }
 
     @After

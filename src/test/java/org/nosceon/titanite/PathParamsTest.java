@@ -36,7 +36,7 @@ public class PathParamsTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.get("p")).toFuture())
                 .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p"))).toFuture())
                 .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p"))).toFuture())
@@ -44,7 +44,7 @@ public class PathParamsTest extends AbstractE2ETest {
                 .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p"))).toFuture())
                 .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p"))).toFuture())
                 .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p"))).toFuture())
-                .start(port);
+                .start();
     }
 
     @After

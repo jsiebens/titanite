@@ -36,7 +36,7 @@ public class ResourcesTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(Method.GET, "/a", (r) -> ok().toFuture())
                 .notFound(
                     compose(
@@ -44,7 +44,7 @@ public class ResourcesTest extends AbstractE2ETest {
                         sync(WEBJAR_RESOURCES)
                     )
                 )
-                .start(port);
+                .start();
     }
 
     @After

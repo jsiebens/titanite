@@ -42,11 +42,11 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/resource", (r) -> ok().stream(o -> {
                     ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o);
                 }).toFuture())
-                .start(port);
+                .start();
     }
 
     @After

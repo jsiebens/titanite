@@ -59,10 +59,10 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .setFilter(SECURITY, CONTENT_TYPE_JSON)
                 .register(GET, "/resource", (r) -> ok().body("hello").toFuture())
-                .start(port);
+                .start();
     }
 
     @After

@@ -50,10 +50,10 @@ public class FiltersTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(TEXT.andThen(TO_UPPER).andThen(new TextController()))
                 .register(POST, "/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
-                .start(port);
+                .start();
     }
 
     @After

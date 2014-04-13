@@ -36,10 +36,10 @@ public class CustomFallbackTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/a", (r) -> ok().text("ok").toFuture())
                 .notFound((r) -> ok().text("notFound").toFuture())
-                .start(port);
+                .start();
     }
 
     @After

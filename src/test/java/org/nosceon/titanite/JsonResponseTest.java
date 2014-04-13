@@ -59,13 +59,13 @@ public class JsonResponseTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/json", (r) -> ok().json(new Hello("world")).toFuture())
                 .register(POST, "/json", (r) -> {
                     Hello hello = r.body.asJson(Hello.class);
                     return ok().json(new Hello(hello.getName().toUpperCase())).toFuture();
                 })
-                .start(port);
+                .start();
     }
 
     @After

@@ -54,12 +54,12 @@ public class FileUploadTest extends AbstractE2ETest {
 
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(POST, "/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
                     return ok().body(r.body.asForm().get("lorem")).toFuture();
                 })
-                .start(port);
+                .start();
     }
 
     @After

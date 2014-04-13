@@ -51,9 +51,9 @@ public class FileResponseBodyTest extends AbstractE2ETest {
 
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/file", (r) -> ok().file(file).toFuture())
-                .start(port);
+                .start();
     }
 
     @After

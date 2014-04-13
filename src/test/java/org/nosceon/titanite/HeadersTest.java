@@ -44,7 +44,7 @@ public class HeadersTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/a", (r) -> ok().body(r.headers.get("p")).header("m", r.headers.get("p")).toFuture())
                 .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).toFuture())
                 .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).toFuture())
@@ -59,7 +59,7 @@ public class HeadersTest extends AbstractE2ETest {
                         .lastModified(DATE)
                         .toFuture()
                 )
-                .start(port);
+                .start();
     }
 
     @After

@@ -66,10 +66,10 @@ public class ControllersTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(new ControllerA())
                 .register(ControllerB.class)
-                .start(port);
+                .start();
     }
 
     @After

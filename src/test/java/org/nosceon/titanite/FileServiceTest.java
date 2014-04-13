@@ -60,9 +60,9 @@ public class FileServiceTest extends AbstractE2ETest {
 
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .notFound(sync(new FileService(docRoot)))
-                .start(port);
+                .start();
     }
 
     @After

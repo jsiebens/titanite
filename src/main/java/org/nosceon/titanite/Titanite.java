@@ -30,22 +30,30 @@ import java.util.function.Function;
  */
 public final class Titanite extends Responses {
 
-    static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
+    public static final int DEFAULT_IO_WORKER_COUNT = Runtime.getRuntime().availableProcessors() * 2;
+
+    public static final int DEFAULT_MAX_REQUEST_SIZE = 1024 * 1024 * 10;
 
     public static final Function<Request, Response> WEBJAR_RESOURCES = resourceService("/META-INF/resources/webjars");
 
     public static final Function<Request, Response> PUBLIC_RESOURCES = resourceService("/public");
 
+    static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
+
     public static HttpServer httpServer() {
         return new HttpServer();
     }
 
-    public static HttpServer httpServer(int ioWorkerCount) {
-        return new HttpServer(ioWorkerCount);
+    public static HttpServer httpServer(int port) {
+        return new HttpServer(port);
     }
 
-    public static HttpServer httpServer(int ioWorkerCount, int maxRequestSize) {
-        return new HttpServer(ioWorkerCount, maxRequestSize);
+    public static HttpServer httpServer(int port, int ioWorkerCount) {
+        return new HttpServer(port, ioWorkerCount);
+    }
+
+    public static HttpServer httpServer(int port, int ioWorkerCount, int maxRequestSize) {
+        return new HttpServer(port, ioWorkerCount, maxRequestSize);
     }
 
     public static ErrorFilter errors() {

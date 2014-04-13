@@ -36,10 +36,10 @@ public class CookiesTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .register(GET, "/a", (r) -> ok().body(r.cookies.get("p", "default value")).toFuture())
                 .register(GET, "/cookie", (r) -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")).toFuture())
-                .start(port);
+                .start();
     }
 
     @After

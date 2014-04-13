@@ -51,7 +51,7 @@ public class ExceptionsTest extends AbstractE2ETest {
     public void setUp() {
         port = findFreePort();
         shutdownable =
-            newServer()
+            newServer(port)
                 .setFilter(
                     errors()
                         .match(InternalException.class, (r, e) -> ok().text("Internal"))
@@ -72,7 +72,7 @@ public class ExceptionsTest extends AbstractE2ETest {
                 .register(GET, "/e", (r) -> {
                     throw new InternalSub2Exception();
                 })
-                .start(port);
+                .start();
     }
 
     @After
