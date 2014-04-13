@@ -18,7 +18,7 @@ package org.nosceon.titanite.view;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import io.netty.handler.codec.http.HttpRequest;
+import org.nosceon.titanite.Request;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -44,7 +44,7 @@ public final class MustacheViewRenderer implements ViewRenderer {
     }
 
     @Override
-    public void render(HttpRequest request, View view, OutputStream out) throws IOException {
+    public void render(Request request, View view, OutputStream out) throws IOException {
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
             Mustache mustache = getMustache(view.template);
             mustache.execute(writer, new Object[]{view});

@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -39,6 +40,7 @@ import java.util.concurrent.CompletionException;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
+import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.internalServerError;
@@ -115,44 +117,48 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 RoutingResult routing = router.find(request.getMethod(), qsd.path());
 
                 Map<String, CookieParam> cookies = Optional.ofNullable(request.headers().get(COOKIE))
-                        .map(CookieDecoder::decode)
-                        .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
-                        .orElseGet(Collections::emptyMap);
+                    .map(CookieDecoder::decode)
+                    .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
+                    .orElseGet(Collections::emptyMap);
 
                 request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length());
 
                 Request req =
-                        new Request(
-                                request.getMethod(),
-                                qsd.path(),
-                                new HeaderParams(request),
-                                new CookieParams(cookies),
-                                new PathParams(routing.pathParams),
-                                new QueryParams(qsd.parameters()),
-                                aggregator.newRequestBody()
-                        );
+                    new Request(
+                        request.getMethod(),
+                        qsd.path(),
+                        new HeaderParams(request),
+                        new CookieParams(cookies),
+                        new PathParams(routing.pathParams),
+                        new QueryParams(qsd.parameters()),
+                        aggregator.newRequestBody()
+                    );
 
 
                 CompletableFuture
-                        .completedFuture(req)
-                        .<Response>thenCompose(routing.function::apply)
-                        .whenComplete((r, e) -> {
-                            Response response = r;
-                            if (e != null) {
-                                if (e instanceof CompletionException) {
-                                    e = lookupCause((CompletionException) e);
-                                }
-
-                                if (e instanceof HttpServerException) {
-                                    Titanite.LOG.error("error processing request", e);
-                                    response = ((HttpServerException) e).getResponse();
-                                } else {
-                                    Titanite.LOG.error("error processing request", e);
-                                    response = internalServerError();
-                                }
+                    .completedFuture(req)
+                    .<Response>thenCompose(routing.function::apply)
+                    .whenComplete((r, e) -> {
+                        Response response = r;
+                        if (e != null) {
+                            if (e instanceof CompletionException) {
+                                e = lookupCause((CompletionException) e);
                             }
-                            response.apply(request, ctx, renderer, mapper);
-                        });
+
+                            if (e instanceof HttpServerException) {
+                                Titanite.LOG.error("error processing request", e);
+                                response = ((HttpServerException) e).getResponse();
+                            }
+                            else {
+                                Titanite.LOG.error("error processing request", e);
+                                response = internalServerError();
+                            }
+                        }
+                        ChannelFuture cf = response.apply(isKeepAlive(request), req, ctx, renderer, mapper);
+                        if (!isKeepAlive(request)) {
+                            cf.addListener(ChannelFutureListener.CLOSE);
+                        }
+                    });
 
             }
         }
@@ -196,7 +202,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
 
             if ((isMultiPart || isURLEncoded) &&
-                    (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
+                (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
 
                 return new FormAggregator(maxRequestSize, new HttpPostRequestDecoder(request));
             }
@@ -329,7 +335,8 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         public <T> T asJson(Class<T> type) {
             if (content.readableBytes() > 0) {
                 return mapper.read(asStream(), type);
-            } else {
+            }
+            else {
                 return null;
             }
         }

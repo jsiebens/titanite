@@ -18,7 +18,6 @@ package org.nosceon.titanite;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
@@ -146,13 +145,13 @@ public final class Response {
         return completedFuture(this);
     }
 
-    void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-        body.apply(request, ctx, viewRenderer, mapper);
+    ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        return body.apply(keepAlive, request, ctx, viewRenderer, mapper);
     }
 
     private static interface Body {
 
-        void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
+        ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
 
     }
 
@@ -165,24 +164,20 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            boolean keepAlive = isKeepAlive(request);
+        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
             setKeepAlive(response, keepAlive);
 
-            ChannelFuture future = ctx.writeAndFlush(response);
-            if (!keepAlive) {
-                future.addListener(ChannelFutureListener.CLOSE);
-            }
+            return ctx.writeAndFlush(response);
         }
 
     }
 
     private abstract class AbstractStreamingBody implements Body {
 
-        protected void stream(ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
+        protected ChannelFuture stream(ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -194,7 +189,7 @@ public final class Response {
                 }
                 return true;
             });
-            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+            return ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         }
 
     }
@@ -208,8 +203,8 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            stream(ctx, consumer);
+        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            return stream(ctx, consumer);
         }
 
     }
@@ -223,13 +218,13 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             if (viewRenderer.isTemplateAvailable(view)) {
-                stream(ctx, (o) -> viewRenderer.render(request, view, o));
+                return stream(ctx, (o) -> viewRenderer.render(request, view, o));
             }
             else {
                 Titanite.LOG.error("view template [" + view.template + "] is not available");
-                internalServerError().apply(request, ctx, viewRenderer, mapper);
+                return internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
         }
 
@@ -244,8 +239,8 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            stream(ctx, (o) -> mapper.write(o, entity));
+        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            return stream(ctx, (o) -> mapper.write(o, entity));
         }
 
     }
@@ -259,8 +254,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(HttpRequest request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            boolean keepAlive = isKeepAlive(request);
+        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
 
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
@@ -273,8 +267,7 @@ public final class Response {
             }
             catch (IOException e) {
                 Titanite.LOG.error("error writing file to response", e);
-                internalServerError().apply(request, ctx, viewRenderer, mapper);
-                return;
+                return internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
 
             setContentLength(response, length);
@@ -282,11 +275,7 @@ public final class Response {
 
             ctx.write(response);
             ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
-            ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-
-            if (!keepAlive) {
-                lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-            }
+            return ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         }
 
     }

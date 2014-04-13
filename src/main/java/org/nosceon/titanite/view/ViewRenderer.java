@@ -15,7 +15,7 @@
  */
 package org.nosceon.titanite.view;
 
-import io.netty.handler.codec.http.HttpRequest;
+import org.nosceon.titanite.Request;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,6 +27,6 @@ public interface ViewRenderer {
 
     boolean isTemplateAvailable(View view);
 
-    void render(HttpRequest request, View view, OutputStream out) throws IOException;
+    void render(Request request, View view, OutputStream out) throws IOException;
     
 }
