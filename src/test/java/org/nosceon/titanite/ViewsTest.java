@@ -19,6 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.nosceon.titanite.view.View;
+import org.nosceon.titanite.view.ViewTemplate;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -28,8 +29,6 @@ import static org.nosceon.titanite.Method.GET;
  * @author Johan Siebens
  */
 public class ViewsTest extends AbstractE2ETest {
-
-    private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
     public static class HelloView extends View {
 
@@ -46,6 +45,29 @@ public class ViewsTest extends AbstractE2ETest {
 
     }
 
+    @ViewTemplate("hello")
+    public static class AnnotatedHelloView {
+
+        private final String name;
+
+        public AnnotatedHelloView(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+    }
+
+    public static class SubAnnotatedHelloView extends AnnotatedHelloView {
+
+        public SubAnnotatedHelloView(String name) {
+            super(name);
+        }
+
+    }
+
     private Shutdownable shutdownable;
 
     private int port;
@@ -58,6 +80,8 @@ public class ViewsTest extends AbstractE2ETest {
                 .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).toFuture())
                 .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")).toFuture())
                 .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).toFuture())
+                .register(GET, "/hello4", (r) -> ok().view(new AnnotatedHelloView("world")).toFuture())
+                .register(GET, "/hello5", (r) -> ok().view(new SubAnnotatedHelloView("world")).toFuture())
                 .register(GET, "/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")).toFuture())
                 .start(port);
     }
@@ -81,6 +105,14 @@ public class ViewsTest extends AbstractE2ETest {
             .expect()
             .statusCode(200)
             .body(equalTo("Hello world")).when().get(uri(port, "/hello3"));
+        given()
+            .expect()
+            .statusCode(200)
+            .body(equalTo("Hello world")).when().get(uri(port, "/hello4"));
+        given()
+            .expect()
+            .statusCode(200)
+            .body(equalTo("Hello world")).when().get(uri(port, "/hello5"));
         given()
             .expect()
             .statusCode(500)

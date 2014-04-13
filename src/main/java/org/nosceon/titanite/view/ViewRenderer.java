@@ -25,8 +25,22 @@ import java.io.OutputStream;
  */
 public interface ViewRenderer {
 
-    boolean isTemplateAvailable(View view);
+    boolean isTemplateAvailable(Object view);
 
-    void render(Request request, View view, OutputStream out) throws IOException;
-    
+    void render(Request request, Object view, OutputStream out) throws IOException;
+
+    public default String templateOf(Object o) {
+        if (o instanceof View) {
+            return ((View) o).template;
+        }
+        else {
+            ViewTemplate template = o.getClass().getAnnotation(ViewTemplate.class);
+            if (template != null) {
+                return template.value();
+            }
+
+            throw new IllegalArgumentException(o.getClass() + " does not extend View or is not annotated with ViewTemplate");
+        }
+    }
+
 }

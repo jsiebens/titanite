@@ -22,7 +22,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import org.nosceon.titanite.json.JsonMapper;
-import org.nosceon.titanite.view.View;
 import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.File;
@@ -136,7 +135,7 @@ public final class Response {
         return this;
     }
 
-    public Response view(View view) {
+    public Response view(Object view) {
         this.body = new ViewBody(view);
         return this;
     }
@@ -211,9 +210,9 @@ public final class Response {
 
     private class ViewBody extends AbstractStreamingBody {
 
-        private View view;
+        private Object view;
 
-        private ViewBody(View view) {
+        private ViewBody(Object view) {
             this.view = view;
         }
 
@@ -223,7 +222,6 @@ public final class Response {
                 return stream(ctx, (o) -> viewRenderer.render(request, view, o));
             }
             else {
-                Titanite.LOG.error("view template [" + view.template + "] is not available");
                 return internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
         }

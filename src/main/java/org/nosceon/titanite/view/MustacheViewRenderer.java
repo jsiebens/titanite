@@ -34,9 +34,9 @@ public final class MustacheViewRenderer implements ViewRenderer {
     private static final String EXTENSION = ".mustache";
 
     @Override
-    public boolean isTemplateAvailable(View view) {
+    public boolean isTemplateAvailable(Object o) {
         try {
-            return getMustache(view.template) != null;
+            return getMustache(templateOf(o)) != null;
         }
         catch (Exception e) {
             return false;
@@ -44,10 +44,10 @@ public final class MustacheViewRenderer implements ViewRenderer {
     }
 
     @Override
-    public void render(Request request, View view, OutputStream out) throws IOException {
+    public void render(Request request, Object o, OutputStream out) throws IOException {
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-            Mustache mustache = getMustache(view.template);
-            mustache.execute(writer, new Object[]{view});
+            Mustache mustache = getMustache(templateOf(o));
+            mustache.execute(writer, new Object[]{o});
         }
     }
 
