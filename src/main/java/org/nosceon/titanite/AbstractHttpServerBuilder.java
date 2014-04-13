@@ -25,6 +25,8 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.nosceon.titanite.json.JacksonJsonMapper;
 import org.nosceon.titanite.json.JsonMapper;
+import org.nosceon.titanite.view.MustacheViewRenderer;
+import org.nosceon.titanite.view.ViewRenderer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -64,6 +66,8 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private Optional<JsonMapper> mapper = Optional.empty();
 
+    private Optional<ViewRenderer> viewRenderer = Optional.empty();
+
     @SafeVarargs
     public final R setFilter(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter, Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>... additionalFilters) {
         Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> f = filter;
@@ -83,6 +87,11 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     public final R setMapper(JsonMapper mapper) {
         this.mapper = Optional.of(mapper);
+        return self();
+    }
+
+    public final R setViewRenderer(ViewRenderer viewRenderer) {
+        this.viewRenderer = Optional.of(viewRenderer);
         return self();
     }
 
@@ -112,6 +121,10 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     protected final JsonMapper mapper() {
         return mapper.orElseGet(JacksonJsonMapper::new);
+    }
+
+    protected final ViewRenderer viewRenderer() {
+        return viewRenderer.orElseGet(MustacheViewRenderer::new);
     }
 
     protected abstract R self();

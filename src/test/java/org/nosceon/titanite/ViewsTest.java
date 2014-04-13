@@ -18,6 +18,7 @@ package org.nosceon.titanite;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.nosceon.titanite.view.View;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;

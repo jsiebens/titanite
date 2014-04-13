@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
+package org.nosceon.titanite.view;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
@@ -27,12 +27,13 @@ import java.io.OutputStreamWriter;
 /**
  * @author Johan Siebens
  */
-public final class ViewRenderer {
+public final class MustacheViewRenderer implements ViewRenderer {
 
     private static final MustacheFactory mustacheFactory = new DefaultMustacheFactory();
 
     private static final String EXTENSION = ".mustache";
 
+    @Override
     public boolean isTemplateAvailable(View view) {
         try {
             return getMustache(view.template) != null;
@@ -42,6 +43,7 @@ public final class ViewRenderer {
         }
     }
 
+    @Override
     public void render(HttpRequest request, View view, OutputStream out) throws IOException {
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
             Mustache mustache = getMustache(view.template);

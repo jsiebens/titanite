@@ -26,6 +26,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.nosceon.titanite.json.JsonMapper;
+import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

@@ -15,11 +15,11 @@
  */
 package org.nosceon.titanite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.nosceon.titanite.json.JsonMapper;
+import org.nosceon.titanite.view.ViewRenderer;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,7 +54,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
         Titanite.LOG.info("Http Server [" + id + "] starting");
 
         Router router = router(id);
-        ViewRenderer renderer = new ViewRenderer();
+        ViewRenderer renderer = viewRenderer();
         JsonMapper mapper = mapper();
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount, new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
 

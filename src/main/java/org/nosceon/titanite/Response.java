@@ -23,6 +23,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import org.nosceon.titanite.json.JsonMapper;
+import org.nosceon.titanite.view.View;
+import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.File;
 import java.io.IOException;
