@@ -15,10 +15,9 @@
  */
 package org.nosceon.titanite;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
@@ -41,23 +40,6 @@ import static org.nosceon.titanite.HttpServerException.propagate;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    public static ServerBootstrap newHttpServerBootstrap(EventLoopGroup ioWorkers, long maxRequestSize, Router router, ViewRenderer renderer, JsonMapper mapper) {
-        return new ServerBootstrap()
-            .group(ioWorkers)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(new ChannelInitializer<SocketChannel>() {
-
-                @Override
-                protected void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline()
-                        .addLast(new HttpRequestDecoder())
-                        .addLast(new HttpResponseEncoder())
-                        .addLast(new HttpServerHandler(maxRequestSize, router, renderer, mapper));
-                }
-
-            });
-    }
-
     private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().toFuture();
 
     private final List<Routing<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
@@ -67,6 +49,12 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     private Optional<JsonMapper> mapper = Optional.empty();
 
     private Optional<ViewRenderer> viewRenderer = Optional.empty();
+
+    protected final String id;
+
+    protected AbstractHttpServerBuilder(String id) {
+        this.id = id;
+    }
 
     @SafeVarargs
     public final R setFilter(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter, Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>... additionalFilters) {
@@ -78,11 +66,6 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         }
         this.filter = Optional.of(f);
         return self();
-    }
-
-    @Deprecated
-    public final R setMapper(ObjectMapper mapper) {
-        return setMapper(new JacksonJsonMapper(mapper));
     }
 
     public final R setMapper(JsonMapper mapper) {
@@ -115,16 +98,27 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return self();
     }
 
-    protected final Router router(String id) {
-        return new Router(id, filter, routings, fallback);
-    }
+    protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
+        Router router = new Router(id, filter, routings, fallback);
+        ViewRenderer viewRenderer = this.viewRenderer.orElseGet(MustacheViewRenderer::new);
+        JsonMapper mapper = this.mapper.orElseGet(JacksonJsonMapper::new);
 
-    protected final JsonMapper mapper() {
-        return mapper.orElseGet(JacksonJsonMapper::new);
-    }
+        new ServerBootstrap()
+            .group(workers)
+            .channel(NioServerSocketChannel.class)
+            .childHandler(new ChannelInitializer<SocketChannel>() {
 
-    protected final ViewRenderer viewRenderer() {
-        return viewRenderer.orElseGet(MustacheViewRenderer::new);
+                @Override
+                protected void initChannel(SocketChannel ch) throws Exception {
+                    ch.pipeline()
+                        .addLast(new HttpRequestDecoder())
+                        .addLast(new HttpResponseEncoder())
+                        .addLast(new HttpServerHandler(maxRequestSize, router, viewRenderer, mapper));
+                }
+
+            })
+            .bind(port)
+            .syncUninterruptibly();
     }
 
     protected abstract R self();
