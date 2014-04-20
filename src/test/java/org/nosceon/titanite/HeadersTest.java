@@ -45,7 +45,7 @@ public class HeadersTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer(port)
-                .register(GET, "/a", (r) -> ok().body(r.headers.get("p")).header("m", r.headers.get("p")).toFuture())
+                .register(GET, "/a", (r) -> ok().body(r.headers.getString("p")).header("m", r.headers.getString("p")).toFuture())
                 .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).toFuture())
                 .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).toFuture())
                 .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p"))).toFuture())
@@ -59,6 +59,9 @@ public class HeadersTest extends AbstractE2ETest {
                         .lastModified(DATE)
                         .toFuture()
                 )
+
+                .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.headers.getStrings("p"))).toFuture())
+
                 .start();
     }
 
@@ -84,6 +87,8 @@ public class HeadersTest extends AbstractE2ETest {
             .header(HttpHeaders.LAST_MODIFIED, equalTo("Thu, 01 Jan 1970 00:00:05 GMT"))
             .header(HttpHeaders.CONTENT_LANGUAGE, equalTo("it_IT"))
             .when().get(uri(port, "/headers"));
+
+        given().header("p", "apple").header("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().get(uri(port, "/ma"));
     }
 
 }

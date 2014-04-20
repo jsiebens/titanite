@@ -20,12 +20,13 @@ import io.netty.handler.codec.http.HttpMessage;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * @author Johan Siebens
  */
-public final class HeaderParams extends Params {
+public final class HeaderParams implements SingleParams, MultiParams {
 
     private HttpMessage message;
 
@@ -34,8 +35,13 @@ public final class HeaderParams extends Params {
     }
 
     @Override
-    public String get(String name) {
+    public String getString(String name) {
         return HttpHeaders.getHeader(message, name);
+    }
+
+    @Override
+    public List<String> getStrings(String name) {
+        return message.headers().getAll(name);
     }
 
     public Date getDate(String name) {

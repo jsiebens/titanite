@@ -50,11 +50,11 @@ public final class Request {
     }
 
     public MediaType contentType() {
-        return ofNullable(headers.get(HttpHeaders.Names.CONTENT_TYPE)).map(MediaType::valueOf).orElse(null);
+        return ofNullable(headers.getString(HttpHeaders.Names.CONTENT_TYPE)).map(MediaType::valueOf).orElse(null);
     }
 
     public String baseUri() {
-        return "http://" + headers.get(HttpHeaders.Names.HOST);
+        return "http://" + headers.getString(HttpHeaders.Names.HOST);
     }
 
 }

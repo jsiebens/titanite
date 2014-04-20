@@ -15,14 +15,12 @@
  */
 package org.nosceon.titanite;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Johan Siebens
  */
-public final class QueryParams extends Params {
+public final class QueryParams implements SingleParams, MultiParams {
 
     private Map<String, List<String>> values;
 
@@ -31,12 +29,18 @@ public final class QueryParams extends Params {
     }
 
     @Override
-    public String get(String name) {
+    public String getString(String name) {
         return
             Optional.ofNullable(values.get(name))
                 .filter(l -> !l.isEmpty())
                 .map((l) -> l.get(0))
                 .orElse(null);
+    }
+
+
+    @Override
+    public List<String> getStrings(String name) {
+        return Optional.ofNullable(values.get(name)).orElse(Collections.<String>emptyList());
     }
 
 }

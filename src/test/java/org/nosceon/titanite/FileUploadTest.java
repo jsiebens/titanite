@@ -57,7 +57,7 @@ public class FileUploadTest extends AbstractE2ETest {
             newServer(port)
                 .register(POST, "/post", (r) -> {
                     r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
-                    return ok().body(r.body.asForm().get("lorem")).toFuture();
+                    return ok().body(r.body.asForm().getString("lorem")).toFuture();
                 })
                 .start();
     }

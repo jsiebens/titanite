@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * @author Johan Siebens
  */
-public final class PathParams extends Params {
+public final class PathParams implements SingleParams {
 
     private Map<String, String> values;
 
@@ -29,7 +29,7 @@ public final class PathParams extends Params {
     }
 
     @Override
-    public String get(String name) {
+    public String getString(String name) {
         return values.get(name);
     }
 

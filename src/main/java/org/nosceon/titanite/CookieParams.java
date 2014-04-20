@@ -22,7 +22,7 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public final class CookieParams extends Params {
+public final class CookieParams implements SingleParams {
 
     private final Map<String, CookieParam> cookies;
 
@@ -39,7 +39,7 @@ public final class CookieParams extends Params {
     }
 
     @Override
-    public String get(String name) {
+    public String getString(String name) {
         return Optional.ofNullable(cookies.get(name)).map(CookieParam::value).orElse(null);
     }
 

@@ -37,13 +37,16 @@ public class QueryParamsTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer(port)
-                .register(GET, "/a", (r) -> Responses.ok().body(r.queryParams.get("p")).toFuture())
+                .register(GET, "/a", (r) -> Responses.ok().body(r.queryParams.getString("p")).toFuture())
                 .register(GET, "/b", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getShort("p"))).toFuture())
                 .register(GET, "/c", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getInt("p"))).toFuture())
                 .register(GET, "/d", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getLong("p"))).toFuture())
                 .register(GET, "/e", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getFloat("p"))).toFuture())
                 .register(GET, "/f", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getDouble("p"))).toFuture())
                 .register(GET, "/g", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getBoolean("p"))).toFuture())
+
+                .register(GET, "/ma", (r) -> Responses.ok().body(String.valueOf(r.queryParams.getStrings("p"))).toFuture())
+
                 .start();
     }
 
@@ -61,6 +64,8 @@ public class QueryParamsTest extends AbstractE2ETest {
         given().queryParam("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().get(uri(port, "/e"));
         given().queryParam("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().get(uri(port, "/f"));
         given().queryParam("p", "true").expect().statusCode(200).body(equalTo("true")).when().get(uri(port, "/g"));
+
+        given().queryParam("p", "apple").queryParam("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().get(uri(port, "/ma"));
     }
 
 }

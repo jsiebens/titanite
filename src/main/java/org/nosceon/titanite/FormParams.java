@@ -27,7 +27,7 @@ import static org.nosceon.titanite.HttpServerException.propagate;
 /**
  * @author Johan Siebens
  */
-public final class FormParams extends Params {
+public final class FormParams implements SingleParams {
 
     private HttpPostRequestDecoder decoder;
 
@@ -43,7 +43,7 @@ public final class FormParams extends Params {
     }
 
     @Override
-    public String get(String name) {
+    public String getString(String name) {
         return
             ofNullable(decoder.getBodyHttpData(name))
                 .flatMap(p ->
