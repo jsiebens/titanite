@@ -1,0 +1,24 @@
+---
+layout: default
+title: News
+---
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>News</h1>
+    </div>
+</div>
+
+
+{% for post in site.posts %}
+<div class="row">
+    <div class="col-md-12">
+		<h2>{{ post.title }}</h2>
+		&raquo; {{ post.date | date_to_string }}
+		<hr/>
+		{{ post.content }}
+
+		<br/>
+	</div>
+</div>
+{% endfor %}

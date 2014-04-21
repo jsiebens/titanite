@@ -1,0 +1,28 @@
+---
+layout: default
+title: Home
+---
+
+<div class="jumbotron">
+  <h1>Titanite</h1>
+  <p>A small web framework for Java 8, inspired by others like <a href="http://www.sinatrarb.com/" target="_blank">Sinatra</a> and <a href="http://finatra.info" target="_blank">Finatra</a>, running on top of <a href="http://netty.io" target="_blank">Netty</a></p>
+
+{% highlight java %}import static org.nosceon.titanite.Titanite.*;
+import static org.nosceon.titanite.Method.*;
+
+public class HelloWorld {
+
+    public static void main(String[] args) {
+
+        httpServer()
+            .register(GET, "/hello/{name}", r -> {
+                String name = r.pathParams.get("name");
+                return ok().text("hello " + name).toFuture();
+            })
+            .start(8080);
+
+    }
+
+}{% endhighlight %}
+
+</div>
