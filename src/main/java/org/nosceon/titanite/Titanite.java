@@ -40,20 +40,16 @@ public final class Titanite extends Responses {
 
     static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
 
+    public static HttpServerConfig config() {
+        return new HttpServerConfig();
+    }
+
     public static HttpServer httpServer() {
         return new HttpServer();
     }
 
-    public static HttpServer httpServer(int port) {
-        return new HttpServer(port);
-    }
-
-    public static HttpServer httpServer(int port, int ioWorkerCount) {
-        return new HttpServer(port, ioWorkerCount);
-    }
-
-    public static HttpServer httpServer(int port, int ioWorkerCount, int maxRequestSize) {
-        return new HttpServer(port, ioWorkerCount, maxRequestSize);
+    public static HttpServer httpServer(HttpServer.Config config) {
+        return new HttpServer(config);
     }
 
     public static ErrorFilter errors() {

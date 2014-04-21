@@ -23,7 +23,7 @@ import java.net.ServerSocket;
 public class AbstractE2ETest extends Responses {
 
     protected HttpServer newServer(int port) {
-        return new HttpServer(port, 2);
+        return new HttpServer(new HttpServerConfig().port(port).ioWorkerCount(2));
     }
 
     protected int findFreePort() {

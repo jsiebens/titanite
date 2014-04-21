@@ -16,7 +16,6 @@
 package org.nosceon.titanite;
 
 import com.google.common.base.Strings;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.util.concurrent.ThreadFactory;
@@ -28,40 +27,36 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
+    public static interface Config {
+
+        int getPort();
+
+        int getIoWorkerCount();
+
+        long getMaxRequestSize();
+
+    }
+
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    private final int port;
-
-    private final int ioWorkerCount;
-
-    private final int maxRequestSize;
+    private final Config config;
 
     public HttpServer() {
-        this(8080);
+        this(new HttpServerConfig());
     }
 
-    public HttpServer(int port) {
-        this(port, Titanite.DEFAULT_IO_WORKER_COUNT);
-    }
-
-    public HttpServer(int port, int ioWorkerCount) {
-        this(port, ioWorkerCount, Titanite.DEFAULT_MAX_REQUEST_SIZE);
-    }
-
-    public HttpServer(int port, int ioWorkerCount, int maxRequestSize) {
+    public HttpServer(Config config) {
         super(Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0'));
-        this.port = port;
-        this.ioWorkerCount = ioWorkerCount;
-        this.maxRequestSize = maxRequestSize;
+        this.config = config;
     }
 
     public Shutdownable start() {
         Titanite.LOG.info("Http Server [" + id + "] starting");
 
-        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(ioWorkerCount, new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
-        start(eventLoopGroup, port, maxRequestSize);
+        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(config.getIoWorkerCount(), new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
+        start(eventLoopGroup, config.getPort(), config.getMaxRequestSize());
 
-        Titanite.LOG.info("Http Server [" + id + "] started, listening on port " + port);
+        Titanite.LOG.info("Http Server [" + id + "] started, listening on port " + config.getPort());
 
         return eventLoopGroup::shutdownGracefully;
     }
