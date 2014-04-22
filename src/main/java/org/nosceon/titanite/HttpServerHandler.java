@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -154,10 +153,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                                 response = internalServerError();
                             }
                         }
-                        ChannelFuture cf = response.apply(isKeepAlive(request), req, ctx, renderer, mapper);
-                        if (!isKeepAlive(request)) {
-                            cf.addListener(ChannelFutureListener.CLOSE);
-                        }
+                        response.apply(isKeepAlive(request), req, ctx, renderer, mapper);
                     });
 
             }

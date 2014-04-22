@@ -15,13 +15,10 @@
  */
 package org.nosceon.titanite;
 
-import com.google.common.io.ByteStreams;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -30,7 +27,7 @@ import static org.nosceon.titanite.Method.GET;
 /**
  * @author Johan Siebens
  */
-public class StreamingOutputResponseTest extends AbstractE2ETest {
+public class ChunkedOutputResponseTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
@@ -43,8 +40,12 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer(port)
-                .register(GET, "/stream", (r) -> ok().stream(new ByteArrayInputStream(TEXT.getBytes())).toFuture())
-                .register(GET, "/resource", (r) -> ok().stream(o -> ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o)).toFuture())
+                .register(GET, "/chunks", (r) -> ok().chunks(o -> {
+                    o.write(TEXT.getBytes());
+                    o.write(TEXT.getBytes());
+                    o.write(TEXT.getBytes());
+                    o.close();
+                }).toFuture())
                 .start();
     }
 
@@ -58,12 +59,7 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
         given()
             .expect()
             .header(HttpHeaders.Names.TRANSFER_ENCODING, "chunked")
-            .statusCode(200).body(equalTo(TEXT)).when().get(uri(port, "/stream"));
-
-        given()
-            .expect()
-            .header(HttpHeaders.Names.TRANSFER_ENCODING, "chunked")
-            .statusCode(200).body(equalTo(TEXT)).when().get(uri(port, "/resource"));
+            .statusCode(200).body(equalTo(TEXT + TEXT + TEXT)).when().get(uri(port, "/chunks"));
     }
 
 }

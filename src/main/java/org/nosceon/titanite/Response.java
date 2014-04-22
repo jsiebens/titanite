@@ -15,21 +15,19 @@
  */
 package org.nosceon.titanite;
 
+import com.google.common.io.ByteStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import org.nosceon.titanite.json.JsonMapper;
 import org.nosceon.titanite.view.ViewRenderer;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -37,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static io.netty.util.CharsetUtil.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.internalServerError;
@@ -45,8 +44,6 @@ import static org.nosceon.titanite.Responses.internalServerError;
  * @author Johan Siebens
  */
 public final class Response {
-
-    public static final Charset UTF8 = Charset.forName("UTF8");
 
     private HttpResponseStatus status;
 
@@ -103,19 +100,19 @@ public final class Response {
     }
 
     public Response body(String content) {
-        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
+        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF_8));
         return this;
     }
 
     public Response text(String content) {
         this.type(MediaType.TEXT_PLAIN);
-        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
+        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF_8));
         return this;
     }
 
     public Response html(String content) {
         this.type(MediaType.TEXT_HTML);
-        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF8));
+        this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF_8));
         return this;
     }
 
@@ -125,8 +122,17 @@ public final class Response {
         return this;
     }
 
-    public Response stream(StreamingOutput consumer) {
-        this.body = new StreamBody(consumer);
+    public Response chunks(ChunkedOutput chunkedOutput) {
+        this.body = new ChunkedBody(chunkedOutput);
+        return this;
+    }
+
+    public Response stream(InputStream in) {
+        return stream(o -> ByteStreams.copy(in, o));
+    }
+
+    public Response stream(StreamingOutput streamingOutput) {
+        this.body = new StreamBody(streamingOutput);
         return this;
     }
 
@@ -144,14 +150,21 @@ public final class Response {
         return completedFuture(this);
     }
 
-    ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-        return body.apply(keepAlive, request, ctx, viewRenderer, mapper);
+    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        body.apply(keepAlive, request, ctx, viewRenderer, mapper);
     }
 
     private static interface Body {
 
-        ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
+        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
 
+    }
+
+    private static void writeFlushAndClose(ChannelHandlerContext ctx, Object msg, boolean keepAlive) {
+        ChannelFuture future = ctx.writeAndFlush(msg);
+        if (!keepAlive) {
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
     }
 
     private class DefaultBody implements Body {
@@ -163,20 +176,52 @@ public final class Response {
         }
 
         @Override
-        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
             setKeepAlive(response, keepAlive);
+            writeFlushAndClose(ctx, response, keepAlive);
+        }
 
-            return ctx.writeAndFlush(response);
+    }
+
+    private class ChunkedBody implements Body {
+
+        private ChunkedOutput chunkedOutput;
+
+        private ChunkedBody(ChunkedOutput chunkedOutput) {
+            this.chunkedOutput = chunkedOutput;
+        }
+
+        @Override
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
+            response.headers().add(headers);
+            setTransferEncodingChunked(response);
+
+            ctx.write(response);
+
+            chunkedOutput.apply(new ChunkedOutput.Writer() {
+
+                @Override
+                public void write(byte[] chunk) {
+                    ctx.writeAndFlush(new DefaultHttpContent(Unpooled.copiedBuffer(chunk)));
+                }
+
+                @Override
+                public void close() {
+                    writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+                }
+
+            });
         }
 
     }
 
     private abstract class AbstractStreamingBody implements Body {
 
-        protected ChannelFuture stream(ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
+        protected void stream(boolean keepAlive, ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -188,7 +233,8 @@ public final class Response {
                 }
                 return true;
             });
-            return ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+
+            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
         }
 
     }
@@ -202,8 +248,8 @@ public final class Response {
         }
 
         @Override
-        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            return stream(ctx, consumer);
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            stream(keepAlive, ctx, consumer);
         }
 
     }
@@ -217,12 +263,12 @@ public final class Response {
         }
 
         @Override
-        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             if (viewRenderer.isTemplateAvailable(view)) {
-                return stream(ctx, (o) -> viewRenderer.render(request, view, o));
+                stream(keepAlive, ctx, (o) -> viewRenderer.render(request, view, o));
             }
             else {
-                return internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
+                internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
         }
 
@@ -237,8 +283,8 @@ public final class Response {
         }
 
         @Override
-        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            return stream(ctx, (o) -> mapper.write(o, entity));
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+            stream(keepAlive, ctx, (o) -> mapper.write(o, entity));
         }
 
     }
@@ -252,28 +298,25 @@ public final class Response {
         }
 
         @Override
-        public ChannelFuture apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
 
-            RandomAccessFile raf;
-            long length;
             try {
-                raf = new RandomAccessFile(file, "r");
-                length = raf.length();
+                RandomAccessFile raf = new RandomAccessFile(file, "r");
+                long length = raf.length();
+
+                setContentLength(response, length);
+                setKeepAlive(response, keepAlive);
+
+                ctx.write(response);
+                ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
             }
             catch (IOException e) {
                 Titanite.LOG.error("error writing file to response", e);
-                return internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
+                internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
-
-            setContentLength(response, length);
-            setKeepAlive(response, keepAlive);
-
-            ctx.write(response);
-            ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
-            return ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         }
 
     }
