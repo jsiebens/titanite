@@ -38,7 +38,7 @@ public class FiltersTest extends AbstractE2ETest {
 
     private static final Filter<String, String, String, String> TO_UPPER = (s, function) -> function.apply(s).toUpperCase();
 
-    public static class TextController extends Routings<String, String> {
+    public static class TextController extends Routes<String, String> {
 
         {
             get("/controller", s -> s + " lorem ipsum");

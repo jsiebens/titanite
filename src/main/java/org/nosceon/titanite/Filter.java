@@ -34,9 +34,9 @@ public interface Filter<FI, FO, SI, SO> {
         return (i) -> apply(i, next);
     }
 
-    default Routings<FI, FO> andThen(Routings<? super SI, ? extends SO> routings) {
-        Stream<Routing<FI, FO>> map = routings.get().stream().map(r -> new Routing<>(r.method(), r.pattern(), (i) -> apply(i, r.function())));
-        return new Routings<>(map.collect(toList()));
+    default Routes<FI, FO> andThen(Routes<? super SI, ? extends SO> routes) {
+        Stream<Route<FI, FO>> map = routes.get().stream().map(r -> new Route<>(r.method(), r.pattern(), (i) -> apply(i, r.function())));
+        return new Routes<>(map.collect(toList()));
     }
 
     FO apply(FI request, Function<? super SI, ? extends SO> function);

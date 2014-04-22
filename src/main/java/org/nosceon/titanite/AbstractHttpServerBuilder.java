@@ -42,7 +42,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().toFuture();
 
-    private final List<Routing<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
+    private final List<Route<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
 
     private Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter = Optional.empty();
 
@@ -79,12 +79,12 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> handler) {
-        this.routings.add(new Routing<>(method, pattern, handler));
+        this.routings.add(new Route<>(method, pattern, handler));
         return self();
     }
 
-    public final R register(Routings<Request, CompletableFuture<Response>> routings) {
-        this.routings.addAll(routings.get());
+    public final R register(Routes<Request, CompletableFuture<Response>> routes) {
+        this.routings.addAll(routes.get());
         return self();
     }
 

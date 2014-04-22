@@ -20,6 +20,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author Johan Siebens
  */
-public abstract class Controller extends Routings<Request, CompletableFuture<Response>> {
+public abstract class Controller extends Routes<Request, CompletableFuture<Response>> {
 
 }

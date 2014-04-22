@@ -20,7 +20,7 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-final class Routing<I, O> {
+final class Route<I, O> {
 
     private final Method method;
 
@@ -28,7 +28,7 @@ final class Routing<I, O> {
 
     private final Function<I, O> function;
 
-    Routing(Method method, String pattern, Function<I, O> function) {
+    Route(Method method, String pattern, Function<I, O> function) {
         this.method = method;
         this.pattern = pattern;
         this.function = function;

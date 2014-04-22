@@ -22,38 +22,38 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-public class Routings<I, O> extends Responses {
+public class Routes<I, O> extends Responses {
 
-    private final List<Routing<I, O>> routings = new LinkedList<>();
+    private final List<Route<I, O>> routings = new LinkedList<>();
 
-    protected Routings() {
+    protected Routes() {
     }
 
-    Routings(List<Routing<I, O>> routings) {
+    Routes(List<Route<I, O>> routings) {
         this.routings.addAll(routings);
     }
 
     protected final void get(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(Method.GET, pattern, function));
+        routings.add(new Route<>(Method.GET, pattern, function));
     }
 
     protected final void post(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(Method.POST, pattern, function));
+        routings.add(new Route<>(Method.POST, pattern, function));
     }
 
     protected final void put(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(Method.PUT, pattern, function));
+        routings.add(new Route<>(Method.PUT, pattern, function));
     }
 
     protected final void patch(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(Method.PATCH, pattern, function));
+        routings.add(new Route<>(Method.PATCH, pattern, function));
     }
 
     protected final void delete(String pattern, Function<I, O> function) {
-        routings.add(new Routing<>(Method.DELETE, pattern, function));
+        routings.add(new Route<>(Method.DELETE, pattern, function));
     }
 
-    final List<Routing<I, O>> get() {
+    final List<Route<I, O>> get() {
         return routings;
     }
 

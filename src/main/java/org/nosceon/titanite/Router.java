@@ -38,11 +38,11 @@ public final class Router {
     public Router(
         String id,
         Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter,
-        List<Routing<Request, CompletableFuture<Response>>> routings,
+        List<Route<Request, CompletableFuture<Response>>> routings,
         Function<Request, CompletableFuture<Response>> fallback) {
 
         this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filter, fallback));
-        for (Routing<Request, CompletableFuture<Response>> r : routings) {
+        for (Route<Request, CompletableFuture<Response>> r : routings) {
             add(id, filter, r.method(), r.pattern(), r.function());
         }
     }
