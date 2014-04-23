@@ -18,10 +18,7 @@ package org.nosceon.titanite;
 import com.google.common.io.ByteStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.nosceon.titanite.json.JsonMapper;
 import org.nosceon.titanite.view.ViewRenderer;
@@ -201,20 +198,47 @@ public final class Response {
             setTransferEncodingChunked(response);
 
             ctx.write(response);
+            ChunksChannel channel = new ChunksChannel(keepAlive, ctx);
+            ctx.pipeline().addLast(channel);
 
-            chunkedOutput.apply(new ChunkedOutput.Writer() {
+            chunkedOutput.onReady(channel);
+        }
 
-                @Override
-                public void write(byte[] chunk) {
-                    ctx.writeAndFlush(new DefaultHttpContent(Unpooled.copiedBuffer(chunk)));
-                }
+    }
 
-                @Override
-                public void close() {
-                    writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
-                }
+    private static class ChunksChannel extends ChannelInboundHandlerAdapter implements ChunkedOutput.Channel {
 
-            });
+        private final boolean keepAlive;
+
+        private final ChannelHandlerContext ctx;
+
+        private final CompletableFuture<Void> disconnect;
+
+        private ChunksChannel(boolean keepAlive, ChannelHandlerContext ctx) {
+            this.keepAlive = keepAlive;
+            this.ctx = ctx;
+            this.disconnect = new CompletableFuture<>();
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            disconnect.complete(null);
+        }
+
+        @Override
+        public void write(byte[] chunk) {
+            ctx.writeAndFlush(new DefaultHttpContent(Unpooled.copiedBuffer(chunk)));
+        }
+
+        @Override
+        public void close() {
+            ctx.pipeline().remove(this);
+            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+        }
+
+        @Override
+        public void onDisconnect(Runnable listener) {
+            disconnect.whenComplete((v, t) -> listener.run());
         }
 
     }

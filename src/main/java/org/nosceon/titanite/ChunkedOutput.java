@@ -20,14 +20,16 @@ package org.nosceon.titanite;
  */
 public interface ChunkedOutput {
 
-    interface Writer {
+    interface Channel {
 
         void write(byte[] chunk);
 
         void close();
 
+        void onDisconnect(Runnable action);
+
     }
 
-    void apply(Writer writer);
+    void onReady(Channel channel);
 
 }
