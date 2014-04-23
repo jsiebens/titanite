@@ -1,0 +1,45 @@
+<div class="row">
+    <div class="col-md-12">
+		<h2>Controllers</h2>
+		
+		<hr/>
+
+		<p>Routes can be grouped in a Controller.</p>
+		<p>Example:</p>
+{% highlight java %}public class UserController extends Controller {
+
+    {
+        get("/users", this::listUsers);
+        post("/users", this::addUser);
+        put("/users/{id}", this::updateUser);
+        patch("/users/{id}", this::updateUser);
+        delete("/users/{id}", this::deleteUser);
+    }
+
+    public CompletableFuture<Response> listUsers(Request request) {
+        ...
+    }
+
+    public CompletableFuture<Response> addUser(Request request) {
+        ...
+    }
+
+    public CompletableFuture<Response> updateUser(Request request) {
+        ...
+    }
+
+    private CompletableFuture<Response> deleteUser(Request request) {
+        ...
+    }
+
+    public static void main(String[] args) {
+
+        new HttpServer()
+            .register(new UserController())
+            .start();
+
+    }
+
+}{% endhighlight %}
+	</div>
+</div>

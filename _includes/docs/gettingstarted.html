@@ -1,0 +1,26 @@
+<div class="row">
+    <div class="col-md-12">
+		<h2>Getting Started</h2>
+		
+		<hr/>
+
+
+		<p>To get started, create a new HttpServer instance, register at least one route, and call the start method.</p>
+{% highlight java %}public class HelloWorld {
+
+    public static void main(String[] args) {
+
+        new HttpServer()
+            .register(Method.GET, "/", (req) -> {
+                return ok().text("hello " + name).toFuture();
+            })
+            .start();
+
+    }
+
+}{% endhighlight %}		
+
+
+
+	</div>
+</div>
