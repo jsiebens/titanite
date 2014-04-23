@@ -25,8 +25,10 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.given;
+import static java.util.Optional.ofNullable;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -56,7 +58,8 @@ public class FileUploadTest extends AbstractE2ETest {
         shutdownable =
             newServer(port)
                 .register(POST, "/post", (r) -> {
-                    r.body.asForm().getMultiPart("file").ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
+                    Optional<MultiPart> omp = ofNullable(r.body.asForm().getMultiPart("file"));
+                    omp.ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
                     return ok().body(r.body.asForm().getString("lorem")).toFuture();
                 })
                 .start();

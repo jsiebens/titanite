@@ -19,8 +19,6 @@ import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 
-import java.util.Optional;
-
 import static java.util.Optional.*;
 import static org.nosceon.titanite.HttpServerException.propagate;
 
@@ -35,11 +33,12 @@ public final class FormParams implements SingleParams {
         this.decoder = decoder;
     }
 
-    public Optional<MultiPart> getMultiPart(String name) {
+    public MultiPart getMultiPart(String name) {
         return
             ofNullable(decoder.getBodyHttpData(name))
                 .filter(p -> p instanceof FileUpload)
-                .map(p -> new MultiPart((FileUpload) p));
+                .map(p -> new MultiPart((FileUpload) p))
+                .orElse(null);
     }
 
     @Override

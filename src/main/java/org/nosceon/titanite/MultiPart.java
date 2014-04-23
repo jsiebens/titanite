@@ -21,9 +21,7 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
@@ -54,8 +52,8 @@ public final class MultiPart {
         return fileUpload.length();
     }
 
-    public Optional<String> contentType() {
-        return ofNullable(fileUpload.getContentType());
+    public String contentType() {
+        return fileUpload.getContentType();
     }
 
     public String filename() {
