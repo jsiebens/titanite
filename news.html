@@ -13,12 +13,13 @@ title: News
 {% for post in site.posts %}
 <div class="row">
     <div class="col-md-12">
-		<h2>{{ post.title }}</h2>
-		&raquo; {{ post.date | date_to_string }}
+		<h2 style="margin-bottom:0px">{{ post.title }}</h2>
+		<p>&raquo; {{ post.date | date_to_string }}</p>
+		
+		<div>
+			{{ post.content }}
+		</div>
 		<hr/>
-		{{ post.content }}
-
-		<br/>
 	</div>
 </div>
 {% endfor %}
