@@ -7,6 +7,24 @@ title: Home
   <h1>Titanite</h1>
   <p>A small web framework for Java 8, inspired by others like <a href="http://www.sinatrarb.com/" target="_blank">Sinatra</a> and <a href="http://finatra.info" target="_blank">Finatra</a>, running on top of <a href="http://netty.io" target="_blank">Netty</a></p>
 
+
+  
+    <div class="row">
+      <div class="col-md-4">
+        <p>highlights</p>
+
+        <ul>
+          <li>Async with Java 8 <a href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html" target="_blank">CompletableFuture</a></li>
+          <li>Running on top of <a href="http://netty.io" target="_blank">Netty</a></li>
+          <li>Templating with <a href="http://mustache.github.io" target="_blank">Mustache</a></li>
+          <li>JSON with <a href="https://github.com/FasterXML/jackson" target="_blank">Jackson</a></li>
+          <li>File upload</li>
+          <li>Serving static resources</li>
+          <li>...</li>
+        </ul>
+      </div>    
+      <div class="col-md-8">
+
 {% highlight java %}import static org.nosceon.titanite.Titanite.*;
 import static org.nosceon.titanite.Method.*;
 
@@ -25,4 +43,10 @@ public class HelloWorld {
 
 }{% endhighlight %}
 
+      </div>
+    </div>
+      
 </div>
+
+<img class="pull-right" src="https://drone.io/github.com/nosceon/titanite/status.png"/>
+ 
