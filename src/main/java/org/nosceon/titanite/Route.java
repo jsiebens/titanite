@@ -15,20 +15,21 @@
  */
 package org.nosceon.titanite;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
  * @author Johan Siebens
  */
-final class Route<I, O> {
+final class Route {
 
     private final Method method;
 
     private final String pattern;
 
-    private final Function<I, O> function;
+    private final Function<Request, CompletableFuture<Response>> function;
 
-    Route(Method method, String pattern, Function<I, O> function) {
+    Route(Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         this.method = method;
         this.pattern = pattern;
         this.function = function;
@@ -42,7 +43,7 @@ final class Route<I, O> {
         return pattern;
     }
 
-    public Function<I, O> function() {
+    public Function<Request, CompletableFuture<Response>> function() {
         return function;
     }
 

@@ -42,9 +42,9 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().toFuture();
 
-    private final List<Route<Request, CompletableFuture<Response>>> routings = new LinkedList<>();
+    private final List<Route> routings = new LinkedList<>();
 
-    private Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter = Optional.empty();
+    private Optional<Filter> filter = Optional.empty();
 
     private Optional<JsonMapper> mapper = Optional.empty();
 
@@ -56,11 +56,10 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         this.id = id;
     }
 
-    @SafeVarargs
-    public final R setFilter(Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> filter, Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>... additionalFilters) {
-        Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> f = filter;
+    public final R setFilter(Filter filter, Filter... additionalFilters) {
+        Filter f = filter;
         if (additionalFilters != null) {
-            for (Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>> additionalFilter : additionalFilters) {
+            for (Filter additionalFilter : additionalFilters) {
                 f = f.andThen(additionalFilter);
             }
         }
@@ -79,12 +78,12 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> handler) {
-        this.routings.add(new Route<>(method, pattern, handler));
+        this.routings.add(new Route(method, pattern, handler));
         return self();
     }
 
-    public final R register(Routes<Request, CompletableFuture<Response>> routes) {
-        this.routings.addAll(routes.get());
+    public final R register(Controller controller) {
+        this.routings.addAll(controller.get());
         return self();
     }
 

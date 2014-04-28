@@ -15,11 +15,59 @@
  */
 package org.nosceon.titanite;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * @author Johan Siebens
  */
-public abstract class Controller extends Routes<Request, CompletableFuture<Response>> {
+public abstract class Controller extends Responses {
+
+    static Controller newController(List<Route> routes) {
+        return new InternalController(routes);
+    }
+
+    private final List<Route> routings = new LinkedList<>();
+
+    protected Controller() {
+    }
+
+    private Controller(List<Route> routes) {
+        this.routings.addAll(routes);
+    }
+
+    protected final void get(String pattern, Function<Request, CompletableFuture<Response>> function) {
+        routings.add(new Route(Method.GET, pattern, function));
+    }
+
+    protected final void post(String pattern, Function<Request, CompletableFuture<Response>> function) {
+        routings.add(new Route(Method.POST, pattern, function));
+    }
+
+    protected final void put(String pattern, Function<Request, CompletableFuture<Response>> function) {
+        routings.add(new Route(Method.PUT, pattern, function));
+    }
+
+    protected final void patch(String pattern, Function<Request, CompletableFuture<Response>> function) {
+        routings.add(new Route(Method.PATCH, pattern, function));
+    }
+
+    protected final void delete(String pattern, Function<Request, CompletableFuture<Response>> function) {
+        routings.add(new Route(Method.DELETE, pattern, function));
+    }
+
+    final List<Route> get() {
+        return routings;
+    }
+
+    private static class InternalController extends Controller {
+
+        private InternalController(List<Route> routes) {
+            super(routes);
+        }
+
+    }
 
 }

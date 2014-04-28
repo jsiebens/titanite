@@ -35,7 +35,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final SimpleFilter<Request, CompletableFuture<Response>> SECURITY = (req, f) -> {
+    private static final Filter SECURITY = (req, f) -> {
         String s = ofNullable(req.headers.getString(HttpHeaders.Names.AUTHORIZATION)).orElse("");
         if ("admin".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").toFuture());
@@ -45,7 +45,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
         }
     };
 
-    private static final SimpleFilter<Request, CompletableFuture<Response>> CONTENT_TYPE_JSON = (req, f) -> {
+    private static final Filter CONTENT_TYPE_JSON = (req, f) -> {
         String s = ofNullable(req.headers.getString(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
         if ("application/json".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").toFuture());

@@ -29,7 +29,7 @@ import static org.nosceon.titanite.Responses.internalServerError;
  * @author Johan Siebens
  */
 @SuppressWarnings("unchecked")
-public final class ErrorFilter implements SimpleFilter<Request, CompletableFuture<Response>> {
+public final class ErrorFilter implements Filter {
 
     private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
 
@@ -52,7 +52,7 @@ public final class ErrorFilter implements SimpleFilter<Request, CompletableFutur
     }
 
     @Override
-    public CompletableFuture<Response> apply(Request request, Function<? super Request, ? extends CompletableFuture<Response>> function) {
+    public CompletableFuture<Response> apply(Request request, Function<Request, CompletableFuture<Response>> function) {
         try {
             return function.apply(request).exceptionally(t -> translate(request, t));
         }

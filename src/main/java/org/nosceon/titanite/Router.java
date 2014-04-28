@@ -37,12 +37,12 @@ public final class Router {
 
     public Router(
         String id,
-        Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter,
-        List<Route<Request, CompletableFuture<Response>>> routings,
+        Optional<Filter> filter,
+        List<Route> routings,
         Function<Request, CompletableFuture<Response>> fallback) {
 
         this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filter, fallback));
-        for (Route<Request, CompletableFuture<Response>> r : routings) {
+        for (Route r : routings) {
             add(id, filter, r.method(), r.pattern(), r.function());
         }
     }
@@ -64,7 +64,7 @@ public final class Router {
         }
     }
 
-    private Router add(String id, Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
+    private Router add(String id, Optional<Filter> filter, Method method, String pattern, Function<Request, CompletableFuture<Response>> function) {
         ParameterizedPattern pp = new ParameterizedPattern(pattern);
         Map<Method, Function<Request, CompletableFuture<Response>>> map = mapping.get(pp);
         if (map == null) {
@@ -77,7 +77,7 @@ public final class Router {
         return this;
     }
 
-    private Function<Request, CompletableFuture<Response>> createFunction(Optional<Filter<Request, CompletableFuture<Response>, Request, CompletableFuture<Response>>> filter, Function<Request, CompletableFuture<Response>> function) {
+    private Function<Request, CompletableFuture<Response>> createFunction(Optional<Filter> filter, Function<Request, CompletableFuture<Response>> function) {
         return filter.isPresent() ? filter.get().andThen(function) : function;
     }
 

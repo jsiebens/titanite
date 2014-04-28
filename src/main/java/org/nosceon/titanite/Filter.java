@@ -15,30 +15,30 @@
  */
 package org.nosceon.titanite;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.nosceon.titanite.Controller.newController;
 
 /**
  * @author Johan Siebens
  */
 @FunctionalInterface
-public interface Filter<FI, FO, SI, SO> {
+public interface Filter {
 
-    default <NI, NO> Filter<FI, FO, NI, NO> andThen(Filter<? super SI, ? extends SO, NI, NO> next) {
+    default Filter andThen(Filter next) {
         return (fi, f) -> apply(fi, (i) -> next.apply(i, f));
     }
 
-    default Function<FI, FO> andThen(Function<? super SI, ? extends SO> next) {
+    default Function<Request, CompletableFuture<Response>> andThen(Function<Request, CompletableFuture<Response>> next) {
         return (i) -> apply(i, next);
     }
 
-    default Routes<FI, FO> andThen(Routes<? super SI, ? extends SO> routes) {
-        Stream<Route<FI, FO>> map = routes.get().stream().map(r -> new Route<>(r.method(), r.pattern(), (i) -> apply(i, r.function())));
-        return new Routes<>(map.collect(toList()));
+    default Controller andThen(Controller controller) {
+        return newController(controller.get().stream().map(r -> new Route(r.method(), r.pattern(), (i) -> apply(i, r.function()))).collect(toList()));
     }
 
-    FO apply(FI request, Function<? super SI, ? extends SO> function);
+    CompletableFuture<Response> apply(Request request, Function<Request, CompletableFuture<Response>> function);
 
 }

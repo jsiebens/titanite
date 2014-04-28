@@ -19,8 +19,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
-
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
@@ -34,14 +32,28 @@ public class FiltersTest extends AbstractE2ETest {
 
     private int port;
 
-    private static final Filter<Request, CompletableFuture<Response>, String, String> TEXT = (request, function) -> ok().body(function.apply(request.method.name().toLowerCase())).toFuture();
+    private static final Filter GLOBAL_FILTER = (r, f) -> {
+        if (r.queryParams.getBoolean("global", false)) {
+            return ok().text("global").toFuture();
+        }
+        else {
+            return f.apply(r);
+        }
+    };
 
-    private static final Filter<String, String, String, String> TO_UPPER = (s, function) -> function.apply(s).toUpperCase();
+    private static final Filter FILTER = (r, f) -> {
+        if (r.queryParams.getBoolean("filtered", false)) {
+            return ok().text("filtered").toFuture();
+        }
+        else {
+            return f.apply(r);
+        }
+    };
 
-    public static class TextController extends Routes<String, String> {
+    public static class TextController extends Controller {
 
         {
-            get("/controller", s -> s + " lorem ipsum");
+            get("/controller", r -> ok().text("controller").toFuture());
         }
 
     }
@@ -51,8 +63,9 @@ public class FiltersTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer(port)
-                .register(TEXT.andThen(TO_UPPER).andThen(new TextController()))
-                .register(POST, "/resource", TEXT.andThen(TO_UPPER).andThen((s) -> s + " resource"))
+                .setFilter(GLOBAL_FILTER)
+                .register(FILTER.andThen(new TextController()))
+                .register(POST, "/resource", FILTER.andThen(r -> ok().text("resource").toFuture()))
                 .start();
     }
 
@@ -63,8 +76,14 @@ public class FiltersTest extends AbstractE2ETest {
 
     @Test
     public void test() {
-        given().expect().statusCode(200).body(equalTo("GET LOREM IPSUM")).when().get(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo("POST RESOURCE")).when().post(uri(port, "/resource"));
+        given().expect().statusCode(200).body(equalTo("controller")).when().get(uri(port, "/controller"));
+        given().expect().statusCode(200).body(equalTo("resource")).when().post(uri(port, "/resource"));
+
+        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().get(uri(port, "/controller"));
+        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().post(uri(port, "/resource"));
+
+        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().get(uri(port, "/controller"));
+        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().post(uri(port, "/resource"));
     }
 
 }
