@@ -309,11 +309,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public boolean isForm() {
-            return false;
-        }
-
-        @Override
         public InputStream asStream() {
             return new ByteBufInputStream(content);
         }
@@ -350,11 +345,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         private FormRequestBody(HttpPostRequestDecoder decoder) {
             this.form = new FormParams(decoder);
-        }
-
-        @Override
-        public boolean isForm() {
-            return true;
         }
 
         @Override

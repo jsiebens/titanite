@@ -28,8 +28,6 @@ public interface RequestBody {
 
     <T> T asJson(Class<T> type);
 
-    boolean isForm();
-
     FormParams asForm();
 
 }
