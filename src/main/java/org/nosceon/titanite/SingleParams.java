@@ -23,19 +23,7 @@ import static org.nosceon.titanite.HttpServerException.wrap;
 /**
  * @author Johan Siebens
  */
-public interface SingleParams {
-
-    public static final Function<String, Short> SHORT = wrap(Short::valueOf);
-
-    public static final Function<String, Integer> INT = wrap(Integer::valueOf);
-
-    public static final Function<String, Long> LONG = wrap(Long::valueOf);
-
-    public static final Function<String, Float> FLOAT = wrap(Float::valueOf);
-
-    public static final Function<String, Double> DOUBLE = wrap(Double::valueOf);
-
-    public static final Function<String, Boolean> BOOLEAN = s -> s.equals("1") || s.equals("t") || s.equals("true") || s.equals("on");
+public interface SingleParams extends Params {
 
     public abstract String getString(String name);
 
@@ -44,11 +32,11 @@ public interface SingleParams {
     }
 
     default <V> V getValue(String name, Function<String, V> f) {
-        return ofNullable(getString(name)).map(f).orElse(null);
+        return ofNullable(getString(name)).map(wrap(f)).orElse(null);
     }
 
     default <V> V getValue(String name, Function<String, V> f, V defaultValue) {
-        return ofNullable(getString(name)).map(f).orElse(defaultValue);
+        return ofNullable(getString(name)).map(wrap(f)).orElse(defaultValue);
     }
 
     default Short getShort(String name) {
@@ -56,7 +44,7 @@ public interface SingleParams {
     }
 
     default short getShort(String name, short defaultValue) {
-        return ofNullable(getValue(name, SHORT)).orElse(defaultValue);
+        return getValue(name, SHORT, defaultValue);
     }
 
     default Integer getInt(String name) {
@@ -64,7 +52,7 @@ public interface SingleParams {
     }
 
     default int getInt(String name, int defaultValue) {
-        return ofNullable(getValue(name, INT)).orElse(defaultValue);
+        return getValue(name, INT, defaultValue);
     }
 
     default Long getLong(String name) {
@@ -72,7 +60,7 @@ public interface SingleParams {
     }
 
     default long getLong(String name, long defaultValue) {
-        return ofNullable(getValue(name, LONG)).orElse(defaultValue);
+        return getValue(name, LONG, defaultValue);
     }
 
     default Float getFloat(String name) {
@@ -80,7 +68,7 @@ public interface SingleParams {
     }
 
     default float getFloat(String name, float defaultValue) {
-        return ofNullable(getValue(name, FLOAT)).orElse(defaultValue);
+        return getValue(name, FLOAT, defaultValue);
     }
 
     default Double getDouble(String name) {
@@ -88,7 +76,7 @@ public interface SingleParams {
     }
 
     default double getDouble(String name, double defaultValue) {
-        return ofNullable(getValue(name, DOUBLE)).orElse(defaultValue);
+        return getValue(name, DOUBLE, defaultValue);
     }
 
     default Boolean getBoolean(String name) {
@@ -96,7 +84,7 @@ public interface SingleParams {
     }
 
     default boolean getBoolean(String name, boolean defaultValue) {
-        return ofNullable(getValue(name, BOOLEAN)).orElse(defaultValue);
+        return getValue(name, BOOLEAN, defaultValue);
     }
 
 }

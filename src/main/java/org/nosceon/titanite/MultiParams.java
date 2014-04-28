@@ -23,7 +23,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Johan Siebens
  */
-public interface MultiParams {
+public interface MultiParams extends Params {
 
     List<String> getStrings(String name);
 
@@ -32,27 +32,27 @@ public interface MultiParams {
     }
 
     default List<Short> getShorts(String name) {
-        return getValues(name, SingleParams.SHORT);
+        return getValues(name, SHORT);
     }
 
     default List<Integer> getInts(String name) {
-        return getValues(name, SingleParams.INT);
+        return getValues(name, INT);
     }
 
     default List<Long> getLongs(String name) {
-        return getValues(name, SingleParams.LONG);
+        return getValues(name, LONG);
     }
 
     default List<Float> getFloats(String name) {
-        return getValues(name, SingleParams.FLOAT);
+        return getValues(name, FLOAT);
     }
 
     default List<Double> getDoubles(String name) {
-        return getValues(name, SingleParams.DOUBLE);
+        return getValues(name, DOUBLE);
     }
 
     default List<Boolean> getBooleans(String name) {
-        return getValues(name, SingleParams.BOOLEAN);
+        return getValues(name, BOOLEAN);
     }
 
 }
