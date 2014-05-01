@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -43,6 +42,7 @@ import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.internalServerError;
+import static org.nosceon.titanite.Responses.status;
 
 /**
  * @author Johan Siebens
@@ -50,8 +50,6 @@ import static org.nosceon.titanite.Responses.internalServerError;
 final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private static final FullHttpResponse CONTINUE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
-
-    private static final FullHttpResponse TOO_LARGE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE, Unpooled.EMPTY_BUFFER);
 
     private final Router router;
 
@@ -63,9 +61,9 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private Aggregator aggregator;
 
-    private long maxRequestSize;
+    private final long maxRequestSize;
 
-    private boolean tooLongFrameFound;
+    private long currentRequestSize;
 
     public HttpServerHandler(long maxRequestSize, Router router, ViewRenderer renderer, JsonMapper mapper) {
         this.maxRequestSize = maxRequestSize;
@@ -90,26 +88,18 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         if (msg instanceof HttpContent) {
-            if (tooLongFrameFound) {
-                return;
-            }
-
             HttpContent chunk = (HttpContent) msg;
+            int chunkSize = chunk.content().readableBytes();
 
-            if (aggregator.maxRequestSizeExceeded(chunk)) {
-                tooLongFrameFound = true;
-
-                // release current message to prevent leaks
-                reset();
-
-                ctx.writeAndFlush(TOO_LARGE).addListener(ChannelFutureListener.CLOSE);
-                return;
+            if (currentRequestSize > maxRequestSize - chunkSize) {
+                releaseAggregator();
             }
 
-            // Append the content of the chunk
-            if (chunk.content().isReadable()) {
+            if (aggregator != null) {
                 aggregator.offer(chunk);
             }
+
+            currentRequestSize += chunkSize;
 
             if (chunk instanceof LastHttpContent) {
                 QueryStringDecoder qsd = new QueryStringDecoder(request.getUri());
@@ -120,7 +110,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
                     .orElseGet(Collections::emptyMap);
 
-                request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, aggregator.length());
+                request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, currentRequestSize);
 
                 Request req =
                     new Request(
@@ -130,7 +120,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         new CookieParams(cookies),
                         new PathParams(routing.pathParams),
                         new QueryParams(qsd.parameters()),
-                        aggregator.newRequestBody()
+                        aggregator == null ? new ExceededSizeRequestBody() : aggregator.newRequestBody()
                     );
 
 
@@ -138,6 +128,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     .completedFuture(req)
                     .<Response>thenCompose(routing.function::apply)
                     .whenComplete((r, e) -> {
+                        releaseAggregator();
                         Response response = r;
                         if (e != null) {
                             if (e instanceof CompletionException) {
@@ -169,24 +160,24 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         return e;
     }
 
-    private void reset() {
-        if (aggregator != null) {
-            aggregator.release();
-            aggregator = null;
-        }
-    }
-
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        reset();
+        releaseAggregator();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Titanite.LOG.warn("error handling request", cause);
-        reset();
+        releaseAggregator();
         ctx.channel().close();
+    }
+
+    private void releaseAggregator() {
+        if (aggregator != null) {
+            aggregator.release();
+            aggregator = null;
+        }
     }
 
     private Aggregator newAggregator(HttpRequest request, ChannelHandlerContext ctx) {
@@ -200,17 +191,13 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             if ((isMultiPart || isURLEncoded) &&
                 (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
 
-                return new FormAggregator(maxRequestSize, new HttpPostRequestDecoder(request));
+                return new FormAggregator(new HttpPostRequestDecoder(request));
             }
         }
-        return new DefaultAggregator(maxRequestSize, ctx.alloc().compositeBuffer());
+        return new DefaultAggregator(ctx.alloc().compositeBuffer());
     }
 
     private static interface Aggregator {
-
-        boolean maxRequestSizeExceeded(HttpContent chunk);
-
-        long length();
 
         void offer(HttpContent chunk);
 
@@ -222,23 +209,10 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private class DefaultAggregator implements Aggregator {
 
-        private long maxRequestSize;
-
         private CompositeByteBuf content;
 
-        private DefaultAggregator(long maxRequestSize, CompositeByteBuf content) {
-            this.maxRequestSize = maxRequestSize;
+        private DefaultAggregator(CompositeByteBuf content) {
             this.content = content;
-        }
-
-        @Override
-        public boolean maxRequestSizeExceeded(HttpContent chunk) {
-            return content.readableBytes() > maxRequestSize - chunk.content().readableBytes();
-        }
-
-        @Override
-        public long length() {
-            return content.readableBytes();
         }
 
         @Override
@@ -262,31 +236,15 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private class FormAggregator implements Aggregator {
 
-        private long maxRequestSize;
-
-        private long length;
-
         private HttpPostRequestDecoder decoder;
 
-        private FormAggregator(long maxRequestSize, HttpPostRequestDecoder decoder) {
-            this.maxRequestSize = maxRequestSize;
+        private FormAggregator(HttpPostRequestDecoder decoder) {
             this.decoder = decoder;
-        }
-
-        @Override
-        public boolean maxRequestSizeExceeded(HttpContent chunk) {
-            return length > maxRequestSize - chunk.content().readableBytes();
-        }
-
-        @Override
-        public long length() {
-            return length;
         }
 
         @Override
         public void offer(HttpContent chunk) {
             decoder.offer(chunk);
-            length += chunk.content().readableBytes();
         }
 
         @Override
@@ -298,6 +256,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         public RequestBody newRequestBody() {
             return new FormRequestBody(decoder);
         }
+
     }
 
     private class DefaultRequestBody implements RequestBody {
@@ -365,6 +324,35 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public FormParams asForm() {
             return form;
+        }
+
+    }
+
+    private class ExceededSizeRequestBody implements RequestBody {
+
+        @Override
+        public boolean maxRequestSizeExceeded() {
+            return true;
+        }
+
+        @Override
+        public InputStream asStream() {
+            throw new HttpServerException(status(413).text("Request entity too large"));
+        }
+
+        @Override
+        public String asText() {
+            throw new HttpServerException(status(413).text("Request entity too large"));
+        }
+
+        @Override
+        public <T> T asJson(Class<T> type) {
+            throw new HttpServerException(status(413).text("Request entity too large"));
+        }
+
+        @Override
+        public FormParams asForm() {
+            throw new HttpServerException(status(413).text("Request entity too large"));
         }
 
     }

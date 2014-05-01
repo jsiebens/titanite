@@ -22,6 +22,10 @@ import java.io.InputStream;
  */
 public interface RequestBody {
 
+    default boolean maxRequestSizeExceeded() {
+        return false;
+    }
+
     InputStream asStream();
 
     String asText();

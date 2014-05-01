@@ -26,11 +26,12 @@ public final class HttpServerException extends RuntimeException {
     private Response response;
 
     public HttpServerException(Response response) {
+        super(String.valueOf(response.status()));
         this.response = response;
     }
 
     public HttpServerException(Throwable cause, Response response) {
-        super(cause);
+        super(String.valueOf(response.status()), cause);
         this.response = response;
     }
 

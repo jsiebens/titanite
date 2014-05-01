@@ -15,18 +15,23 @@
  */
 package org.nosceon.titanite;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
 
 /**
  * @author Johan Siebens
  */
-public class RequestBodyTooLargeTest extends AbstractE2ETest {
+public class FileUploadTooLargeTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
@@ -34,13 +39,17 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
 
     private int port;
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Before
     public void setUp() {
+
         port = findFreePort();
         shutdownable =
             new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2).maxRequestSize(5))
                 .register(POST, "/post", (r) -> {
-                    r.body.asText();
+                    r.body.asForm();
                     return Responses.ok().toFuture();
                 })
                 .start();
@@ -52,8 +61,12 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
     }
 
     @Test
-    public void test() {
-        given().body(TEXT).expect().statusCode(413).when().post(uri(port, "/post"));
+    public void test() throws Exception {
+        File file = temporaryFolder.newFile("hello1.txt");
+        Files.write(TEXT, file, Charsets.UTF_8);
+
+        given()
+            .multiPart("file", file).expect().statusCode(413).when().post(uri(port, "/post"));
     }
 
 }
