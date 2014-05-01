@@ -68,7 +68,7 @@ public interface HttpServerConfig {
         @Override
         public long getMaxRequestSize() {
             if (maxRequestSize == null) {
-                String property = System.getProperty("titanite.port");
+                String property = System.getProperty("titanite.max-request-size");
                 if (property != null) {
                     return Long.valueOf(property);
                 }
