@@ -35,10 +35,6 @@ public final class Titanite extends Responses {
 
     public static final int DEFAULT_MAX_REQUEST_SIZE = 1024 * 1024 * 10;
 
-    public static final Function<Request, CompletableFuture<Response>> WEBJAR_RESOURCES = resourceService("/META-INF/resources/webjars");
-
-    public static final Function<Request, CompletableFuture<Response>> PUBLIC_RESOURCES = resourceService("/public");
-
     static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
 
     public static HttpServerConfig.Default config() {
@@ -67,6 +63,14 @@ public final class Titanite extends Responses {
 
     public static Function<Request, CompletableFuture<Response>> resourceService(String baseResource) {
         return new ResourceService(baseResource);
+    }
+
+    public static Function<Request, CompletableFuture<Response>> publicResources() {
+        return new ResourceService("/public");
+    }
+
+    public static Function<Request, CompletableFuture<Response>> webjarResources() {
+        return new ResourceService("/META-INF/resources/webjars");
     }
 
 }
