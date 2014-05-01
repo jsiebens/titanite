@@ -22,6 +22,6 @@ import java.io.OutputStream;
  */
 public interface StreamingOutput {
 
-    void apply(OutputStream out) throws Exception;
+    void onReady(OutputStream out) throws Exception;
 
 }

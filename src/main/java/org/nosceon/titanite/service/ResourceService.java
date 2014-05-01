@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite.service;
 
-import com.google.common.io.ByteStreams;
 import org.eclipse.jetty.util.resource.Resource;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
@@ -28,6 +27,7 @@ import java.util.function.Function;
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
+import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.*;
 
 /**
@@ -62,9 +62,7 @@ public final class ResourceService implements Function<Request, Response> {
             return
                 ok()
                     .type(MimeTypes.contentType(resource.getName()))
-                    .stream((o) -> {
-                        ByteStreams.copy(resource.getInputStream(), o);
-                    });
+                    .stream(propagate(resource::getInputStream));
         }
         else {
             return
@@ -75,9 +73,7 @@ public final class ResourceService implements Function<Request, Response> {
                         ok()
                             .type(MimeTypes.contentType(resource.getName()))
                             .lastModified(new Date(lastModified))
-                            .stream((o) -> {
-                                ByteStreams.copy(resource.getInputStream(), o);
-                            }));
+                            .stream(propagate(resource::getInputStream)));
         }
     }
 
