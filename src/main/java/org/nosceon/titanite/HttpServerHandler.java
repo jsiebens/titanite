@@ -181,20 +181,23 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     private Aggregator newAggregator(HttpRequest request, ChannelHandlerContext ctx) {
-        String contentType = request.headers().get(HttpHeaders.Names.CONTENT_TYPE);
-        if (contentType != null) {
-            HttpMethod method = request.getMethod();
-            String lowerCaseContentType = contentType.toLowerCase();
-            boolean isURLEncoded = lowerCaseContentType.startsWith(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED);
-            boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
+        HttpMethod method = request.getMethod();
+        if (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH)) {
+            String contentType = request.headers().get(HttpHeaders.Names.CONTENT_TYPE);
+            if (contentType != null) {
+                String lowerCaseContentType = contentType.toLowerCase();
+                boolean isURLEncoded = lowerCaseContentType.startsWith(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED);
+                boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
 
-            if ((isMultiPart || isURLEncoded) &&
-                (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH))) {
-
-                return new FormAggregator(new HttpPostRequestDecoder(request));
+                if (isURLEncoded || isMultiPart) {
+                    return new FormAggregator(new HttpPostRequestDecoder(request));
+                }
             }
+            return new DefaultAggregator(ctx.alloc().compositeBuffer());
         }
-        return new DefaultAggregator(ctx.alloc().compositeBuffer());
+        else {
+            return new NoOpAggregator();
+        }
     }
 
     private static interface Aggregator {
@@ -255,6 +258,23 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public RequestBody newRequestBody() {
             return new FormRequestBody(decoder);
+        }
+
+    }
+
+    private class NoOpAggregator implements Aggregator {
+
+        @Override
+        public void offer(HttpContent chunk) {
+        }
+
+        @Override
+        public void release() {
+        }
+
+        @Override
+        public RequestBody newRequestBody() {
+            return new DefaultRequestBody(Unpooled.EMPTY_BUFFER);
         }
 
     }
