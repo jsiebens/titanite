@@ -27,25 +27,15 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
-    public static interface Config {
-
-        int getPort();
-
-        int getIoWorkerCount();
-
-        long getMaxRequestSize();
-
-    }
-
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    private final Config config;
+    private final HttpServerConfig config;
 
     public HttpServer() {
-        this(new HttpServerConfig());
+        this(new HttpServerConfig.Default());
     }
 
-    public HttpServer(Config config) {
+    public HttpServer(HttpServerConfig config) {
         super(Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0'));
         this.config = config;
     }

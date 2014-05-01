@@ -29,6 +29,8 @@ import java.util.function.Function;
  */
 public final class Titanite extends Responses {
 
+    public static final int DEFAULT_PORT = 8080;
+
     public static final int DEFAULT_IO_WORKER_COUNT = Runtime.getRuntime().availableProcessors() * 2;
 
     public static final int DEFAULT_MAX_REQUEST_SIZE = 1024 * 1024 * 10;
@@ -39,15 +41,15 @@ public final class Titanite extends Responses {
 
     static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
 
-    public static HttpServerConfig config() {
-        return new HttpServerConfig();
+    public static HttpServerConfig.Default config() {
+        return new HttpServerConfig.Default();
     }
 
     public static HttpServer httpServer() {
         return new HttpServer();
     }
 
-    public static HttpServer httpServer(HttpServer.Config config) {
+    public static HttpServer httpServer(HttpServerConfig config) {
         return new HttpServer(config);
     }
 
