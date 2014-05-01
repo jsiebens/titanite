@@ -16,7 +16,9 @@
 package org.nosceon.titanite;
 
 import org.nosceon.titanite.service.FileService;
+import org.nosceon.titanite.service.PublicResourceService;
 import org.nosceon.titanite.service.ResourceService;
+import org.nosceon.titanite.service.WebJarResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,11 +62,11 @@ public final class Titanite extends Responses {
     }
 
     public static Function<Request, CompletableFuture<Response>> publicResources() {
-        return new ResourceService("/public");
+        return new PublicResourceService();
     }
 
-    public static Function<Request, CompletableFuture<Response>> webjarResources() {
-        return new ResourceService("/META-INF/resources/webjars");
+    public static Function<Request, CompletableFuture<Response>> webJarResources() {
+        return new WebJarResourceService();
     }
 
 }

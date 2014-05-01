@@ -22,7 +22,7 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Titanite.publicResources;
-import static org.nosceon.titanite.Titanite.webjarResources;
+import static org.nosceon.titanite.Titanite.webJarResources;
 
 /**
  * @author Johan Siebens
@@ -41,7 +41,7 @@ public class ResourcesTest extends AbstractE2ETest {
                 .register(Method.GET, "/a", (r) -> ok().toFuture())
                 .notFound(
                     publicResources(),
-                    webjarResources()
+                    webJarResources()
                 )
                 .start();
     }

@@ -35,7 +35,7 @@ import static org.nosceon.titanite.Responses.*;
 /**
  * @author Johan Siebens
  */
-public final class ResourceService implements Function<Request, CompletableFuture<Response>> {
+public class ResourceService implements Function<Request, CompletableFuture<Response>> {
 
     private final String baseResource;
 
@@ -51,7 +51,7 @@ public final class ResourceService implements Function<Request, CompletableFutur
     }
 
     @Override
-    public CompletableFuture<Response> apply(Request request) {
+    public final CompletableFuture<Response> apply(Request request) {
         return CompletableFuture.supplyAsync(() -> internalApply(request), executor);
     }
 
