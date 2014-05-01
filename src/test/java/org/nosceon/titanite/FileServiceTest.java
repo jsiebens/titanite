@@ -29,7 +29,6 @@ import java.io.IOException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Titanite.sync;
 
 /**
  * @author Johan Siebens
@@ -61,7 +60,7 @@ public class FileServiceTest extends AbstractE2ETest {
         port = findFreePort();
         shutdownable =
             newServer(port)
-                .notFound(sync(new FileService(docRoot)))
+                .notFound(new FileService(docRoot))
                 .start();
     }
 

@@ -92,8 +92,15 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return register(controller);
     }
 
-    public final R notFound(Function<Request, CompletableFuture<Response>> handler) {
-        this.fallback = handler;
+    @SafeVarargs
+    public final R notFound(Function<Request, CompletableFuture<Response>> handler, Function<Request, CompletableFuture<Response>>... handlers) {
+        Chain chain = new Chain(handler);
+        if (handlers != null) {
+            for (Function<Request, CompletableFuture<Response>> f : handlers) {
+                chain = chain.fallbackTo(f);
+            }
+        }
+        this.fallback = chain;
         return self();
     }
 
@@ -118,6 +125,39 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             })
             .bind(port)
             .syncUninterruptibly();
+    }
+
+    private static final class Chain implements Function<Request, CompletableFuture<Response>> {
+
+        private Function<Request, CompletableFuture<Response>> first;
+
+        private Function<Request, CompletableFuture<Response>> second;
+
+        private Chain(Function<Request, CompletableFuture<Response>> function) {
+            this((r) -> Responses.notFound().toFuture(), function);
+        }
+
+        private Chain(Function<Request, CompletableFuture<Response>> first, Function<Request, CompletableFuture<Response>> second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public CompletableFuture<Response> apply(Request request) {
+            return
+                first.apply(request)
+                    .thenCompose(resp -> {
+                        if (resp == null || resp.status() == 404) {
+                            return second.apply(request);
+                        }
+                        return CompletableFuture.completedFuture(resp);
+                    });
+        }
+
+        private Chain fallbackTo(Function<Request, CompletableFuture<Response>> next) {
+            return new Chain(this, next);
+        }
+
     }
 
     protected abstract R self();

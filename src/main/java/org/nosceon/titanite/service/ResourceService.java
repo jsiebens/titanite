@@ -22,6 +22,8 @@ import org.nosceon.titanite.Responses;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
@@ -33,16 +35,27 @@ import static org.nosceon.titanite.Responses.*;
 /**
  * @author Johan Siebens
  */
-public final class ResourceService implements Function<Request, Response> {
+public final class ResourceService implements Function<Request, CompletableFuture<Response>> {
 
-    private String baseResource;
+    private final String baseResource;
+
+    private final Executor executor;
 
     public ResourceService(String baseResource) {
+        this(baseResource, Runnable::run);
+    }
+
+    public ResourceService(String baseResource, Executor executor) {
         this.baseResource = baseResource;
+        this.executor = executor;
     }
 
     @Override
-    public Response apply(Request request) {
+    public CompletableFuture<Response> apply(Request request) {
+        return CompletableFuture.supplyAsync(() -> internalApply(request), executor);
+    }
+
+    private Response internalApply(Request request) {
         if (request.path.contains("..")) {
             return forbidden();
         }
