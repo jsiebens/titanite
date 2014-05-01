@@ -72,7 +72,7 @@ public final class Router {
             mapping.put(pp, map);
         }
         if (map.putIfAbsent(method, createFunction(filter, function)) == null) {
-            Titanite.LOG.info("Router [" + id + "] registered handler for " + Strings.padEnd(method.toString(), 6, ' ') + " " + pattern);
+            Titanite.LOG.info(id + " route added: " + Strings.padEnd(method.toString(), 7, ' ') + pattern);
         }
         return this;
     }

@@ -36,17 +36,17 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     }
 
     public HttpServer(HttpServerConfig config) {
-        super(Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0'));
+        super("Http Server [" + Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0') + "]");
         this.config = config;
     }
 
     public Shutdownable start() {
-        Titanite.LOG.info("Http Server [" + id + "] starting");
+        Titanite.LOG.info(id + " starting");
 
         NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(config.getIoWorkerCount(), new NamedThreadFactory("Titanite HttpServer [" + id + "] - "));
         start(eventLoopGroup, config.getPort(), config.getMaxRequestSize());
 
-        Titanite.LOG.info("Http Server [" + id + "] started, listening on port " + config.getPort());
+        Titanite.LOG.info(id + " started, listening on port " + config.getPort());
 
         return eventLoopGroup::shutdownGracefully;
     }
