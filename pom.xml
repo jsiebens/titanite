@@ -63,7 +63,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
-      <version>4.0.18.Final</version>
+      <version>4.0.19.Final</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
