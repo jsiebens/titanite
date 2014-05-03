@@ -100,10 +100,6 @@ public abstract class Responses {
         return new Response(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
-    public static Response internalServerError() {
-        return new Response(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-    }
-
     public static Response notImplemented() {
         return new Response(HttpResponseStatus.NOT_IMPLEMENTED);
     }

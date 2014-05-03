@@ -40,9 +40,9 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static java.util.stream.Collectors.toMap;
+import static org.nosceon.titanite.Exceptions.internalServerError;
+import static org.nosceon.titanite.Exceptions.requestEntityTooLarge;
 import static org.nosceon.titanite.HttpServerException.propagate;
-import static org.nosceon.titanite.Responses.internalServerError;
-import static org.nosceon.titanite.Responses.status;
 
 /**
  * @author Johan Siebens
@@ -357,22 +357,22 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public InputStream asStream() {
-            throw new HttpServerException(status(413).text("Request entity too large"));
+            throw new HttpServerException(requestEntityTooLarge());
         }
 
         @Override
         public String asText() {
-            throw new HttpServerException(status(413).text("Request entity too large"));
+            throw new HttpServerException(requestEntityTooLarge());
         }
 
         @Override
         public <T> T asJson(Class<T> type) {
-            throw new HttpServerException(status(413).text("Request entity too large"));
+            throw new HttpServerException(requestEntityTooLarge());
         }
 
         @Override
         public FormParams asForm() {
-            throw new HttpServerException(status(413).text("Request entity too large"));
+            throw new HttpServerException(requestEntityTooLarge());
         }
 
     }

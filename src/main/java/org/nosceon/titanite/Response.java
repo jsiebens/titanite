@@ -34,8 +34,8 @@ import static io.netty.handler.codec.http.HttpHeaders.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static io.netty.util.CharsetUtil.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.nosceon.titanite.Exceptions.internalServerError;
 import static org.nosceon.titanite.HttpServerException.propagate;
-import static org.nosceon.titanite.Responses.internalServerError;
 
 /**
  * @author Johan Siebens

@@ -18,6 +18,8 @@ package org.nosceon.titanite;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
+import static org.nosceon.titanite.Exceptions.internalServerError;
+
 /**
  * @author Johan Siebens
  */
@@ -36,7 +38,7 @@ public final class HttpServerException extends RuntimeException {
     }
 
     public static <T> T propagate(Callable<T> callable) throws HttpServerException {
-        return propagate(callable, e -> Responses.internalServerError());
+        return propagate(callable, e -> internalServerError());
     }
 
     public static <T> T propagate(Callable<T> callable, Function<Exception, Response> translator) throws HttpServerException {
@@ -52,7 +54,7 @@ public final class HttpServerException extends RuntimeException {
     }
 
     public static <R, S> Function<R, S> wrap(Function<R, S> f) throws HttpServerException {
-        return wrap(f, e -> Responses.internalServerError());
+        return wrap(f, e -> internalServerError());
     }
 
     public static <R, S> Function<R, S> wrap(Function<R, S> f, Function<Exception, Response> translator) throws HttpServerException {

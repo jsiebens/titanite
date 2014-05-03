@@ -23,7 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.nosceon.titanite.Responses.internalServerError;
+import static org.nosceon.titanite.Exceptions.internalServerError;
 
 /**
  * @author Johan Siebens
@@ -80,7 +80,7 @@ public final class ErrorFilter implements Filter {
             return ((HttpServerException) e).getResponse();
         }
 
-        return internalServerError().text("Internal Server Error");
+        return internalServerError();
     }
 
     private Throwable lookupCause(CompletionException e) {
