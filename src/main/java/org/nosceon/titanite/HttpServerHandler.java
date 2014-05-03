@@ -77,6 +77,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         if (msg instanceof HttpRequest) {
             this.request = (HttpRequest) msg;
             this.aggregator = newAggregator(request, ctx);
+            this.currentRequestSize = 0;
 
             if (is100ContinueExpected(request)) {
                 ctx.writeAndFlush(CONTINUE).addListener(future -> {
