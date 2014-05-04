@@ -18,14 +18,18 @@ package org.nosceon.titanite;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 
-import static java.util.Optional.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
  * @author Johan Siebens
  */
-public final class FormParams implements SingleParams {
+public final class FormParams implements SingleParams, MultiParams {
 
     private HttpPostRequestDecoder decoder;
 
@@ -43,21 +47,35 @@ public final class FormParams implements SingleParams {
 
     @Override
     public String getString(String name) {
+        return toString(decoder.getBodyHttpData(name));
+    }
+
+    @Override
+    public List<String> getStrings(String name) {
         return
-            ofNullable(decoder.getBodyHttpData(name))
-                .flatMap(p ->
-                    propagate(() -> {
-                        if (p instanceof FileUpload) {
-                            return of(FileUpload.class.cast(p).getFilename());
-                        }
-                        if (p instanceof Attribute) {
-                            return of(Attribute.class.cast(p).getValue());
-                        }
-                        else {
-                            return empty();
-                        }
-                    }))
-                .orElse(null);
+            decoder.getBodyHttpDatas(name)
+                .stream()
+                .map(this::toString)
+                .collect(Collectors.toList());
+    }
+
+    private String toString(InterfaceHttpData p) {
+        return propagate(() -> {
+            if (p != null) {
+                if (p instanceof FileUpload) {
+                    return FileUpload.class.cast(p).getFilename();
+                }
+                if (p instanceof Attribute) {
+                    return Attribute.class.cast(p).getValue();
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        });
     }
 
 }
