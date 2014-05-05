@@ -22,10 +22,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import org.nosceon.titanite.json.JacksonJsonMapper;
 import org.nosceon.titanite.json.JsonMapper;
-import org.nosceon.titanite.view.MustacheViewRenderer;
+import org.nosceon.titanite.json.JsonMapperLoader;
 import org.nosceon.titanite.view.ViewRenderer;
+import org.nosceon.titanite.view.ViewRendererLoader;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -107,8 +107,8 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
         Router router = new Router(id, filter, routings, fallback);
-        ViewRenderer viewRenderer = this.viewRenderer.orElseGet(MustacheViewRenderer::new);
-        JsonMapper mapper = this.mapper.orElseGet(JacksonJsonMapper::new);
+        Optional<ViewRenderer> vr = viewRenderer.isPresent() ? viewRenderer : ViewRendererLoader.load();
+        Optional<JsonMapper> m = mapper.isPresent() ? mapper : JsonMapperLoader.load();
 
         new ServerBootstrap()
             .group(workers)
@@ -120,7 +120,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
                     ch.pipeline()
                         .addLast(new HttpRequestDecoder())
                         .addLast(new HttpResponseEncoder())
-                        .addLast(new HttpServerHandler(maxRequestSize, router, viewRenderer, mapper));
+                        .addLast(new HttpServerHandler(maxRequestSize, router, vr, m));
                 }
 
             })

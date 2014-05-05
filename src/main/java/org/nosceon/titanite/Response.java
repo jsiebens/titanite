@@ -27,6 +27,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -148,13 +149,13 @@ public final class Response {
         return completedFuture(this);
     }
 
-    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
         body.apply(keepAlive, request, ctx, viewRenderer, mapper);
     }
 
     private static interface Body {
 
-        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper);
+        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper);
 
     }
 
@@ -174,7 +175,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
@@ -193,7 +194,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -273,7 +274,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
             stream(keepAlive, ctx, consumer);
         }
 
@@ -288,11 +289,19 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            if (viewRenderer.isTemplateAvailable(view)) {
-                stream(keepAlive, ctx, (o) -> viewRenderer.render(request, view, o));
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
+            if (viewRenderer.isPresent()) {
+                ViewRenderer vr = viewRenderer.get();
+                if (vr.isTemplateAvailable(view)) {
+                    stream(keepAlive, ctx, (o) -> vr.render(request, view, o));
+                }
+                else {
+                    Titanite.LOG.error("Unable to find template for instance " + view + " of [" + view.getClass() + "]");
+                    internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
+                }
             }
             else {
+                Titanite.LOG.error("No ViewRenderer available");
                 internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
             }
         }
@@ -308,8 +317,14 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
-            stream(keepAlive, ctx, (o) -> mapper.write(o, entity));
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
+            if (mapper.isPresent()) {
+                stream(keepAlive, ctx, (o) -> mapper.get().write(o, entity));
+            }
+            else {
+                Titanite.LOG.error("No JsonMapper available");
+                internalServerError().apply(keepAlive, request, ctx, viewRenderer, mapper);
+            }
         }
 
     }
@@ -323,7 +338,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, ViewRenderer viewRenderer, JsonMapper mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<ViewRenderer> viewRenderer, Optional<JsonMapper> mapper) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
 

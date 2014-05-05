@@ -53,9 +53,9 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final Router router;
 
-    private final ViewRenderer renderer;
+    private final Optional<ViewRenderer> renderer;
 
-    private final JsonMapper mapper;
+    private final Optional<JsonMapper> mapper;
 
     private HttpRequest request;
 
@@ -65,7 +65,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private long currentRequestSize;
 
-    public HttpServerHandler(long maxRequestSize, Router router, ViewRenderer renderer, JsonMapper mapper) {
+    public HttpServerHandler(long maxRequestSize, Router router, Optional<ViewRenderer> renderer, Optional<JsonMapper> mapper) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
         this.renderer = renderer;
@@ -303,11 +303,17 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public <T> T asJson(Class<T> type) {
-            if (content.readableBytes() > 0) {
-                return mapper.read(asStream(), type);
+            if (mapper.isPresent()) {
+                if (content.readableBytes() > 0) {
+                    return mapper.get().read(asStream(), type);
+                }
+                else {
+                    return null;
+                }
             }
             else {
-                return null;
+                Titanite.LOG.error("No JsonMapper available");
+                throw new HttpServerException(internalServerError());
             }
         }
 
