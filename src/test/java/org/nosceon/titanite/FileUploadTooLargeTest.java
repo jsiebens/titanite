@@ -17,8 +17,6 @@ package org.nosceon.titanite;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -35,19 +33,13 @@ public class FileUploadTooLargeTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Before
-    public void setUp() {
-
-        port = findFreePort();
-        shutdownable =
-            new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2).maxRequestSize(5))
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(POST, "/post", (r) -> {
                     r.body.asForm();
                     return Responses.ok().toFuture();
@@ -55,9 +47,9 @@ public class FileUploadTooLargeTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
+    @Override
+    protected long maxRequestSize() {
+        return 5;
     }
 
     @Test
@@ -66,7 +58,7 @@ public class FileUploadTooLargeTest extends AbstractE2ETest {
         Files.write(TEXT, file, Charsets.UTF_8);
 
         given()
-            .multiPart("file", file).expect().statusCode(413).when().post(uri(port, "/post"));
+            .multiPart("file", file).expect().statusCode(413).when().post(uri("/post"));
     }
 
 }

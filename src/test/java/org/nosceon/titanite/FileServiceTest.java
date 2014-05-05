@@ -17,8 +17,6 @@ package org.nosceon.titanite;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -37,15 +35,11 @@ public class FileServiceTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Before
-    public void setUp() throws IOException {
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         File base = temporaryFolder.newFolder();
 
         File file = new File(base, "forbidden.txt");
@@ -57,25 +51,19 @@ public class FileServiceTest extends AbstractE2ETest {
         File txt = new File(docRoot, "temporary.txt");
         Files.write(TEXT, txt, Charsets.UTF_8);
 
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+        return
+            server
                 .notFound(new FileService(docRoot))
                 .start();
-    }
-
-    @After
-    public void tearDown() {
-        shutdownable.stop();
     }
 
     @Test
     public void test() throws IOException {
         given()
-            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri(port, "/temporary.txt"));
+            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/temporary.txt"));
 
         given()
-            .expect().statusCode(403).when().get(uri(port, "/../forbidden.txt"));
+            .expect().statusCode(403).when().get(uri("/../forbidden.txt"));
     }
 
 }

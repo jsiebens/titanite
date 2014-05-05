@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -29,15 +27,10 @@ import static org.nosceon.titanite.Titanite.webJarResources;
  */
 public class ResourcesTest extends AbstractE2ETest {
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(Method.GET, "/a", (r) -> ok().toFuture())
                 .notFound(
                     publicResources(),
@@ -46,17 +39,12 @@ public class ResourcesTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri(port, "/hello1.txt"));
-        given().expect().statusCode(403).when().get(uri(port, "/../public/hello1.txt"));
-        given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri(port, "/hello2.txt"));
-        given().expect().statusCode(404).when().get(uri(port, "/hello3.txt"));
+        given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
+        given().expect().statusCode(403).when().get(uri("/../public/hello1.txt"));
+        given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri("/hello2.txt"));
+        given().expect().statusCode(404).when().get(uri("/hello3.txt"));
     }
 
 

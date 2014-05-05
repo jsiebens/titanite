@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.CompletionException;
@@ -31,10 +29,6 @@ import static org.nosceon.titanite.Titanite.errors;
  */
 public class ExceptionsTest extends AbstractE2ETest {
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     public static class InternalException extends RuntimeException {
 
     }
@@ -47,11 +41,10 @@ public class ExceptionsTest extends AbstractE2ETest {
 
     }
 
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) {
+        return
+            server
                 .setFilter(
                     errors()
                         .match(InternalException.class, (r, e) -> ok().text("Internal"))
@@ -75,19 +68,14 @@ public class ExceptionsTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().expect().statusCode(500).when().get(uri(port, "/a"));
-        given().expect().statusCode(500).when().get(uri(port, "/b"));
-        given().expect().statusCode(503).when().get(uri(port, "/c"));
+        given().expect().statusCode(500).when().get(uri("/a"));
+        given().expect().statusCode(500).when().get(uri("/b"));
+        given().expect().statusCode(503).when().get(uri("/c"));
 
-        given().expect().statusCode(200).body(equalTo("Internal Sub1")).when().get(uri(port, "/d"));
-        given().expect().statusCode(200).body(equalTo("Internal")).when().get(uri(port, "/e"));
+        given().expect().statusCode(200).body(equalTo("Internal Sub1")).when().get(uri("/d"));
+        given().expect().statusCode(200).body(equalTo("Internal")).when().get(uri("/e"));
     }
 
 }

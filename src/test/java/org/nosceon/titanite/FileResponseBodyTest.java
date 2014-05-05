@@ -17,8 +17,6 @@ package org.nosceon.titanite;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -37,34 +35,23 @@ public class FileResponseBodyTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Before
-    public void setUp() throws IOException {
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         File file = temporaryFolder.newFile("hello1.txt");
         Files.write(TEXT, file, Charsets.UTF_8);
-
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+        return
+            server
                 .register(GET, "/file", (r) -> ok().file(file).toFuture())
                 .start();
-    }
-
-    @After
-    public void tearDown() {
-        shutdownable.stop();
     }
 
     @Test
     public void test() throws IOException {
         given()
-            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri(port, "/file"));
+            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/file"));
     }
 
 }

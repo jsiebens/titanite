@@ -17,8 +17,6 @@ package org.nosceon.titanite;
 
 import com.google.common.io.ByteStreams;
 import io.netty.handler.codec.http.HttpHeaders;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -34,23 +32,13 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(GET, "/stream", (r) -> ok().stream(new ByteArrayInputStream(TEXT.getBytes())).toFuture())
                 .register(GET, "/resource", (r) -> ok().stream(o -> ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o)).toFuture())
                 .start();
-    }
-
-    @After
-    public void tearDown() {
-        shutdownable.stop();
     }
 
     @Test
@@ -58,12 +46,12 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
         given()
             .expect()
             .header(HttpHeaders.Names.TRANSFER_ENCODING, "chunked")
-            .statusCode(200).body(equalTo(TEXT)).when().get(uri(port, "/stream"));
+            .statusCode(200).body(equalTo(TEXT)).when().get(uri("/stream"));
 
         given()
             .expect()
             .header(HttpHeaders.Names.TRANSFER_ENCODING, "chunked")
-            .statusCode(200).body(equalTo(TEXT)).when().get(uri(port, "/resource"));
+            .statusCode(200).body(equalTo(TEXT)).when().get(uri("/resource"));
     }
 
 }

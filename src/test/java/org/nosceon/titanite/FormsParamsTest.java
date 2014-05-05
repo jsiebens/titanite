@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -28,15 +26,10 @@ import static org.nosceon.titanite.Method.POST;
  */
 public class FormsParamsTest extends AbstractE2ETest {
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(POST, "/a", (r) -> Responses.ok().body(r.body.asForm().getString("p")).toFuture())
                 .register(POST, "/b", (r) -> Responses.ok().body(String.valueOf(r.body.asForm().getShort("p"))).toFuture())
                 .register(POST, "/c", (r) -> Responses.ok().body(String.valueOf(r.body.asForm().getInt("p"))).toFuture())
@@ -50,22 +43,17 @@ public class FormsParamsTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().formParam("p", "apple").expect().statusCode(200).body(equalTo("apple")).when().post(uri(port, "/a"));
-        given().formParam("p", "10").expect().statusCode(200).body(equalTo("10")).when().post(uri(port, "/b"));
-        given().formParam("p", "20").expect().statusCode(200).body(equalTo("20")).when().post(uri(port, "/c"));
-        given().formParam("p", "30").expect().statusCode(200).body(equalTo("30")).when().post(uri(port, "/d"));
-        given().formParam("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().post(uri(port, "/e"));
-        given().formParam("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().post(uri(port, "/f"));
-        given().formParam("p", "true").expect().statusCode(200).body(equalTo("true")).when().post(uri(port, "/g"));
+        given().formParam("p", "apple").expect().statusCode(200).body(equalTo("apple")).when().post(uri("/a"));
+        given().formParam("p", "10").expect().statusCode(200).body(equalTo("10")).when().post(uri("/b"));
+        given().formParam("p", "20").expect().statusCode(200).body(equalTo("20")).when().post(uri("/c"));
+        given().formParam("p", "30").expect().statusCode(200).body(equalTo("30")).when().post(uri("/d"));
+        given().formParam("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().post(uri("/e"));
+        given().formParam("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().post(uri("/f"));
+        given().formParam("p", "true").expect().statusCode(200).body(equalTo("true")).when().post(uri("/g"));
 
-        given().formParam("p", "apple").formParam("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().post(uri(port, "/ma"));
+        given().formParam("p", "apple").formParam("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().post(uri("/ma"));
     }
 
 }

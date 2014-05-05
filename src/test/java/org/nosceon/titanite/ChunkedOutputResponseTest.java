@@ -16,8 +16,6 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -31,15 +29,10 @@ public class ChunkedOutputResponseTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) {
+        return
+            server
                 .register(GET, "/chunks", (r) -> ok().chunks(o -> {
                     o.write(TEXT.getBytes());
                     o.write(TEXT.getBytes());
@@ -49,17 +42,12 @@ public class ChunkedOutputResponseTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
         given()
             .expect()
             .header(HttpHeaders.Names.TRANSFER_ENCODING, "chunked")
-            .statusCode(200).body(equalTo(TEXT + TEXT + TEXT)).when().get(uri(port, "/chunks"));
+            .statusCode(200).body(equalTo(TEXT + TEXT + TEXT)).when().get(uri("/chunks"));
     }
 
 }

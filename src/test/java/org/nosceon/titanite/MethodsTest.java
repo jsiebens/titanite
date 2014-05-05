@@ -16,8 +16,6 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpMethod;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.CompletionStage;
@@ -30,10 +28,6 @@ import static org.nosceon.titanite.Method.*;
  * @author Johan Siebens
  */
 public class MethodsTest extends AbstractE2ETest {
-
-    private Shutdownable shutdownable;
-
-    private int port;
 
     public static class MyController extends Controller {
 
@@ -51,11 +45,10 @@ public class MethodsTest extends AbstractE2ETest {
 
     }
 
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(GET, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(POST, "/resource", (r) -> ok().body(r.method.name()).toFuture())
                 .register(PUT, "/resource", (r) -> ok().body(r.method.name()).toFuture())
@@ -65,24 +58,19 @@ public class MethodsTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().expect().statusCode(200).body(equalTo(HttpMethod.GET.name())).when().get(uri(port, "/resource"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.POST.name())).when().post(uri(port, "/resource"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.PUT.name())).when().put(uri(port, "/resource"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.DELETE.name())).when().delete(uri(port, "/resource"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.PATCH.name())).when().patch(uri(port, "/resource"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.GET.name())).when().get(uri("/resource"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.POST.name())).when().post(uri("/resource"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.PUT.name())).when().put(uri("/resource"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.DELETE.name())).when().delete(uri("/resource"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.PATCH.name())).when().patch(uri("/resource"));
 
-        given().expect().statusCode(200).body(equalTo(HttpMethod.GET.name())).when().get(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.POST.name())).when().post(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.PUT.name())).when().put(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.DELETE.name())).when().delete(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo(HttpMethod.PATCH.name())).when().patch(uri(port, "/controller"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.GET.name())).when().get(uri("/controller"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.POST.name())).when().post(uri("/controller"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.PUT.name())).when().put(uri("/controller"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.DELETE.name())).when().delete(uri("/controller"));
+        given().expect().statusCode(200).body(equalTo(HttpMethod.PATCH.name())).when().patch(uri("/controller"));
     }
 
 }

@@ -16,8 +16,6 @@
 package org.nosceon.titanite;
 
 import com.google.common.net.HttpHeaders;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
@@ -32,19 +30,14 @@ import static org.nosceon.titanite.Method.GET;
  */
 public class HeadersTest extends AbstractE2ETest {
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     private static final Date DATE = new Date(5000);
 
     private static final Locale LOCALE = Locale.ITALY;
 
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(GET, "/a", (r) -> ok().body(r.headers.getString("p")).header("m", r.headers.getString("p")).toFuture())
                 .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).toFuture())
                 .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).toFuture())
@@ -53,11 +46,11 @@ public class HeadersTest extends AbstractE2ETest {
                 .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p"))).toFuture())
                 .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p"))).toFuture())
                 .register(GET, "/headers", (r) ->
-                    ok()
-                        .type(MediaType.APPLICATION_XML)
-                        .language(LOCALE)
-                        .lastModified(DATE)
-                        .toFuture()
+                        ok()
+                            .type(MediaType.APPLICATION_XML)
+                            .language(LOCALE)
+                            .lastModified(DATE)
+                            .toFuture()
                 )
 
                 .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.headers.getStrings("p"))).toFuture())
@@ -65,20 +58,15 @@ public class HeadersTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().header("p", "apple").expect().statusCode(200).header("m", "apple").body(equalTo("apple")).when().get(uri(port, "/a"));
-        given().header("p", "10").expect().statusCode(200).body(equalTo("10")).when().get(uri(port, "/b"));
-        given().header("p", "20").expect().statusCode(200).body(equalTo("20")).when().get(uri(port, "/c"));
-        given().header("p", "30").expect().statusCode(200).body(equalTo("30")).when().get(uri(port, "/d"));
-        given().header("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().get(uri(port, "/e"));
-        given().header("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().get(uri(port, "/f"));
-        given().header("p", "true").expect().statusCode(200).body(equalTo("true")).when().get(uri(port, "/g"));
+        given().header("p", "apple").expect().statusCode(200).header("m", "apple").body(equalTo("apple")).when().get(uri("/a"));
+        given().header("p", "10").expect().statusCode(200).body(equalTo("10")).when().get(uri("/b"));
+        given().header("p", "20").expect().statusCode(200).body(equalTo("20")).when().get(uri("/c"));
+        given().header("p", "30").expect().statusCode(200).body(equalTo("30")).when().get(uri("/d"));
+        given().header("p", "40").expect().statusCode(200).body(equalTo("40.0")).when().get(uri("/e"));
+        given().header("p", "50").expect().statusCode(200).body(equalTo("50.0")).when().get(uri("/f"));
+        given().header("p", "true").expect().statusCode(200).body(equalTo("true")).when().get(uri("/g"));
 
         given()
             .expect()
@@ -86,9 +74,9 @@ public class HeadersTest extends AbstractE2ETest {
             .header(HttpHeaders.CONTENT_TYPE, equalTo("application/xml"))
             .header(HttpHeaders.LAST_MODIFIED, equalTo("Thu, 01 Jan 1970 00:00:05 GMT"))
             .header(HttpHeaders.CONTENT_LANGUAGE, equalTo("it_IT"))
-            .when().get(uri(port, "/headers"));
+            .when().get(uri("/headers"));
 
-        given().header("p", "apple").header("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().get(uri(port, "/ma"));
+        given().header("p", "apple").header("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().get(uri("/ma"));
     }
 
 }

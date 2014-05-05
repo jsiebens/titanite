@@ -17,8 +17,6 @@ package org.nosceon.titanite;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -41,33 +39,23 @@ public class FileUploadTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private File uploadFolder;
 
-    @Before
-    public void setUp() throws IOException {
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         uploadFolder = temporaryFolder.newFolder("upload");
 
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+        return
+            server
                 .register(POST, "/post", (r) -> {
                     Optional<MultiPart> omp = ofNullable(r.body.asForm().getMultiPart("file"));
                     omp.ifPresent(mp -> mp.renameTo(new File(uploadFolder, mp.filename())));
                     return ok().body(r.body.asForm().getString("lorem")).toFuture();
                 })
                 .start();
-    }
-
-    @After
-    public void tearDown() {
-        shutdownable.stop();
     }
 
     @Test
@@ -77,7 +65,7 @@ public class FileUploadTest extends AbstractE2ETest {
 
         given()
             .formParam("lorem", "ipsum")
-            .multiPart("file", file).expect().statusCode(200).body(equalTo("ipsum")).when().post(uri(port, "/post"));
+            .multiPart("file", file).expect().statusCode(200).body(equalTo("ipsum")).when().post(uri("/post"));
 
         File uploadedFile = new File(uploadFolder, "hello1.txt");
 

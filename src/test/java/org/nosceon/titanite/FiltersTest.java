@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -27,10 +25,6 @@ import static org.nosceon.titanite.Method.POST;
  * @author Johan Siebens
  */
 public class FiltersTest extends AbstractE2ETest {
-
-    private Shutdownable shutdownable;
-
-    private int port;
 
     private static final Filter GLOBAL_FILTER = (r, f) -> {
         if (r.queryParams.getBoolean("global", false)) {
@@ -58,32 +52,26 @@ public class FiltersTest extends AbstractE2ETest {
 
     }
 
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .setFilter(GLOBAL_FILTER)
                 .register(FILTER.andThen(new TextController()))
                 .register(POST, "/resource", FILTER.andThen(r -> ok().text("resource").toFuture()))
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().expect().statusCode(200).body(equalTo("controller")).when().get(uri(port, "/controller"));
-        given().expect().statusCode(200).body(equalTo("resource")).when().post(uri(port, "/resource"));
+        given().expect().statusCode(200).body(equalTo("controller")).when().get(uri("/controller"));
+        given().expect().statusCode(200).body(equalTo("resource")).when().post(uri("/resource"));
 
-        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().get(uri(port, "/controller"));
-        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().post(uri(port, "/resource"));
+        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().get(uri("/controller"));
+        given().queryParam("filtered", "true").expect().statusCode(200).body(equalTo("filtered")).when().post(uri("/resource"));
 
-        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().get(uri(port, "/controller"));
-        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().post(uri(port, "/resource"));
+        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().get(uri("/controller"));
+        given().queryParam("global", "true").expect().statusCode(200).body(equalTo("global")).when().post(uri("/resource"));
     }
 
 }

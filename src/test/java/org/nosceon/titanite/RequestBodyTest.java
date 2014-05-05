@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -33,27 +31,17 @@ public class RequestBodyTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body.asStream())).toFuture())
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
-        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri(port, "/post"));
+        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri("/post"));
     }
 
     private static String convertStreamToString(InputStream is) {

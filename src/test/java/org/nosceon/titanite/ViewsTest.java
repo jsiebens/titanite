@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.nosceon.titanite.view.View;
 import org.nosceon.titanite.view.ViewTemplate;
@@ -68,15 +66,10 @@ public class ViewsTest extends AbstractE2ETest {
 
     }
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).toFuture())
                 .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")).toFuture())
                 .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).toFuture())
@@ -86,37 +79,32 @@ public class ViewsTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
-    }
-
     @Test
     public void test() {
         given()
             .expect()
             .statusCode(200)
-            .body(equalTo("Hello world")).when().get(uri(port, "/hello1"));
+            .body(equalTo("Hello world")).when().get(uri("/hello1"));
         given()
             .expect()
             .statusCode(200)
-            .body(equalTo("Hello world")).when().get(uri(port, "/hello2"));
+            .body(equalTo("Hello world")).when().get(uri("/hello2"));
         given()
             .expect()
             .statusCode(200)
-            .body(equalTo("Hello world")).when().get(uri(port, "/hello3"));
+            .body(equalTo("Hello world")).when().get(uri("/hello3"));
         given()
             .expect()
             .statusCode(200)
-            .body(equalTo("Hello world")).when().get(uri(port, "/hello4"));
+            .body(equalTo("Hello world")).when().get(uri("/hello4"));
         given()
             .expect()
             .statusCode(200)
-            .body(equalTo("Hello world")).when().get(uri(port, "/hello5"));
+            .body(equalTo("Hello world")).when().get(uri("/hello5"));
         given()
             .expect()
             .statusCode(500)
-            .when().get(uri(port, "/unavailable"));
+            .when().get(uri("/unavailable"));
     }
 
 }

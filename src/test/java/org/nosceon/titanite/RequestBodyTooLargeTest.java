@@ -15,12 +15,9 @@
  */
 package org.nosceon.titanite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
 
 /**
@@ -30,15 +27,10 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2).maxRequestSize(5))
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(POST, "/post", (r) -> {
                     r.body.asText();
                     return Responses.ok().toFuture();
@@ -46,14 +38,14 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
                 .start();
     }
 
-    @After
-    public void tearDown() {
-        shutdownable.stop();
+    @Override
+    protected long maxRequestSize() {
+        return 5;
     }
 
     @Test
     public void test() {
-        given().body(TEXT).expect().statusCode(413).when().post(uri(port, "/post"));
+        given().body(TEXT).expect().statusCode(413).when().post(uri("/post"));
     }
 
 }

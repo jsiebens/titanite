@@ -15,18 +15,38 @@
  */
 package org.nosceon.titanite;
 
+import org.junit.After;
+import org.junit.Before;
+
 import java.net.ServerSocket;
 
 /**
  * @author Johan Siebens
  */
-public class AbstractE2ETest extends Responses {
+public abstract class AbstractE2ETest extends Responses {
 
-    protected HttpServer newServer(int port) {
-        return new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2));
+    private int port;
+
+    private Shutdownable shutdownable;
+
+    @Before
+    public void setUpHttpServer() throws Exception {
+        this.port = findFreePort();
+        this.shutdownable = configureAndStartHttpServer(newServer(port));
     }
 
-    protected int findFreePort() {
+    @After
+    public void tearDownHttpServer() {
+        this.shutdownable.stop();
+    }
+
+    protected abstract Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception;
+
+    protected String uri(String path) {
+        return "http://localhost:" + port + path;
+    }
+
+    private int findFreePort() {
         int port;
         try {
             ServerSocket socket = new ServerSocket(0);
@@ -39,8 +59,12 @@ public class AbstractE2ETest extends Responses {
         return port;
     }
 
-    protected String uri(int port, String path) {
-        return "http://localhost:" + port + path;
+    private HttpServer newServer(int port) {
+        return new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2).maxRequestSize(maxRequestSize()));
+    }
+
+    protected long maxRequestSize() {
+        return HttpServerConfig.DEFAULT_MAX_REQUEST_SIZE;
     }
 
 }

@@ -16,8 +16,6 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -51,26 +49,16 @@ public class JsonResponseTest extends AbstractE2ETest {
 
     }
 
-    private Shutdownable shutdownable;
-
-    private int port;
-
-    @Before
-    public void setUp() {
-        port = findFreePort();
-        shutdownable =
-            newServer(port)
+    @Override
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
+        return
+            server
                 .register(GET, "/json", (r) -> ok().json(new Hello("world")).toFuture())
                 .register(POST, "/json", (r) -> {
                     Hello hello = r.body.asJson(Hello.class);
                     return ok().json(new Hello(hello.getName().toUpperCase())).toFuture();
                 })
                 .start();
-    }
-
-    @After
-    public void tearDown() {
-        shutdownable.stop();
     }
 
     @Test
@@ -80,14 +68,14 @@ public class JsonResponseTest extends AbstractE2ETest {
             .statusCode(200)
             .header(HttpHeaders.Names.CONTENT_TYPE, equalTo("application/json"))
             .body(equalTo("{\"name\":\"world\"}"))
-            .when().get(uri(port, "/json"));
+            .when().get(uri("/json"));
 
         given()
             .body("{\"name\":\"world\"}")
             .expect()
             .statusCode(200)
             .body(equalTo("{\"name\":\"WORLD\"}"))
-            .when().post(uri(port, "/json"));
+            .when().post(uri("/json"));
     }
 
 }
