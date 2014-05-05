@@ -30,9 +30,10 @@ import org.nosceon.titanite.view.ViewRenderer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
@@ -40,7 +41,7 @@ import static org.nosceon.titanite.HttpServerException.propagate;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    private Function<Request, CompletableFuture<Response>> fallback = (r) -> Responses.notFound().toFuture();
+    private Function<Request, CompletionStage<Response>> fallback = (r) -> Responses.notFound().toFuture();
 
     private final List<Route> routings = new LinkedList<>();
 
@@ -77,7 +78,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return self();
     }
 
-    public final R register(Method method, String pattern, Function<Request, CompletableFuture<Response>> handler) {
+    public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler) {
         this.routings.add(new Route(method, pattern, handler));
         return self();
     }
@@ -93,10 +94,10 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     @SafeVarargs
-    public final R notFound(Function<Request, CompletableFuture<Response>> handler, Function<Request, CompletableFuture<Response>>... handlers) {
+    public final R notFound(Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
         Chain chain = new Chain(handler);
         if (handlers != null) {
-            for (Function<Request, CompletableFuture<Response>> f : handlers) {
+            for (Function<Request, CompletionStage<Response>> f : handlers) {
                 chain = chain.fallbackTo(f);
             }
         }
@@ -127,34 +128,34 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             .syncUninterruptibly();
     }
 
-    private static final class Chain implements Function<Request, CompletableFuture<Response>> {
+    private static final class Chain implements Function<Request, CompletionStage<Response>> {
 
-        private Function<Request, CompletableFuture<Response>> first;
+        private Function<Request, CompletionStage<Response>> first;
 
-        private Function<Request, CompletableFuture<Response>> second;
+        private Function<Request, CompletionStage<Response>> second;
 
-        private Chain(Function<Request, CompletableFuture<Response>> function) {
+        private Chain(Function<Request, CompletionStage<Response>> function) {
             this((r) -> Responses.notFound().toFuture(), function);
         }
 
-        private Chain(Function<Request, CompletableFuture<Response>> first, Function<Request, CompletableFuture<Response>> second) {
+        private Chain(Function<Request, CompletionStage<Response>> first, Function<Request, CompletionStage<Response>> second) {
             this.first = first;
             this.second = second;
         }
 
         @Override
-        public CompletableFuture<Response> apply(Request request) {
+        public CompletionStage<Response> apply(Request request) {
             return
                 first.apply(request)
                     .thenCompose(resp -> {
                         if (resp == null || resp.status() == 404) {
                             return second.apply(request);
                         }
-                        return CompletableFuture.completedFuture(resp);
+                        return completedFuture(resp);
                     });
         }
 
-        private Chain fallbackTo(Function<Request, CompletableFuture<Response>> next) {
+        private Chain fallbackTo(Function<Request, CompletionStage<Response>> next) {
             return new Chain(this, next);
         }
 

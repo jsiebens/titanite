@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -45,7 +45,7 @@ public class MethodsTest extends AbstractE2ETest {
             patch("/controller", this::handle);
         }
 
-        private CompletableFuture<Response> handle(Request request) {
+        private CompletionStage<Response> handle(Request request) {
             return ok().body(request.method.name()).toFuture();
         }
 

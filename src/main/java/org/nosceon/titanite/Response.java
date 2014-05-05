@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.*;
@@ -143,7 +144,7 @@ public final class Response {
         return this;
     }
 
-    public CompletableFuture<Response> toFuture() {
+    public CompletionStage<Response> toFuture() {
         return completedFuture(this);
     }
 

@@ -15,7 +15,7 @@
  */
 package org.nosceon.titanite;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
@@ -31,7 +31,7 @@ public interface Filter {
         return (fi, f) -> apply(fi, (i) -> next.apply(i, f));
     }
 
-    default Function<Request, CompletableFuture<Response>> andThen(Function<Request, CompletableFuture<Response>> next) {
+    default Function<Request, CompletionStage<Response>> andThen(Function<Request, CompletionStage<Response>> next) {
         return (i) -> apply(i, next);
     }
 
@@ -39,6 +39,6 @@ public interface Filter {
         return newController(controller.get().stream().map(r -> new Route(r.method(), r.pattern(), (i) -> apply(i, r.function()))).collect(toList()));
     }
 
-    CompletableFuture<Response> apply(Request request, Function<Request, CompletableFuture<Response>> function);
+    CompletionStage<Response> apply(Request request, Function<Request, CompletionStage<Response>> function);
 
 }

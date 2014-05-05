@@ -20,8 +20,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
-
 import static com.jayway.restassured.RestAssured.given;
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Method.GET;

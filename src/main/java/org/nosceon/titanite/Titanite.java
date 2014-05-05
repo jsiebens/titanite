@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
@@ -49,23 +49,23 @@ public final class Titanite extends Responses {
         return new ErrorFilter();
     }
 
-    public static Function<Request, CompletableFuture<Response>> fileService(String directory) {
+    public static Function<Request, CompletionStage<Response>> fileService(String directory) {
         return new FileService(new File(directory));
     }
 
-    public static Function<Request, CompletableFuture<Response>> fileService(File directory) {
+    public static Function<Request, CompletionStage<Response>> fileService(File directory) {
         return new FileService(directory);
     }
 
-    public static Function<Request, CompletableFuture<Response>> resourceService(String baseResource) {
+    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource) {
         return new ResourceService(baseResource);
     }
 
-    public static Function<Request, CompletableFuture<Response>> publicResources() {
+    public static Function<Request, CompletionStage<Response>> publicResources() {
         return new PublicResourceService();
     }
 
-    public static Function<Request, CompletableFuture<Response>> webJarResources() {
+    public static Function<Request, CompletionStage<Response>> webJarResources() {
         return new WebJarResourceService();
     }
 

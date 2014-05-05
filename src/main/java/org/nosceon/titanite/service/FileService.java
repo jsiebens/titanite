@@ -22,18 +22,19 @@ import org.nosceon.titanite.Responses;
 import java.io.File;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.nosceon.titanite.Responses.*;
 
 /**
  * @author Johan Siebens
  */
-public final class FileService implements Function<Request, CompletableFuture<Response>> {
+public final class FileService implements Function<Request, CompletionStage<Response>> {
 
     private final File docRoot;
 
@@ -49,8 +50,8 @@ public final class FileService implements Function<Request, CompletableFuture<Re
     }
 
     @Override
-    public CompletableFuture<Response> apply(Request request) {
-        return CompletableFuture.supplyAsync(() -> internalApply(request), executor);
+    public CompletionStage<Response> apply(Request request) {
+        return supplyAsync(() -> internalApply(request), executor);
     }
 
     private Response internalApply(Request request) {

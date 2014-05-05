@@ -17,7 +17,7 @@ package org.nosceon.titanite;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -52,7 +52,7 @@ public final class ErrorFilter implements Filter {
     }
 
     @Override
-    public CompletableFuture<Response> apply(Request request, Function<Request, CompletableFuture<Response>> function) {
+    public CompletionStage<Response> apply(Request request, Function<Request, CompletionStage<Response>> function) {
         try {
             return function.apply(request).exceptionally(t -> translate(request, t));
         }

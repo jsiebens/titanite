@@ -22,12 +22,13 @@ import org.nosceon.titanite.Responses;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
 import static org.nosceon.titanite.HttpServerException.propagate;
 import static org.nosceon.titanite.Responses.*;
@@ -35,7 +36,7 @@ import static org.nosceon.titanite.Responses.*;
 /**
  * @author Johan Siebens
  */
-public class ResourceService implements Function<Request, CompletableFuture<Response>> {
+public class ResourceService implements Function<Request, CompletionStage<Response>> {
 
     private final String baseResource;
 
@@ -51,8 +52,8 @@ public class ResourceService implements Function<Request, CompletableFuture<Resp
     }
 
     @Override
-    public final CompletableFuture<Response> apply(Request request) {
-        return CompletableFuture.supplyAsync(() -> internalApply(request), executor);
+    public final CompletionStage<Response> apply(Request request) {
+        return supplyAsync(() -> internalApply(request), executor);
     }
 
     private Response internalApply(Request request) {

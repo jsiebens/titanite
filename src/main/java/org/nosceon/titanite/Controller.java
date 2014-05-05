@@ -17,7 +17,7 @@ package org.nosceon.titanite;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
@@ -38,23 +38,23 @@ public abstract class Controller extends Responses {
         this.routings.addAll(routes);
     }
 
-    protected final void get(String pattern, Function<Request, CompletableFuture<Response>> function) {
+    protected final void get(String pattern, Function<Request, CompletionStage<Response>> function) {
         routings.add(new Route(Method.GET, pattern, function));
     }
 
-    protected final void post(String pattern, Function<Request, CompletableFuture<Response>> function) {
+    protected final void post(String pattern, Function<Request, CompletionStage<Response>> function) {
         routings.add(new Route(Method.POST, pattern, function));
     }
 
-    protected final void put(String pattern, Function<Request, CompletableFuture<Response>> function) {
+    protected final void put(String pattern, Function<Request, CompletionStage<Response>> function) {
         routings.add(new Route(Method.PUT, pattern, function));
     }
 
-    protected final void patch(String pattern, Function<Request, CompletableFuture<Response>> function) {
+    protected final void patch(String pattern, Function<Request, CompletionStage<Response>> function) {
         routings.add(new Route(Method.PATCH, pattern, function));
     }
 
-    protected final void delete(String pattern, Function<Request, CompletableFuture<Response>> function) {
+    protected final void delete(String pattern, Function<Request, CompletionStage<Response>> function) {
         routings.add(new Route(Method.DELETE, pattern, function));
     }
 

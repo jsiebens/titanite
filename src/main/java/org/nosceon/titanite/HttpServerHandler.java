@@ -33,12 +33,12 @@ import java.io.Reader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
 import static io.netty.handler.codec.http.HttpHeaders.is100ContinueExpected;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.Exceptions.internalServerError;
 import static org.nosceon.titanite.Exceptions.requestEntityTooLarge;
@@ -125,8 +125,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                     );
 
 
-                CompletableFuture
-                    .completedFuture(req)
+                completedFuture(req)
                     .<Response>thenCompose(routing.function::apply)
                     .whenComplete((r, e) -> {
                         releaseAggregator();

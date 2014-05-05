@@ -16,7 +16,7 @@
 package org.nosceon.titanite;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
@@ -26,9 +26,9 @@ final class RoutingResult {
 
     public final Map<String, String> pathParams;
 
-    public final Function<Request, CompletableFuture<Response>> function;
+    public final Function<Request, CompletionStage<Response>> function;
 
-    public RoutingResult(Map<String, String> pathParams, Function<Request, CompletableFuture<Response>> function) {
+    public RoutingResult(Map<String, String> pathParams, Function<Request, CompletionStage<Response>> function) {
         this.pathParams = pathParams;
         this.function = function;
     }
