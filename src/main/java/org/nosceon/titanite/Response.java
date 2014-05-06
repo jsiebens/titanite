@@ -253,6 +253,7 @@ public final class Response {
             setTransferEncodingChunked(response);
 
             ctx.write(response);
+
             propagate(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
                     streamingOutput.onReady(out);

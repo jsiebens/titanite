@@ -15,6 +15,9 @@
  */
 package org.nosceon.titanite.json;
 
+import org.nosceon.titanite.json.impl.GsonMapper;
+import org.nosceon.titanite.json.impl.JacksonMapper;
+
 import java.util.Optional;
 
 /**
@@ -24,7 +27,11 @@ public final class JsonMapperLoader {
 
     public static Optional<JsonMapper> load() {
         if (classIsAvailable("com.fasterxml.jackson.databind.ObjectMapper")) {
-            return Optional.of(new JacksonJsonMapper());
+            return Optional.of(new JacksonMapper());
+        }
+
+        if (classIsAvailable("com.google.gson.Gson")) {
+            return Optional.of(new GsonMapper());
         }
 
         return Optional.empty();

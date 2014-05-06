@@ -13,38 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.json;
+package org.nosceon.titanite.json.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 import static org.nosceon.titanite.HttpServerException.propagate;
 
-public final class JacksonJsonMapper implements JsonMapper {
+/**
+ * @author Johan Siebens
+ */
+public final class GsonMapper implements JsonMapper {
 
-    private final ObjectMapper mapper;
+    private final Gson gson;
 
-    public JacksonJsonMapper() {
-        this(new ObjectMapper());
+    public GsonMapper() {
+        this(defaultGson());
     }
 
-    public JacksonJsonMapper(ObjectMapper mapper) {
-        this.mapper = mapper;
+    public GsonMapper(Gson gson) {
+        this.gson = gson;
     }
 
     @Override
     public <T> T read(InputStream in, Class<T> type) {
-        return propagate(() -> mapper.readValue(in, type));
+        return gson.fromJson(new InputStreamReader(in), type);
     }
 
     @Override
     public void write(OutputStream out, Object value) {
         propagate(() -> {
-            mapper.writeValue(out, value);
-            return true;
+            try (OutputStreamWriter w = new OutputStreamWriter(out)) {
+                gson.toJson(value, w);
+            }
+            return null;
         });
+    }
+
+    private static Gson defaultGson() {
+        return new Gson();
     }
 
 }
