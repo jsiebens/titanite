@@ -73,8 +73,10 @@ final class ChunkOutputStream extends OutputStream {
 
     @Override
     public void flush() throws IOException {
-        ctx.writeAndFlush(new DefaultHttpContent(buffer.copy()));
-        buffer.clear();
+        if (buffer.readableBytes() != 0) {
+            ctx.writeAndFlush(new DefaultHttpContent(buffer.copy()));
+            buffer.clear();
+        }
         super.flush();
     }
 
