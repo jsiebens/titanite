@@ -23,8 +23,8 @@ import java.io.OutputStream;
  */
 public interface JsonMapper {
 
-    <T> T read(InputStream in, Class<T> type);
+    <T> T read(InputStream in, Class<T> type) throws Exception;
 
-    void write(OutputStream out, Object value);
+    void write(OutputStream out, Object value) throws Exception;
 
 }

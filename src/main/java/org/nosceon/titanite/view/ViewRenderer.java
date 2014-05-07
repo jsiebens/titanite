@@ -17,7 +17,6 @@ package org.nosceon.titanite.view;
 
 import org.nosceon.titanite.Request;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -27,7 +26,7 @@ public interface ViewRenderer {
 
     boolean isTemplateAvailable(Object view);
 
-    void render(Request request, Object view, OutputStream out) throws IOException;
+    void render(Request request, Object view, OutputStream out) throws Exception;
 
     public default String templateOf(Object o) {
         if (o instanceof View) {

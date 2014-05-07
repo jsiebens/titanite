@@ -294,18 +294,14 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public String asText() {
-            return propagate(() -> {
-                try (Reader in = new InputStreamReader(asStream())) {
-                    return CharStreams.toString(in);
-                }
-            });
+            return propagate(() -> CharStreams.toString(new InputStreamReader(asStream())));
         }
 
         @Override
         public <T> T asJson(Class<T> type) {
             if (mapper.isPresent()) {
                 if (content.readableBytes() > 0) {
-                    return mapper.get().read(asStream(), type);
+                    return propagate(() -> mapper.get().read(asStream(), type));
                 }
                 else {
                     return null;
