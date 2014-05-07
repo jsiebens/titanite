@@ -57,7 +57,7 @@ public class ExceptionsTest extends AbstractE2ETest {
                     throw new CompletionException(new RuntimeException());
                 })
                 .register(GET, "/c", (r) -> {
-                    throw new HttpServerException(Responses.status(503));
+                    throw new HttpServerException("503", Responses.status(503));
                 })
                 .register(GET, "/d", (r) -> {
                     throw new CompletionException(new InternalSub1Exception());

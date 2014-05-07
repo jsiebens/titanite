@@ -27,8 +27,8 @@ public final class HttpServerException extends RuntimeException {
 
     private Response response;
 
-    public HttpServerException(Response response) {
-        super(String.valueOf(response.status()));
+    public HttpServerException(String message, Response response) {
+        super(message);
         this.response = response;
     }
 

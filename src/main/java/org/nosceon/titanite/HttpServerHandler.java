@@ -29,7 +29,6 @@ import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -308,8 +307,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 }
             }
             else {
-                Titanite.LOG.error("No JsonMapper available");
-                throw new HttpServerException(internalServerError());
+                throw new HttpServerException("No JsonMapper available", internalServerError());
             }
         }
 
@@ -359,22 +357,26 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public InputStream asStream() {
-            throw new HttpServerException(requestEntityTooLarge());
+            throw requestEntityTooLargeException();
         }
 
         @Override
         public String asText() {
-            throw new HttpServerException(requestEntityTooLarge());
+            throw requestEntityTooLargeException();
         }
 
         @Override
         public <T> T asJson(Class<T> type) {
-            throw new HttpServerException(requestEntityTooLarge());
+            throw requestEntityTooLargeException();
         }
 
         @Override
         public FormParams asForm() {
-            throw new HttpServerException(requestEntityTooLarge());
+            throw requestEntityTooLargeException();
+        }
+
+        private HttpServerException requestEntityTooLargeException() {
+            return new HttpServerException("Request Entity Too Large", requestEntityTooLarge());
         }
 
     }
