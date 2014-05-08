@@ -22,7 +22,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import org.nosceon.titanite.json.JsonMapper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,8 +43,6 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private Optional<Filter> filter = Optional.empty();
 
-    private Optional<JsonMapper> mapper = Optional.empty();
-
     protected final String id;
 
     protected AbstractHttpServerBuilder(String id) {
@@ -60,11 +57,6 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             }
         }
         this.filter = Optional.of(f);
-        return self();
-    }
-
-    public final R setMapper(JsonMapper mapper) {
-        this.mapper = Optional.of(mapper);
         return self();
     }
 

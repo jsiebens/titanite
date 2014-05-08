@@ -75,7 +75,6 @@ public class JsonTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .setMapper(m)
                 .register(GET, "/json", (r) -> ok().body(m.out(new Hello("world"))).toFuture())
                 .register(POST, "/json", (r) -> {
                     Hello hello = r.body.as(m.in(Hello.class));
