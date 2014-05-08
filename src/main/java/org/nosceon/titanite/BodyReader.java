@@ -20,7 +20,7 @@ import java.io.InputStream;
 /**
  * @author Johan Siebens
  */
-public interface StreamingInput<T> {
+public interface BodyReader<T> {
 
     T read(InputStream in) throws Exception;
 

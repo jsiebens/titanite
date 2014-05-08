@@ -24,11 +24,12 @@ import java.io.ByteArrayInputStream;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Titanite.Responses.ok;
 
 /**
  * @author Johan Siebens
  */
-public class StreamingOutputResponseTest extends AbstractE2ETest {
+public class BodyWriterResponseTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 

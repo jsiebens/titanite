@@ -30,7 +30,7 @@ public interface RequestBody {
 
     String asText();
 
-    <T> T as(StreamingInput<T> si);
+    <T> T as(BodyReader<T> si);
 
     FormParams asForm();
 

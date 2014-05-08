@@ -18,7 +18,7 @@ package org.nosceon.titanite.view.impl;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import org.nosceon.titanite.StreamingOutput;
+import org.nosceon.titanite.BodyWriter;
 import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.IOException;
@@ -36,11 +36,11 @@ public final class MustacheViewRenderer implements ViewRenderer {
     private final MustacheFactory mustacheFactory = defaultMustacheFactory();
 
     @Override
-    public StreamingOutput apply(Object view) {
+    public BodyWriter apply(Object view) {
         return propagate(() -> render(getMustache(view), view));
     }
 
-    private StreamingOutput render(Mustache mustache, Object view) throws IOException {
+    private BodyWriter render(Mustache mustache, Object view) throws IOException {
         return (out) -> {
             try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
                 mustache.execute(writer, new Object[]{view});

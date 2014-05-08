@@ -23,7 +23,7 @@ import java.net.ServerSocket;
 /**
  * @author Johan Siebens
  */
-public abstract class AbstractE2ETest extends Responses {
+public abstract class AbstractE2ETest {
 
     private int port;
 

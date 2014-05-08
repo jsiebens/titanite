@@ -17,7 +17,7 @@ package org.nosceon.titanite.service;
 
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
-import org.nosceon.titanite.Responses;
+import org.nosceon.titanite.Titanite;
 
 import java.io.File;
 import java.util.Date;
@@ -29,7 +29,7 @@ import java.util.function.Function;
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.nosceon.titanite.Responses.*;
+import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
  * @author Johan Siebens
@@ -63,7 +63,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
             ofNullable(new File(docRoot, request.path))
                 .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
-                .orElseGet(Responses::notFound);
+                .orElseGet(Titanite.Responses::notFound);
     }
 
     private Response createResponse(Request request, File file) {

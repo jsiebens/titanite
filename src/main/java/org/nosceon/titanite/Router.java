@@ -22,7 +22,7 @@ import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
-import static org.nosceon.titanite.Responses.methodNotAllowed;
+import static org.nosceon.titanite.Titanite.Responses.methodNotAllowed;
 
 /**
  * @author Johan Siebens

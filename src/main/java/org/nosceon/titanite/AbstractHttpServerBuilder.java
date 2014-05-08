@@ -38,7 +38,7 @@ import static org.nosceon.titanite.HttpServerException.propagate;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    private Function<Request, CompletionStage<Response>> fallback = (r) -> Responses.notFound().toFuture();
+    private Function<Request, CompletionStage<Response>> fallback = (r) -> Titanite.Responses.notFound().toFuture();
 
     private final List<Route> routings = new LinkedList<>();
 
@@ -123,7 +123,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         private Function<Request, CompletionStage<Response>> second;
 
         private Chain(Function<Request, CompletionStage<Response>> function) {
-            this((r) -> Responses.notFound().toFuture(), function);
+            this((r) -> Titanite.Responses.notFound().toFuture(), function);
         }
 
         private Chain(Function<Request, CompletionStage<Response>> first, Function<Request, CompletionStage<Response>> second) {

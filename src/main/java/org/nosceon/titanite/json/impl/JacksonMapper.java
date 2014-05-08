@@ -16,8 +16,8 @@
 package org.nosceon.titanite.json.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.nosceon.titanite.StreamingInput;
-import org.nosceon.titanite.StreamingOutput;
+import org.nosceon.titanite.BodyReader;
+import org.nosceon.titanite.BodyWriter;
 import org.nosceon.titanite.json.JsonMapper;
 
 public final class JacksonMapper implements JsonMapper {
@@ -33,12 +33,12 @@ public final class JacksonMapper implements JsonMapper {
     }
 
     @Override
-    public <T> StreamingInput<T> in(Class<T> type) {
+    public <T> BodyReader<T> in(Class<T> type) {
         return in -> mapper.readValue(in, type);
     }
 
     @Override
-    public StreamingOutput out(Object value) {
+    public BodyWriter out(Object value) {
         return (out) -> mapper.writeValue(out, value);
     }
 

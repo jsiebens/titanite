@@ -15,14 +15,14 @@
  */
 package org.nosceon.titanite.view;
 
-import org.nosceon.titanite.StreamingOutput;
+import org.nosceon.titanite.BodyWriter;
 
 /**
  * @author Johan Siebens
  */
 public interface ViewRenderer {
 
-    StreamingOutput apply(Object view);
+    BodyWriter apply(Object view);
 
     public default String templateOf(Object o) {
         if (o instanceof View) {

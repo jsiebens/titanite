@@ -289,7 +289,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T as(StreamingInput<T> si) {
+        public <T> T as(BodyReader<T> si) {
             if (content.readableBytes() > 0) {
                 return propagate(() -> si.read(asStream()));
             }
@@ -324,7 +324,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T as(StreamingInput<T> si) {
+        public <T> T as(BodyReader<T> si) {
             throw new UnsupportedOperationException();
         }
 
@@ -353,7 +353,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T as(StreamingInput<T> si) {
+        public <T> T as(BodyReader<T> si) {
             throw requestEntityTooLargeException();
         }
 

@@ -18,7 +18,7 @@ package org.nosceon.titanite.service;
 import org.eclipse.jetty.util.resource.Resource;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
-import org.nosceon.titanite.Responses;
+import org.nosceon.titanite.Titanite;
 
 import java.util.Date;
 import java.util.Optional;
@@ -31,7 +31,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
 import static org.nosceon.titanite.HttpServerException.propagate;
-import static org.nosceon.titanite.Responses.*;
+import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
  * @author Johan Siebens
@@ -65,7 +65,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
             ofNullable(newClassPathResource(baseResource + request.path))
                 .filter((r) -> r.exists() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
-                .orElseGet(Responses::notFound);
+                .orElseGet(Titanite.Responses::notFound);
     }
 
     private Response createResponse(Request request, Resource resource) {

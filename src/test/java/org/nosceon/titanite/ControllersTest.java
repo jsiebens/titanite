@@ -22,6 +22,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Titanite.Responses.ok;
 
 /**
  * @author Johan Siebens

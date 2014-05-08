@@ -21,6 +21,8 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.given;
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Titanite.Responses.ok;
+import static org.nosceon.titanite.Titanite.Responses.status;
 
 /**
  * @author Johan Siebens

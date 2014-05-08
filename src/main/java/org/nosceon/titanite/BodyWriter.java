@@ -20,7 +20,7 @@ import java.io.OutputStream;
 /**
  * @author Johan Siebens
  */
-public interface StreamingOutput {
+public interface BodyWriter {
 
     void onReady(OutputStream out) throws Exception;
 

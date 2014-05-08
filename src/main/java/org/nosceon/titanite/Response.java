@@ -104,8 +104,8 @@ public final class Response {
         return body(o -> ByteStreams.copy(in, o));
     }
 
-    public Response body(StreamingOutput streamingOutput) {
-        this.body = new StreamBody(streamingOutput);
+    public Response body(BodyWriter bodyWriter) {
+        this.body = new StreamBody(bodyWriter);
         return this;
     }
 
@@ -233,7 +233,7 @@ public final class Response {
 
     private abstract class AbstractStreamingBody implements Body {
 
-        protected void stream(boolean keepAlive, ChannelHandlerContext ctx, StreamingOutput streamingOutput) {
+        protected void stream(boolean keepAlive, ChannelHandlerContext ctx, BodyWriter bodyWriter) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -242,7 +242,7 @@ public final class Response {
 
             propagate(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
-                    streamingOutput.onReady(out);
+                    bodyWriter.onReady(out);
                 }
                 return true;
             });
@@ -254,9 +254,9 @@ public final class Response {
 
     private class StreamBody extends AbstractStreamingBody {
 
-        private StreamingOutput consumer;
+        private BodyWriter consumer;
 
-        private StreamBody(StreamingOutput consumer) {
+        private StreamBody(BodyWriter consumer) {
             this.consumer = consumer;
         }
 

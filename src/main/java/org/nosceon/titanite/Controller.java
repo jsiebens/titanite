@@ -23,7 +23,7 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-public abstract class Controller extends Responses {
+public abstract class Controller {
 
     static Controller newController(List<Route> routes) {
         return new InternalController(routes);

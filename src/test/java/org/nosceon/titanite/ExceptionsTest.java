@@ -22,6 +22,7 @@ import java.util.concurrent.CompletionException;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Titanite.Responses.ok;
 import static org.nosceon.titanite.Titanite.errors;
 
 /**
@@ -57,7 +58,7 @@ public class ExceptionsTest extends AbstractE2ETest {
                     throw new CompletionException(new RuntimeException());
                 })
                 .register(GET, "/c", (r) -> {
-                    throw new HttpServerException("503", Responses.status(503));
+                    throw new HttpServerException("503", Titanite.Responses.status(503));
                 })
                 .register(GET, "/d", (r) -> {
                     throw new CompletionException(new InternalSub1Exception());

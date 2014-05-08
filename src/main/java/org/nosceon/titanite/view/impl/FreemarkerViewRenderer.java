@@ -17,7 +17,7 @@ package org.nosceon.titanite.view.impl;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import org.nosceon.titanite.StreamingOutput;
+import org.nosceon.titanite.BodyWriter;
 import org.nosceon.titanite.Titanite;
 import org.nosceon.titanite.view.ViewRenderer;
 
@@ -36,11 +36,11 @@ public class FreemarkerViewRenderer implements ViewRenderer {
     private final Configuration configuration = defaultConfiguration();
 
     @Override
-    public StreamingOutput apply(Object view) {
+    public BodyWriter apply(Object view) {
         return propagate(() -> render(getTemplate(view), view));
     }
 
-    private StreamingOutput render(Template template, Object view) throws IOException {
+    private BodyWriter render(Template template, Object view) throws IOException {
         return (out) -> {
             try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
                 template.process(view, writer);

@@ -15,16 +15,16 @@
  */
 package org.nosceon.titanite.json;
 
-import org.nosceon.titanite.StreamingInput;
-import org.nosceon.titanite.StreamingOutput;
+import org.nosceon.titanite.BodyReader;
+import org.nosceon.titanite.BodyWriter;
 
 /**
  * @author Johan Siebens
  */
 public interface JsonMapper {
 
-    <T> StreamingInput<T> in(Class<T> type);
+    <T> BodyReader<T> in(Class<T> type);
 
-    StreamingOutput out(Object value);
+    BodyWriter out(Object value);
 
 }
