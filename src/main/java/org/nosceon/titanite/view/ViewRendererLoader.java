@@ -15,6 +15,9 @@
  */
 package org.nosceon.titanite.view;
 
+import org.nosceon.titanite.view.impl.FreemarkerViewRenderer;
+import org.nosceon.titanite.view.impl.MustacheViewRenderer;
+
 import java.util.Optional;
 
 /**
@@ -25,6 +28,10 @@ public class ViewRendererLoader {
     public static Optional<ViewRenderer> load() {
         if (classIsAvailable("com.github.mustachejava.Mustache")) {
             return Optional.of(new MustacheViewRenderer());
+        }
+
+        if (classIsAvailable("freemarker.template.Configuration")) {
+            return Optional.of(new FreemarkerViewRenderer());
         }
 
         return Optional.empty();

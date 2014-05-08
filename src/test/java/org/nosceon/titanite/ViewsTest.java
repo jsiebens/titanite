@@ -16,8 +16,15 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.nosceon.titanite.view.View;
+import org.nosceon.titanite.view.ViewRenderer;
 import org.nosceon.titanite.view.ViewTemplate;
+import org.nosceon.titanite.view.impl.FreemarkerViewRenderer;
+import org.nosceon.titanite.view.impl.MustacheViewRenderer;
+
+import java.util.Arrays;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -26,6 +33,7 @@ import static org.nosceon.titanite.Method.GET;
 /**
  * @author Johan Siebens
  */
+@RunWith(Parameterized.class)
 public class ViewsTest extends AbstractE2ETest {
 
     public static class HelloView extends View {
@@ -66,12 +74,30 @@ public class ViewsTest extends AbstractE2ETest {
 
     }
 
+    private ViewRenderer viewRenderer;
+
+    private String extension;
+
+    public ViewsTest(String name, String extension, ViewRenderer viewRenderer) {
+        this.extension = extension;
+        this.viewRenderer = viewRenderer;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Iterable<Object[]> mappers() {
+        return Arrays.asList(new Object[][]{
+            {"mustache", "mustache", new MustacheViewRenderer()},
+            {"freemarker", "ftl", new FreemarkerViewRenderer()}
+        });
+    }
+
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
+                .setViewRenderer(viewRenderer)
                 .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).toFuture())
-                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello.mustache", "world")).toFuture())
+                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello." + extension, "world")).toFuture())
                 .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).toFuture())
                 .register(GET, "/hello4", (r) -> ok().view(new AnnotatedHelloView("world")).toFuture())
                 .register(GET, "/hello5", (r) -> ok().view(new SubAnnotatedHelloView("world")).toFuture())

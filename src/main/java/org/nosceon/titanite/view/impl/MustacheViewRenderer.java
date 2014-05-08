@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.view;
+package org.nosceon.titanite.view.impl;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import org.nosceon.titanite.Request;
+import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,14 +30,14 @@ import java.io.OutputStreamWriter;
  */
 public final class MustacheViewRenderer implements ViewRenderer {
 
-    private static final MustacheFactory mustacheFactory = new DefaultMustacheFactory();
-
     private static final String EXTENSION = ".mustache";
 
+    private final MustacheFactory mustacheFactory = defaultMustacheFactory();
+
     @Override
-    public boolean isTemplateAvailable(Object o) {
+    public boolean isTemplateAvailable(Object view) {
         try {
-            return getMustache(templateOf(o)) != null;
+            return getMustache(view) != null;
         }
         catch (Exception e) {
             return false;
@@ -44,28 +45,22 @@ public final class MustacheViewRenderer implements ViewRenderer {
     }
 
     @Override
-    public void render(Request request, Object o, OutputStream out) throws IOException {
+    public void render(Request request, Object view, OutputStream out) throws IOException {
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-            Mustache mustache = getMustache(templateOf(o));
-            mustache.execute(writer, new Object[]{o});
+            getMustache(view).execute(writer, new Object[]{view});
         }
     }
 
-    private Mustache getMustache(String key) throws IOException {
-        return mustacheFactory.compile("templates" + sanitize(key));
+    private Mustache getMustache(Object view) throws IOException {
+        return mustacheFactory.compile(sanitize(templateOf(view)));
     }
 
     private static String sanitize(String templateName) {
-        String s = templateName;
-        if (!s.endsWith(EXTENSION)) {
-            s = s + EXTENSION;
-        }
+        return templateName.endsWith(EXTENSION) ? templateName : templateName + EXTENSION;
+    }
 
-        if (!s.startsWith("/")) {
-            s = "/" + s;
-        }
-
-        return s;
+    private static MustacheFactory defaultMustacheFactory() {
+        return new DefaultMustacheFactory("templates");
     }
 
 }
