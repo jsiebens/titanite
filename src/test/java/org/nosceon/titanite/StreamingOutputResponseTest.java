@@ -36,8 +36,8 @@ public class StreamingOutputResponseTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/stream", (r) -> ok().stream(new ByteArrayInputStream(TEXT.getBytes())).toFuture())
-                .register(GET, "/resource", (r) -> ok().stream(o -> ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o)).toFuture())
+                .register(GET, "/stream", (r) -> ok().body(new ByteArrayInputStream(TEXT.getBytes())).toFuture())
+                .register(GET, "/resource", (r) -> ok().body(o -> ByteStreams.copy(new ByteArrayInputStream(TEXT.getBytes()), o)).toFuture())
                 .start();
     }
 

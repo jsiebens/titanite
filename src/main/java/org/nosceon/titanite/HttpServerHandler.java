@@ -25,7 +25,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import org.nosceon.titanite.json.JsonMapper;
-import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -52,8 +51,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final Router router;
 
-    private final Optional<ViewRenderer> renderer;
-
     private final Optional<JsonMapper> mapper;
 
     private HttpRequest request;
@@ -64,10 +61,9 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private long currentRequestSize;
 
-    public HttpServerHandler(long maxRequestSize, Router router, Optional<ViewRenderer> renderer, Optional<JsonMapper> mapper) {
+    public HttpServerHandler(long maxRequestSize, Router router, Optional<JsonMapper> mapper) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
-        this.renderer = renderer;
         this.mapper = mapper;
     }
 
@@ -143,7 +139,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                                 response = internalServerError();
                             }
                         }
-                        response.apply(isKeepAlive(request), req, ctx, renderer, mapper);
+                        response.apply(isKeepAlive(request), req, ctx, mapper);
                     });
 
             }

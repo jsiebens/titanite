@@ -23,18 +23,30 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public class ViewRendererLoader {
+public enum ViewRendererLoader {
 
-    public static Optional<ViewRenderer> load() {
+    INSTANCE;
+
+    private final Optional<ViewRenderer> renderer;
+
+    private ViewRendererLoader() {
+        this.renderer = Optional.ofNullable(load());
+    }
+
+    public static ViewRenderer get() {
+        return INSTANCE.renderer.get();
+    }
+
+    public static ViewRenderer load() {
         if (classIsAvailable("com.github.mustachejava.Mustache")) {
-            return Optional.of(new MustacheViewRenderer());
+            return new MustacheViewRenderer();
         }
 
         if (classIsAvailable("freemarker.template.Configuration")) {
-            return Optional.of(new FreemarkerViewRenderer());
+            return new FreemarkerViewRenderer();
         }
 
-        return Optional.empty();
+        return null;
     }
 
     private static boolean classIsAvailable(String name) {

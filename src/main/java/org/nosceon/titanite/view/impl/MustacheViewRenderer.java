@@ -18,12 +18,13 @@ package org.nosceon.titanite.view.impl;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import org.nosceon.titanite.Request;
+import org.nosceon.titanite.StreamingOutput;
 import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+
+import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
  * @author Johan Siebens
@@ -35,20 +36,16 @@ public final class MustacheViewRenderer implements ViewRenderer {
     private final MustacheFactory mustacheFactory = defaultMustacheFactory();
 
     @Override
-    public boolean isTemplateAvailable(Object view) {
-        try {
-            return getMustache(view) != null;
-        }
-        catch (Exception e) {
-            return false;
-        }
+    public StreamingOutput apply(Object view) {
+        return propagate(() -> render(getMustache(view), view));
     }
 
-    @Override
-    public void render(Request request, Object view, OutputStream out) throws IOException {
-        try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-            getMustache(view).execute(writer, new Object[]{view});
-        }
+    private StreamingOutput render(Mustache mustache, Object view) throws IOException {
+        return (out) -> {
+            try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
+                mustache.execute(writer, new Object[]{view});
+            }
+        };
     }
 
     private Mustache getMustache(Object view) throws IOException {

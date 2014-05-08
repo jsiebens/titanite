@@ -15,18 +15,14 @@
  */
 package org.nosceon.titanite.view;
 
-import org.nosceon.titanite.Request;
-
-import java.io.OutputStream;
+import org.nosceon.titanite.StreamingOutput;
 
 /**
  * @author Johan Siebens
  */
 public interface ViewRenderer {
 
-    boolean isTemplateAvailable(Object view);
-
-    void render(Request request, Object view, OutputStream out) throws Exception;
+    StreamingOutput apply(Object view);
 
     public default String templateOf(Object o) {
         if (o instanceof View) {

@@ -74,13 +74,13 @@ public class ViewsTest extends AbstractE2ETest {
 
     }
 
-    private ViewRenderer viewRenderer;
+    private ViewRenderer v;
 
     private String extension;
 
     public ViewsTest(String name, String extension, ViewRenderer viewRenderer) {
         this.extension = extension;
-        this.viewRenderer = viewRenderer;
+        this.v = viewRenderer;
     }
 
     @Parameterized.Parameters(name = "{0}")
@@ -95,13 +95,12 @@ public class ViewsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .setViewRenderer(viewRenderer)
-                .register(GET, "/hello1", (r) -> ok().view(new HelloView("hello", "world")).toFuture())
-                .register(GET, "/hello2", (r) -> ok().view(new HelloView("hello." + extension, "world")).toFuture())
-                .register(GET, "/hello3", (r) -> ok().view(new HelloView("/hello", "world")).toFuture())
-                .register(GET, "/hello4", (r) -> ok().view(new AnnotatedHelloView("world")).toFuture())
-                .register(GET, "/hello5", (r) -> ok().view(new SubAnnotatedHelloView("world")).toFuture())
-                .register(GET, "/unavailable", (r) -> ok().view(new HelloView("unavailable", "world")).toFuture())
+                .register(GET, "/hello1", (r) -> ok().body(v.apply(new HelloView("hello", "world"))).toFuture())
+                .register(GET, "/hello2", (r) -> ok().body(v.apply(new HelloView("hello." + extension, "world"))).toFuture())
+                .register(GET, "/hello3", (r) -> ok().body(v.apply(new HelloView("/hello", "world"))).toFuture())
+                .register(GET, "/hello4", (r) -> ok().body(v.apply(new AnnotatedHelloView("world"))).toFuture())
+                .register(GET, "/hello5", (r) -> ok().body(v.apply(new SubAnnotatedHelloView("world"))).toFuture())
+                .register(GET, "/unavailable", (r) -> ok().body(v.apply(new HelloView("unavailable", "world"))).toFuture())
                 .start();
     }
 

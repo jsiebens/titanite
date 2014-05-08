@@ -76,7 +76,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
             return
                 ok()
                     .type(MimeTypes.contentType(resource.getName()))
-                    .stream(propagate(resource::getInputStream));
+                    .body(propagate(resource::getInputStream));
         }
         else {
             return
@@ -87,7 +87,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
                         ok()
                             .type(MimeTypes.contentType(resource.getName()))
                             .lastModified(new Date(lastModified))
-                            .stream(propagate(resource::getInputStream)));
+                            .body(propagate(resource::getInputStream)));
         }
     }
 

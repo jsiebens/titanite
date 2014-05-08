@@ -17,13 +17,14 @@ package org.nosceon.titanite.view.impl;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import org.nosceon.titanite.Request;
+import org.nosceon.titanite.StreamingOutput;
 import org.nosceon.titanite.Titanite;
 import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+
+import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
  * @author Johan Siebens
@@ -35,20 +36,16 @@ public class FreemarkerViewRenderer implements ViewRenderer {
     private final Configuration configuration = defaultConfiguration();
 
     @Override
-    public boolean isTemplateAvailable(Object view) {
-        try {
-            return getTemplate(view) != null;
-        }
-        catch (IOException e) {
-            return false;
-        }
+    public StreamingOutput apply(Object view) {
+        return propagate(() -> render(getTemplate(view), view));
     }
 
-    @Override
-    public void render(Request request, Object view, OutputStream out) throws Exception {
-        try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-            getTemplate(view).process(view, writer);
-        }
+    private StreamingOutput render(Template template, Object view) throws IOException {
+        return (out) -> {
+            try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
+                template.process(view, writer);
+            }
+        };
     }
 
     private Template getTemplate(Object view) throws IOException {

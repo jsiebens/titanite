@@ -16,6 +16,7 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.nosceon.titanite.view.ViewRendererLoader;
 
 import java.net.URI;
 
@@ -104,4 +105,11 @@ public abstract class Responses {
         return new Response(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
+
+    // body
+
+    public static StreamingOutput view(Object view) {
+        return ViewRendererLoader.get().apply(view);
+    }
+    
 }
