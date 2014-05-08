@@ -15,16 +15,16 @@
  */
 package org.nosceon.titanite.json;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.nosceon.titanite.StreamingInput;
+import org.nosceon.titanite.StreamingOutput;
 
 /**
  * @author Johan Siebens
  */
 public interface JsonMapper {
 
-    <T> T read(InputStream in, Class<T> type) throws Exception;
+    <T> StreamingInput<T> in(Class<T> type);
 
-    void write(OutputStream out, Object value) throws Exception;
+    StreamingOutput out(Object value);
 
 }

@@ -16,6 +16,7 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.nosceon.titanite.json.JsonMapperLoader;
 import org.nosceon.titanite.view.ViewRendererLoader;
 
 import java.net.URI;
@@ -108,8 +109,17 @@ public abstract class Responses {
 
     // body
 
+    public static <T> StreamingInput<T> json(Class<T> type) {
+        return JsonMapperLoader.get().in(type);
+    }
+
     public static StreamingOutput view(Object view) {
         return ViewRendererLoader.get().apply(view);
     }
-    
+
+    public static StreamingOutput json(Object value) {
+        return JsonMapperLoader.get().out(value);
+    }
+
+
 }

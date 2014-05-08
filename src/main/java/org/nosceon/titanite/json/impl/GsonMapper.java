@@ -16,6 +16,8 @@
 package org.nosceon.titanite.json.impl;
 
 import com.google.gson.Gson;
+import org.nosceon.titanite.StreamingInput;
+import org.nosceon.titanite.StreamingOutput;
 import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.*;
@@ -36,17 +38,21 @@ public final class GsonMapper implements JsonMapper {
     }
 
     @Override
-    public <T> T read(InputStream in, Class<T> type) throws IOException {
-        try (Reader r = new InputStreamReader(in)) {
-            return gson.fromJson(r, type);
-        }
+    public <T> StreamingInput<T> in(Class<T> type) {
+        return (in) -> {
+            try (Reader r = new InputStreamReader(in)) {
+                return gson.fromJson(r, type);
+            }
+        };
     }
 
     @Override
-    public void write(OutputStream out, Object value) throws IOException {
-        try (Writer w = new BufferedWriter(new OutputStreamWriter(out))) {
-            gson.toJson(value, w);
-        }
+    public StreamingOutput out(Object value) {
+        return (out) -> {
+            try (Writer w = new BufferedWriter(new OutputStreamWriter(out))) {
+                gson.toJson(value, w);
+            }
+        };
     }
 
     private static Gson defaultGson() {

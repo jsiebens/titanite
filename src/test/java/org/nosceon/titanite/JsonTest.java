@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -57,10 +56,10 @@ public class JsonTest extends AbstractE2ETest {
 
     }
 
-    private JsonMapper mapper;
+    private JsonMapper m;
 
     public JsonTest(String name, JsonMapper mapper) {
-        this.mapper = mapper;
+        this.m = mapper;
     }
 
     @Parameterized.Parameters(name = "{0}")
@@ -75,11 +74,11 @@ public class JsonTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .setMapper(mapper)
-                .register(GET, "/json", (r) -> ok().json(new Hello("world")).toFuture())
+                .setMapper(m)
+                .register(GET, "/json", (r) -> ok().body(m.out(new Hello("world"))).toFuture())
                 .register(POST, "/json", (r) -> {
-                    Hello hello = r.body.asJson(Hello.class);
-                    return ok().json(new Hello(hello.getName().toUpperCase())).toFuture();
+                    Hello hello = r.body.as(m.in(Hello.class));
+                    return ok().body(m.out(new Hello(hello.getName().toUpperCase()))).toFuture();
                 })
                 .start();
     }
@@ -89,18 +88,15 @@ public class JsonTest extends AbstractE2ETest {
         given()
             .expect()
             .statusCode(200)
-            .header(HttpHeaders.Names.CONTENT_TYPE, equalTo("application/json"))
             .body(equalTo("{\"name\":\"world\"}"))
             .when().get(uri("/json"));
 
-        /*
         given()
             .body("{\"name\":\"world\"}")
             .expect()
             .statusCode(200)
             .body(equalTo("{\"name\":\"WORLD\"}"))
             .when().post(uri("/json"));
-            */
     }
 
 }

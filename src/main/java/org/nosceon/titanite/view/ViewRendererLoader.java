@@ -37,7 +37,7 @@ public enum ViewRendererLoader {
         return INSTANCE.renderer.get();
     }
 
-    public static ViewRenderer load() {
+    private static ViewRenderer load() {
         if (classIsAvailable("com.github.mustachejava.Mustache")) {
             return new MustacheViewRenderer();
         }

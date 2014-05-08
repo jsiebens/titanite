@@ -20,13 +20,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.*;
 import java.net.URI;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -123,12 +121,6 @@ public final class Response {
         return this;
     }
 
-    public Response json(Object entity) {
-        this.type(MediaType.APPLICATION_JSON);
-        this.body = new JsonBody(entity);
-        return this;
-    }
-
     public Response chunks(ChunkedOutput chunkedOutput) {
         this.body = new ChunkedBody(chunkedOutput);
         return this;
@@ -143,13 +135,13 @@ public final class Response {
         return completedFuture(this);
     }
 
-    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
-        body.apply(keepAlive, request, ctx, mapper);
+    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        body.apply(keepAlive, request, ctx);
     }
 
     private static interface Body {
 
-        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper);
+        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx);
 
     }
 
@@ -169,7 +161,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
@@ -188,7 +180,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -269,29 +261,8 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
             stream(keepAlive, ctx, consumer);
-        }
-
-    }
-
-    private class JsonBody extends AbstractStreamingBody {
-
-        private Object entity;
-
-        private JsonBody(Object entity) {
-            this.entity = entity;
-        }
-
-        @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
-            if (mapper.isPresent()) {
-                stream(keepAlive, ctx, (o) -> mapper.get().write(o, entity));
-            }
-            else {
-                Titanite.LOG.error("No JsonMapper available");
-                internalServerError().apply(keepAlive, request, ctx, mapper);
-            }
         }
 
     }
@@ -305,7 +276,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx, Optional<JsonMapper> mapper) {
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
 
@@ -322,7 +293,7 @@ public final class Response {
             }
             catch (IOException e) {
                 Titanite.LOG.error("error writing file to response", e);
-                internalServerError().apply(keepAlive, request, ctx, mapper);
+                internalServerError().apply(keepAlive, request, ctx);
             }
         }
 

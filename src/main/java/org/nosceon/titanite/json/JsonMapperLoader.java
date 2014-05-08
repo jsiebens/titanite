@@ -23,18 +23,30 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public final class JsonMapperLoader {
+public enum JsonMapperLoader {
 
-    public static Optional<JsonMapper> load() {
+    INSTANCE;
+
+    private final Optional<JsonMapper> mapper;
+
+    private JsonMapperLoader() {
+        this.mapper = Optional.ofNullable(load());
+    }
+
+    public static JsonMapper get() {
+        return INSTANCE.mapper.get();
+    }
+
+    private static JsonMapper load() {
         if (classIsAvailable("com.fasterxml.jackson.databind.ObjectMapper")) {
-            return Optional.of(new JacksonMapper());
+            return new JacksonMapper();
         }
 
         if (classIsAvailable("com.google.gson.Gson")) {
-            return Optional.of(new GsonMapper());
+            return new GsonMapper();
         }
 
-        return Optional.empty();
+        return null;
     }
 
     private static boolean classIsAvailable(String name) {

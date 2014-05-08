@@ -24,7 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import org.nosceon.titanite.json.JsonMapper;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,8 +50,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final Router router;
 
-    private final Optional<JsonMapper> mapper;
-
     private HttpRequest request;
 
     private Aggregator aggregator;
@@ -61,10 +58,9 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private long currentRequestSize;
 
-    public HttpServerHandler(long maxRequestSize, Router router, Optional<JsonMapper> mapper) {
+    public HttpServerHandler(long maxRequestSize, Router router) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
-        this.mapper = mapper;
     }
 
     @Override
@@ -139,7 +135,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                                 response = internalServerError();
                             }
                         }
-                        response.apply(isKeepAlive(request), req, ctx, mapper);
+                        response.apply(isKeepAlive(request), req, ctx);
                     });
 
             }
@@ -293,17 +289,12 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T asJson(Class<T> type) {
-            if (mapper.isPresent()) {
-                if (content.readableBytes() > 0) {
-                    return propagate(() -> mapper.get().read(asStream(), type));
-                }
-                else {
-                    return null;
-                }
+        public <T> T as(StreamingInput<T> si) {
+            if (content.readableBytes() > 0) {
+                return propagate(() -> si.read(asStream()));
             }
             else {
-                throw new HttpServerException("No JsonMapper available", internalServerError());
+                return null;
             }
         }
 
@@ -333,8 +324,8 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T asJson(Class<T> type) {
-            throw new UnsupportedOperationException("asJson not supported");
+        public <T> T as(StreamingInput<T> si) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -362,7 +353,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         @Override
-        public <T> T asJson(Class<T> type) {
+        public <T> T as(StreamingInput<T> si) {
             throw requestEntityTooLargeException();
         }
 

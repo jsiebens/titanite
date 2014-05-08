@@ -20,18 +20,8 @@ import java.io.InputStream;
 /**
  * @author Johan Siebens
  */
-public interface RequestBody {
+public interface StreamingInput<T> {
 
-    default boolean maxRequestSizeExceeded() {
-        return false;
-    }
-
-    InputStream asStream();
-
-    String asText();
-
-    <T> T as(StreamingInput<T> si);
-
-    FormParams asForm();
+    T read(InputStream in) throws Exception;
 
 }
