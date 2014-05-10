@@ -33,10 +33,7 @@ public class ResourcesTest extends AbstractE2ETest {
         return
             server
                 .register(Method.GET, "/a", (r) -> ok().toFuture())
-                .notFound(
-                    publicResources(),
-                    webJarResources()
-                )
+                .register(Method.GET, "/*path", publicResources(), webJarResources())
                 .start();
     }
 

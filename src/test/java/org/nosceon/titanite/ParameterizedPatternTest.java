@@ -28,7 +28,7 @@ public class ParameterizedPatternTest {
 
     @Test
     public void testParameterizedPattern() {
-        ParameterizedPattern pattern = new ParameterizedPattern("/hello/{name}/id/{id}");
+        ParameterizedPattern pattern = new ParameterizedPattern("/hello/:name/id/:id");
         ParameterizedPattern.Matcher matcher = pattern.matcher("/hello/world/id/123");
         assertThat(matcher.matches(), is(true));
         assertThat(matcher.parameters().size(), equalTo(2));
@@ -36,6 +36,23 @@ public class ParameterizedPatternTest {
         assertThat(matcher.parameters().get("id"), equalTo("123"));
 
         assertThat(pattern.matcher("/lorem/ipsum").matches(), is(false));
+    }
+
+    @Test
+    public void testMoreThanOneSegment() {
+        ParameterizedPattern pattern = new ParameterizedPattern("/hello/:name/id/*path");
+        ParameterizedPattern.Matcher matcher = pattern.matcher("/hello/world/id/123/567/89");
+        assertThat(matcher.matches(), is(true));
+        assertThat(matcher.parameters().size(), equalTo(2));
+        assertThat(matcher.parameters().get("name"), equalTo("world"));
+        assertThat(matcher.parameters().get("path"), equalTo("123/567/89"));
+
+        assertThat(pattern.matcher("/lorem/ipsum").matches(), is(false));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultSegmentCanOnlyBeSetOnEnd() {
+        new ParameterizedPattern("/hello/*name/id/*path");
     }
 
     @Test

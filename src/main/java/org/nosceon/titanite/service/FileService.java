@@ -55,12 +55,14 @@ public final class FileService implements Function<Request, CompletionStage<Resp
     }
 
     private Response internalApply(Request request) {
-        if (request.path.contains("..")) {
+        String path = Optional.ofNullable(request.pathParams.getString("path")).get();
+
+        if (path.contains("..")) {
             return forbidden();
         }
 
         return
-            ofNullable(new File(docRoot, request.path))
+            ofNullable(new File(docRoot, path))
                 .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
                 .orElseGet(Titanite.Responses::notFound);

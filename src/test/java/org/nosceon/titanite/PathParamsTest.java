@@ -31,13 +31,13 @@ public class PathParamsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/a/{p}", (r) -> ok().body(r.pathParams.getString("p")).toFuture())
-                .register(GET, "/b/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p"))).toFuture())
-                .register(GET, "/c/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p"))).toFuture())
-                .register(GET, "/d/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p"))).toFuture())
-                .register(GET, "/e/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p"))).toFuture())
-                .register(GET, "/f/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p"))).toFuture())
-                .register(GET, "/g/{p}", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p"))).toFuture())
+                .register(GET, "/a/:p", (r) -> ok().body(r.pathParams.getString("p")).toFuture())
+                .register(GET, "/b/:p", (r) -> ok().body(String.valueOf(r.pathParams.getShort("p"))).toFuture())
+                .register(GET, "/c/:p", (r) -> ok().body(String.valueOf(r.pathParams.getInt("p"))).toFuture())
+                .register(GET, "/d/:p", (r) -> ok().body(String.valueOf(r.pathParams.getLong("p"))).toFuture())
+                .register(GET, "/e/:p", (r) -> ok().body(String.valueOf(r.pathParams.getFloat("p"))).toFuture())
+                .register(GET, "/f/:p", (r) -> ok().body(String.valueOf(r.pathParams.getDouble("p"))).toFuture())
+                .register(GET, "/g/:p", (r) -> ok().body(String.valueOf(r.pathParams.getBoolean("p"))).toFuture())
                 .start();
     }
 

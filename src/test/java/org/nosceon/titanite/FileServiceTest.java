@@ -53,7 +53,8 @@ public class FileServiceTest extends AbstractE2ETest {
 
         return
             server
-                .notFound(new FileService(docRoot))
+                .register(Method.GET, "/a/*path", new FileService(docRoot))
+                .register(Method.GET, "/*path", new FileService(docRoot))
                 .start();
     }
 
@@ -61,6 +62,9 @@ public class FileServiceTest extends AbstractE2ETest {
     public void test() throws IOException {
         given()
             .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/temporary.txt"));
+
+        given()
+            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/a/temporary.txt"));
 
         given()
             .expect().statusCode(403).when().get(uri("/../forbidden.txt"));

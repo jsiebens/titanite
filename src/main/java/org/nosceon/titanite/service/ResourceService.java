@@ -57,12 +57,14 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     private Response internalApply(Request request) {
-        if (request.path.contains("..")) {
+        String path = Optional.ofNullable(request.pathParams.getString("path")).get();
+
+        if (path.contains("..")) {
             return forbidden();
         }
 
         return
-            ofNullable(newClassPathResource(baseResource + request.path))
+            ofNullable(newClassPathResource(baseResource + '/' + path))
                 .filter((r) -> r.exists() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
                 .orElseGet(Titanite.Responses::notFound);

@@ -29,8 +29,8 @@ final class ParameterizedPattern {
 
     private final Set<String> parameters;
 
-    public ParameterizedPattern(final String input) {
-        final Data p = parse(input, "\\{([A-Za-z][A-Za-z0-9_]*)\\}", "(?<$1>[^\\/]+)");
+    public ParameterizedPattern(String input) {
+        final Data p = parse(input);
         this.pattern = p.pattern;
         this.parameters = p.parameters;
         this.compiledPattern = Pattern.compile(p.pattern);
@@ -61,20 +61,44 @@ final class ParameterizedPattern {
         return result;
     }
 
-    private static Data parse(String input, String parameterPattern, String parameterPatternReplacement) {
-        java.util.regex.Matcher m = Pattern.compile(parameterPattern).matcher(input);
-        StringBuffer sb = new StringBuffer();
-        Set<String> groups = new HashSet<>();
-        while (m.find()) {
-            String group = m.group();
-            group = group.substring(1, group.length() - 1);
-            if (groups.contains(group)) {
-                throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
-            }
-            m.appendReplacement(sb, parameterPatternReplacement);
-            groups.add(group);
+    private static Data parse(String input) {
+        String p = input;
+
+        if (p.startsWith("/")) {
+            p = p.substring(1);
         }
-        m.appendTail(sb);
+
+        Set<String> groups = new HashSet<>();
+        Iterator<String> segments = Arrays.asList(p.split("/")).iterator();
+        StringBuilder sb = new StringBuilder();
+
+        while (segments.hasNext()) {
+            String n = segments.next();
+
+            sb.append("/");
+
+            if (n.startsWith(":")) {
+                String g = n.substring(1);
+                if (!groups.add(g)) {
+                    throw new IllegalArgumentException("Cannot use identifier " + g + " more than once in pattern string");
+                }
+                sb.append("(?<").append(g).append(">[^\\/]+)");
+            }
+            else if (n.startsWith("*")) {
+                if (segments.hasNext()) {
+                    throw new IllegalArgumentException("Dynamic part over more than one segment should be placed at the end");
+                }
+                String g = n.substring(1);
+                if (!groups.add(g)) {
+                    throw new IllegalArgumentException("Cannot use identifier " + g + " more than once in pattern string");
+                }
+                sb.append("(?<").append(g).append(">.+)");
+            }
+            else {
+                sb.append(n);
+            }
+        }
+
         return new Data(sb.toString(), groups);
     }
 

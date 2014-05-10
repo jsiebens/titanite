@@ -32,7 +32,7 @@ public class CustomFallbackTest extends AbstractE2ETest {
         return
             server
                 .register(GET, "/a", (r) -> ok().text("ok").toFuture())
-                .notFound((r) -> ok().text("notFound").toFuture())
+                .register(GET, "/*path", (r) -> ok().text("notFound").toFuture())
                 .start();
     }
 
@@ -40,6 +40,8 @@ public class CustomFallbackTest extends AbstractE2ETest {
     public void test() {
         given().expect().statusCode(200).body(equalTo("ok")).when().get(uri("/a"));
         given().expect().statusCode(200).body(equalTo("notFound")).when().get(uri("/b"));
+        given().expect().statusCode(200).body(equalTo("notFound")).when().get(uri("/b/c"));
+        given().expect().statusCode(200).body(equalTo("notFound")).when().get(uri("/b/c/d"));
     }
 
 }

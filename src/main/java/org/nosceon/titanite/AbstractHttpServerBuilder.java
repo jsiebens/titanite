@@ -60,8 +60,19 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return self();
     }
 
-    public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler) {
-        this.routings.add(new Route(method, pattern, handler));
+    @SafeVarargs
+    public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
+        if (handlers != null && handlers.length > 0) {
+            Chain chain = new Chain(handler);
+            for (Function<Request, CompletionStage<Response>> f : handlers) {
+                chain = chain.fallbackTo(f);
+            }
+
+            this.routings.add(new Route(method, pattern, chain));
+        }
+        else {
+            this.routings.add(new Route(method, pattern, handler));
+        }
         return self();
     }
 
@@ -73,18 +84,6 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     public final R register(Class<? extends Controller> c) {
         Controller controller = propagate(c::newInstance);
         return register(controller);
-    }
-
-    @SafeVarargs
-    public final R notFound(Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
-        Chain chain = new Chain(handler);
-        if (handlers != null) {
-            for (Function<Request, CompletionStage<Response>> f : handlers) {
-                chain = chain.fallbackTo(f);
-            }
-        }
-        this.fallback = chain;
-        return self();
     }
 
     protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
@@ -107,6 +106,8 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             .bind(port)
             .syncUninterruptibly();
     }
+
+    protected abstract R self();
 
     private static final class Chain implements Function<Request, CompletionStage<Response>> {
 
@@ -140,7 +141,5 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         }
 
     }
-
-    protected abstract R self();
 
 }
