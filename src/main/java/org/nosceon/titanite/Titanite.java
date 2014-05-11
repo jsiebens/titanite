@@ -157,7 +157,7 @@ public final class Titanite {
 
     }
 
-    public static final class Json {
+    public static final class JsonSupport {
 
         public static <T> BodyReader<T> json(Class<T> type) {
             return JsonMapperLoader.get().in(type);
@@ -169,9 +169,9 @@ public final class Titanite {
 
     }
 
-    public static final class View {
+    public static final class ViewSupport {
 
-        public static BodyWriter view(Object view) {
+        public static BodyWriter render(Object view) {
             return ViewRendererLoader.get().apply(view);
         }
 
