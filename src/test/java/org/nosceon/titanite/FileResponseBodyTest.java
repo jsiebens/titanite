@@ -45,7 +45,7 @@ public class FileResponseBodyTest extends AbstractE2ETest {
         Files.write(TEXT, file, Charsets.UTF_8);
         return
             server
-                .register(GET, "/file", (r) -> ok().file(file).toFuture())
+                .register(GET, "/file", (r) -> ok().body(file).toFuture())
                 .start();
     }
 

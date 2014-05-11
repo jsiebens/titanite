@@ -109,6 +109,11 @@ public final class Response {
         return this;
     }
 
+    public Response body(File file) {
+        this.body = new FileBody(file);
+        return this;
+    }
+
     public Response text(String content) {
         this.type(MediaType.TEXT_PLAIN);
         this.body = new DefaultBody(Unpooled.copiedBuffer(content, UTF_8));
@@ -123,11 +128,6 @@ public final class Response {
 
     public Response chunks(ChunkedOutput chunkedOutput) {
         this.body = new ChunkedBody(chunkedOutput);
-        return this;
-    }
-
-    public Response file(File file) {
-        this.body = new FileBody(file);
         return this;
     }
 

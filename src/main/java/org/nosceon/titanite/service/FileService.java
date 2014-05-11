@@ -76,7 +76,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
             return
                 ok()
                     .type(MimeTypes.contentType(file.getName()))
-                    .file(file);
+                    .body(file);
         }
         else {
             return
@@ -87,7 +87,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
                         ok()
                             .type(MimeTypes.contentType(file.getName()))
                             .lastModified(new Date(lastModified))
-                            .file(file));
+                            .body(file));
         }
     }
 
