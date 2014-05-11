@@ -291,7 +291,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         @Override
         public <T> T as(BodyReader<T> si) {
             if (content.readableBytes() > 0) {
-                return propagate(() -> si.read(asStream()));
+                return propagate(() -> si.readFrom(asStream()));
             }
             else {
                 return null;

@@ -22,6 +22,6 @@ import java.io.InputStream;
  */
 public interface BodyReader<T> {
 
-    T read(InputStream in) throws Exception;
+    T readFrom(InputStream in) throws Exception;
 
 }

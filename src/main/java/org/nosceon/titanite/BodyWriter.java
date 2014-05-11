@@ -22,6 +22,6 @@ import java.io.OutputStream;
  */
 public interface BodyWriter {
 
-    void onReady(OutputStream out) throws Exception;
+    void writeTo(OutputStream out) throws Exception;
 
 }

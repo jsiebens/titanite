@@ -242,7 +242,7 @@ public final class Response {
 
             propagate(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
-                    bodyWriter.onReady(out);
+                    bodyWriter.writeTo(out);
                 }
                 return true;
             });
