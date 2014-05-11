@@ -18,7 +18,6 @@ package org.nosceon.titanite;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.wrap;
 
 /**
  * @author Johan Siebens
@@ -32,11 +31,11 @@ public interface SingleParams extends Params {
     }
 
     default <V> V getValue(String name, Function<String, V> f) {
-        return ofNullable(getString(name)).map(wrap(f)).orElse(null);
+        return ofNullable(getString(name)).map(f).orElse(null);
     }
 
     default <V> V getValue(String name, Function<String, V> f, V defaultValue) {
-        return ofNullable(getString(name)).map(wrap(f)).orElse(defaultValue);
+        return ofNullable(getString(name)).map(f).orElse(defaultValue);
     }
 
     default Short getShort(String name) {

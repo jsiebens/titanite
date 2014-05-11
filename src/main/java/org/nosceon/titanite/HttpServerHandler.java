@@ -39,7 +39,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.Exceptions.internalServerError;
 import static org.nosceon.titanite.Exceptions.requestEntityTooLarge;
-import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
@@ -285,13 +285,13 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public String asText() {
-            return propagate(() -> CharStreams.toString(new InputStreamReader(asStream())));
+            return call(() -> CharStreams.toString(new InputStreamReader(asStream())));
         }
 
         @Override
         public <T> T as(BodyReader<T> si) {
             if (content.readableBytes() > 0) {
-                return propagate(() -> si.readFrom(asStream()));
+                return call(() -> si.readFrom(asStream()));
             }
             else {
                 return null;

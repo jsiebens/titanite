@@ -24,7 +24,7 @@ import org.nosceon.titanite.view.ViewRenderer;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
@@ -37,7 +37,7 @@ public class FreemarkerViewRenderer implements ViewRenderer {
 
     @Override
     public BodyWriter apply(Object view) {
-        return propagate(() -> render(getTemplate(view), view));
+        return call(() -> render(getTemplate(view), view));
     }
 
     private BodyWriter render(Template template, Object view) throws IOException {

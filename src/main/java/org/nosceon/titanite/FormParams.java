@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
@@ -60,7 +60,7 @@ public final class FormParams implements SingleParams, MultiParams {
     }
 
     private String toString(InterfaceHttpData p) {
-        return propagate(() -> {
+        return call(() -> {
             if (p != null) {
                 if (p instanceof FileUpload) {
                     return FileUpload.class.cast(p).getFilename();

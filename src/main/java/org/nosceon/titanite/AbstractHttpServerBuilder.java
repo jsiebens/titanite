@@ -30,7 +30,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
@@ -82,7 +82,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Class<? extends Controller> c) {
-        Controller controller = propagate(c::newInstance);
+        Controller controller = call(c::newInstance);
         return register(controller);
     }
 

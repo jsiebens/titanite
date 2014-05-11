@@ -16,7 +16,6 @@
 package org.nosceon.titanite;
 
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 import static org.nosceon.titanite.Exceptions.internalServerError;
 
@@ -37,42 +36,39 @@ public final class HttpServerException extends RuntimeException {
         this.response = response;
     }
 
-    public static <T> T propagate(Callable<T> callable) throws HttpServerException {
-        return propagate(callable, e -> internalServerError());
-    }
-
-    public static <T> T propagate(Callable<T> callable, Function<Exception, Response> translator) throws HttpServerException {
+    public static <T> T call(Callable<T> callable) throws HttpServerException {
         try {
             return callable.call();
         }
-        catch (HttpServerException e) {
-            throw e;
+        catch (HttpServerException e1) {
+            throw e1;
         }
-        catch (Exception e) {
-            throw new HttpServerException(e, translator.apply(e));
+        catch (Exception e11) {
+            throw new HttpServerException(e11, internalServerError());
         }
     }
 
-    public static <R, S> Function<R, S> wrap(Function<R, S> f) throws HttpServerException {
-        return wrap(f, e -> internalServerError());
-    }
-
-    public static <R, S> Function<R, S> wrap(Function<R, S> f, Function<Exception, Response> translator) throws HttpServerException {
-        return s -> {
-            try {
-                return f.apply(s);
-            }
-            catch (HttpServerException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new HttpServerException(e, translator.apply(e));
-            }
-        };
+    public static void run(Action runnable) throws HttpServerException {
+        try {
+            runnable.run();
+        }
+        catch (HttpServerException e1) {
+            throw e1;
+        }
+        catch (Exception e11) {
+            throw new HttpServerException(e11, internalServerError());
+        }
     }
 
     public Response getResponse() {
         return response;
+    }
+
+    @FunctionalInterface
+    public static interface Action {
+
+        void run() throws Exception;
+
     }
 
 }

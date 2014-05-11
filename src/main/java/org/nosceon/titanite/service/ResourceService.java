@@ -30,7 +30,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
-import static org.nosceon.titanite.HttpServerException.propagate;
+import static org.nosceon.titanite.HttpServerException.call;
 import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
@@ -78,7 +78,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
             return
                 ok()
                     .type(MimeTypes.contentType(resource.getName()))
-                    .body(propagate(resource::getInputStream));
+                    .body(call(resource::getInputStream));
         }
         else {
             return
@@ -89,7 +89,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
                         ok()
                             .type(MimeTypes.contentType(resource.getName()))
                             .lastModified(new Date(lastModified))
-                            .body(propagate(resource::getInputStream)));
+                            .body(call(resource::getInputStream)));
         }
     }
 

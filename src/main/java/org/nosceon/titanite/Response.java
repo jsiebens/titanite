@@ -34,7 +34,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static io.netty.util.CharsetUtil.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.nosceon.titanite.Exceptions.internalServerError;
-import static org.nosceon.titanite.HttpServerException.propagate;
 
 /**
  * @author Johan Siebens
@@ -240,11 +239,10 @@ public final class Response {
 
             ctx.write(response);
 
-            propagate(() -> {
+            HttpServerException.run(() -> {
                 try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
                     bodyWriter.writeTo(out);
                 }
-                return true;
             });
 
             writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
