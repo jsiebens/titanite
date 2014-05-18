@@ -21,8 +21,8 @@ import org.junit.runners.Parameterized;
 import org.nosceon.titanite.view.View;
 import org.nosceon.titanite.view.ViewRenderer;
 import org.nosceon.titanite.view.ViewTemplate;
-import org.nosceon.titanite.view.impl.FreemarkerViewRenderer;
-import org.nosceon.titanite.view.impl.MustacheViewRenderer;
+import org.nosceon.titanite.view.FreemarkerViewRenderer;
+import org.nosceon.titanite.view.MustacheViewRenderer;
 
 import java.util.Arrays;
 

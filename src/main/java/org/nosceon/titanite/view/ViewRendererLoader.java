@@ -15,9 +15,6 @@
  */
 package org.nosceon.titanite.view;
 
-import org.nosceon.titanite.view.impl.FreemarkerViewRenderer;
-import org.nosceon.titanite.view.impl.MustacheViewRenderer;
-
 import java.util.Optional;
 
 /**

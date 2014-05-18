@@ -19,8 +19,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.nosceon.titanite.json.JsonMapper;
-import org.nosceon.titanite.json.impl.GsonMapper;
-import org.nosceon.titanite.json.impl.JacksonMapper;
+import org.nosceon.titanite.json.GsonMapper;
+import org.nosceon.titanite.json.JacksonMapper;
 
 import java.util.Arrays;
 

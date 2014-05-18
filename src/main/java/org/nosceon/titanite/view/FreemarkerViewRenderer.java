@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.view.impl;
+package org.nosceon.titanite.view;
 
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheFactory;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import org.nosceon.titanite.BodyWriter;
+import org.nosceon.titanite.Titanite;
 import org.nosceon.titanite.view.ViewRenderer;
 
 import java.io.IOException;
@@ -29,35 +29,37 @@ import static org.nosceon.titanite.HttpServerException.call;
 /**
  * @author Johan Siebens
  */
-public final class MustacheViewRenderer implements ViewRenderer {
+public class FreemarkerViewRenderer implements ViewRenderer {
 
-    private static final String EXTENSION = ".mustache";
+    private static final String EXTENSION = ".ftl";
 
-    private final MustacheFactory mustacheFactory = defaultMustacheFactory();
+    private final Configuration configuration = defaultConfiguration();
 
     @Override
     public BodyWriter apply(Object view) {
-        return call(() -> render(getMustache(view), view));
+        return call(() -> render(getTemplate(view), view));
     }
 
-    private BodyWriter render(Mustache mustache, Object view) throws IOException {
+    private BodyWriter render(Template template, Object view) throws IOException {
         return (out) -> {
             try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-                mustache.execute(writer, new Object[]{view});
+                template.process(view, writer);
             }
         };
     }
 
-    private Mustache getMustache(Object view) throws IOException {
-        return mustacheFactory.compile(sanitize(templateOf(view)));
+    private Template getTemplate(Object view) throws IOException {
+        return configuration.getTemplate(sanitize(templateOf(view)));
     }
 
     private static String sanitize(String templateName) {
         return templateName.endsWith(EXTENSION) ? templateName : templateName + EXTENSION;
     }
 
-    private static MustacheFactory defaultMustacheFactory() {
-        return new DefaultMustacheFactory("templates");
+    private static Configuration defaultConfiguration() {
+        Configuration configuration = new Configuration();
+        configuration.setClassForTemplateLoading(Titanite.class, "/templates");
+        return configuration;
     }
 
 }

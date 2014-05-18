@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.json.impl;
+package org.nosceon.titanite.json;
 
 import com.google.gson.Gson;
 import org.nosceon.titanite.BodyReader;
