@@ -23,18 +23,22 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public enum ViewRendererLoader {
+public class ViewRendererLoader {
 
-    INSTANCE;
+    private static enum Singleton {
 
-    private final Optional<ViewRenderer> renderer;
+        INSTANCE;
 
-    private ViewRendererLoader() {
-        this.renderer = Optional.ofNullable(load());
+        private final Optional<ViewRenderer> renderer;
+
+        private Singleton() {
+            this.renderer = Optional.ofNullable(load());
+        }
+
     }
 
     public static ViewRenderer get() {
-        return INSTANCE.renderer.get();
+        return Singleton.INSTANCE.renderer.get();
     }
 
     private static ViewRenderer load() {

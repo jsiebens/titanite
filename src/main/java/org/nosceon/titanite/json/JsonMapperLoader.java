@@ -23,18 +23,22 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public enum JsonMapperLoader {
+public class JsonMapperLoader {
 
-    INSTANCE;
+    private static enum Singleton {
 
-    private final Optional<JsonMapper> mapper;
+        INSTANCE;
 
-    private JsonMapperLoader() {
-        this.mapper = Optional.ofNullable(load());
+        private final Optional<JsonMapper> mapper;
+
+        private Singleton() {
+            this.mapper = Optional.ofNullable(load());
+        }
+
     }
 
     public static JsonMapper get() {
-        return INSTANCE.mapper.get();
+        return Singleton.INSTANCE.mapper.get();
     }
 
     private static JsonMapper load() {
