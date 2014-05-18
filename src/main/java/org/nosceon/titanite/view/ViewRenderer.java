@@ -29,7 +29,7 @@ public interface ViewRenderer {
             return ((View) o).template;
         }
         else {
-            ViewTemplate template = o.getClass().getAnnotation(ViewTemplate.class);
+            View.Template template = o.getClass().getAnnotation(View.Template.class);
             if (template != null) {
                 return template.value();
             }

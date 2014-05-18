@@ -20,7 +20,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.nosceon.titanite.view.View;
 import org.nosceon.titanite.view.ViewRenderer;
-import org.nosceon.titanite.view.ViewTemplate;
 import org.nosceon.titanite.view.FreemarkerViewRenderer;
 import org.nosceon.titanite.view.MustacheViewRenderer;
 
@@ -52,7 +51,7 @@ public class ViewsTest extends AbstractE2ETest {
 
     }
 
-    @ViewTemplate("hello")
+    @View.Template("hello")
     public static class AnnotatedHelloView {
 
         private final String name;

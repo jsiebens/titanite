@@ -15,6 +15,8 @@
  */
 package org.nosceon.titanite.view;
 
+import java.lang.annotation.*;
+
 /**
  * @author Johan Siebens
  */
@@ -24,6 +26,15 @@ public abstract class View {
 
     protected View(String template) {
         this.template = template;
+    }
+
+    @Inherited
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(value = ElementType.TYPE)
+    public static @interface Template {
+
+        String value();
+
     }
 
 }
