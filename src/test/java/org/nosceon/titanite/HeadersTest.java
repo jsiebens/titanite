@@ -39,13 +39,13 @@ public class HeadersTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/a", (r) -> ok().body(r.headers.getString("p")).header("m", r.headers.getString("p")).toFuture())
-                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers.getShort("p"))).toFuture())
-                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers.getInt("p"))).toFuture())
-                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers.getLong("p"))).toFuture())
-                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers.getFloat("p"))).toFuture())
-                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers.getDouble("p"))).toFuture())
-                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers.getBoolean("p"))).toFuture())
+                .register(GET, "/a", (r) -> ok().body(r.headers().getString("p")).header("m", r.headers().getString("p")).toFuture())
+                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.headers().getShort("p"))).toFuture())
+                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.headers().getInt("p"))).toFuture())
+                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.headers().getLong("p"))).toFuture())
+                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.headers().getFloat("p"))).toFuture())
+                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.headers().getDouble("p"))).toFuture())
+                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.headers().getBoolean("p"))).toFuture())
                 .register(GET, "/headers", (r) ->
                         ok()
                             .type(MediaType.APPLICATION_XML)
@@ -54,7 +54,7 @@ public class HeadersTest extends AbstractE2ETest {
                             .toFuture()
                 )
 
-                .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.headers.getStrings("p"))).toFuture())
+                .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.headers().getStrings("p"))).toFuture())
 
                 .start();
     }

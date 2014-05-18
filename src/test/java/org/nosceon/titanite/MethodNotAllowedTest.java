@@ -30,8 +30,8 @@ public class MethodNotAllowedTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/resource", (r) -> Titanite.Responses.ok().body(r.method.name()).toFuture())
-                .register(DELETE, "/resource", (r) -> Titanite.Responses.ok().body(r.method.name()).toFuture())
+                .register(GET, "/resource", (r) -> Titanite.Responses.ok().body(r.method().name()).toFuture())
+                .register(DELETE, "/resource", (r) -> Titanite.Responses.ok().body(r.method().name()).toFuture())
                 .start();
     }
 

@@ -57,7 +57,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     private Response internalApply(Request request) {
-        String path = Optional.ofNullable(request.pathParams.getString("path")).get();
+        String path = Optional.ofNullable(request.pathParams().getString("path")).get();
 
         if (path.contains("..")) {
             return forbidden();
@@ -71,7 +71,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     private Response createResponse(Request request, Resource resource) {
-        Optional<Date> ifModifiedSince = ofNullable(request.headers.getDate(IF_MODIFIED_SINCE));
+        Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
         long lastModified = resource.lastModified();
 
         if (lastModified <= 0) {

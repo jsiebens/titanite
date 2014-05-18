@@ -30,7 +30,7 @@ import static org.nosceon.titanite.Titanite.Responses.status;
 public class GlobalFiltersTest extends AbstractE2ETest {
 
     private static final Filter SECURITY = (req, f) -> {
-        String s = ofNullable(req.headers.getString(HttpHeaders.Names.AUTHORIZATION)).orElse("");
+        String s = ofNullable(req.headers().getString(HttpHeaders.Names.AUTHORIZATION)).orElse("");
         if ("admin".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").toFuture());
         }
@@ -40,7 +40,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     };
 
     private static final Filter CONTENT_TYPE_JSON = (req, f) -> {
-        String s = ofNullable(req.headers.getString(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
+        String s = ofNullable(req.headers().getString(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
         if ("application/json".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").toFuture());
         }

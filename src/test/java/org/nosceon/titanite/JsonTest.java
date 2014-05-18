@@ -77,7 +77,7 @@ public class JsonTest extends AbstractE2ETest {
             server
                 .register(GET, "/json", (r) -> ok().body(m.out(new Hello("world"))).toFuture())
                 .register(POST, "/json", (r) -> {
-                    Hello hello = r.body.as(m.in(Hello.class));
+                    Hello hello = r.body().as(m.in(Hello.class));
                     return ok().body(m.out(new Hello(hello.getName().toUpperCase()))).toFuture();
                 })
                 .start();

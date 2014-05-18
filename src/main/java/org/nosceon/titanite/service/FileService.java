@@ -55,7 +55,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
     }
 
     private Response internalApply(Request request) {
-        String path = Optional.ofNullable(request.pathParams.getString("path")).get();
+        String path = Optional.ofNullable(request.pathParams().getString("path")).get();
 
         if (path.contains("..")) {
             return forbidden();
@@ -69,7 +69,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
     }
 
     private Response createResponse(Request request, File file) {
-        Optional<Date> ifModifiedSince = ofNullable(request.headers.getDate(IF_MODIFIED_SINCE));
+        Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
         long lastModified = file.lastModified();
 
         if (lastModified <= 0) {

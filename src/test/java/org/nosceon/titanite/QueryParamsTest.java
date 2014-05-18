@@ -31,15 +31,15 @@ public class QueryParamsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/a", (r) -> ok().body(r.queryParams.getString("p")).toFuture())
-                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.queryParams.getShort("p"))).toFuture())
-                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.queryParams.getInt("p"))).toFuture())
-                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.queryParams.getLong("p"))).toFuture())
-                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.queryParams.getFloat("p"))).toFuture())
-                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.queryParams.getDouble("p"))).toFuture())
-                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.queryParams.getBoolean("p"))).toFuture())
+                .register(GET, "/a", (r) -> ok().body(r.queryParams().getString("p")).toFuture())
+                .register(GET, "/b", (r) -> ok().body(String.valueOf(r.queryParams().getShort("p"))).toFuture())
+                .register(GET, "/c", (r) -> ok().body(String.valueOf(r.queryParams().getInt("p"))).toFuture())
+                .register(GET, "/d", (r) -> ok().body(String.valueOf(r.queryParams().getLong("p"))).toFuture())
+                .register(GET, "/e", (r) -> ok().body(String.valueOf(r.queryParams().getFloat("p"))).toFuture())
+                .register(GET, "/f", (r) -> ok().body(String.valueOf(r.queryParams().getDouble("p"))).toFuture())
+                .register(GET, "/g", (r) -> ok().body(String.valueOf(r.queryParams().getBoolean("p"))).toFuture())
 
-                .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.queryParams.getStrings("p"))).toFuture())
+                .register(GET, "/ma", (r) -> ok().body(String.valueOf(r.queryParams().getStrings("p"))).toFuture())
 
                 .start();
     }

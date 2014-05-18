@@ -36,7 +36,7 @@ public class RequestBodyTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body.asStream())).toFuture())
+                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body().asStream())).toFuture())
                 .start();
     }
 

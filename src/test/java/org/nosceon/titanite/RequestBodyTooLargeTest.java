@@ -32,7 +32,7 @@ public class RequestBodyTooLargeTest extends AbstractE2ETest {
         return
             server
                 .register(POST, "/post", (r) -> {
-                    r.body.asText();
+                    r.body().asText();
                     return Titanite.Responses.ok().toFuture();
                 })
                 .start();

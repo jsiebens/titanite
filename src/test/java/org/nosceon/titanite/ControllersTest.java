@@ -40,7 +40,7 @@ public class ControllersTest extends AbstractE2ETest {
         }
 
         private CompletionStage<Response> handle(Request request) {
-            return ok().body(request.method.name()).toFuture();
+            return ok().body(request.method().name()).toFuture();
         }
 
     }
@@ -48,11 +48,11 @@ public class ControllersTest extends AbstractE2ETest {
     public static class ControllerB extends Controller {
 
         {
-            get("/b", (r) -> ok().body(r.method.name()).toFuture());
-            post("/b", (r) -> ok().body(r.method.name()).toFuture());
-            put("/b", (r) -> ok().body(r.method.name()).toFuture());
-            delete("/b", (r) -> ok().body(r.method.name()).toFuture());
-            patch("/b", (r) -> ok().body(r.method.name()).toFuture());
+            get("/b", (r) -> ok().body(r.method().name()).toFuture());
+            post("/b", (r) -> ok().body(r.method().name()).toFuture());
+            put("/b", (r) -> ok().body(r.method().name()).toFuture());
+            delete("/b", (r) -> ok().body(r.method().name()).toFuture());
+            patch("/b", (r) -> ok().body(r.method().name()).toFuture());
         }
 
     }

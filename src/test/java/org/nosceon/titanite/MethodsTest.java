@@ -41,7 +41,7 @@ public class MethodsTest extends AbstractE2ETest {
         }
 
         private CompletionStage<Response> handle(Request request) {
-            return ok().body(request.method.name()).toFuture();
+            return ok().body(request.method().name()).toFuture();
         }
 
     }
@@ -50,11 +50,11 @@ public class MethodsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/resource", (r) -> ok().body(r.method.name()).toFuture())
-                .register(POST, "/resource", (r) -> ok().body(r.method.name()).toFuture())
-                .register(PUT, "/resource", (r) -> ok().body(r.method.name()).toFuture())
-                .register(DELETE, "/resource", (r) -> ok().body(r.method.name()).toFuture())
-                .register(PATCH, "/resource", (r) -> ok().body(r.method.name()).toFuture())
+                .register(GET, "/resource", (r) -> ok().body(r.method().name()).toFuture())
+                .register(POST, "/resource", (r) -> ok().body(r.method().name()).toFuture())
+                .register(PUT, "/resource", (r) -> ok().body(r.method().name()).toFuture())
+                .register(DELETE, "/resource", (r) -> ok().body(r.method().name()).toFuture())
+                .register(PATCH, "/resource", (r) -> ok().body(r.method().name()).toFuture())
                 .register(new MyController())
                 .start();
     }

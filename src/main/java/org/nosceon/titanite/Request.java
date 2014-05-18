@@ -25,19 +25,19 @@ import static java.util.Optional.ofNullable;
  */
 public final class Request {
 
-    public final HttpMethod method;
+    private final HttpMethod method;
 
-    public final String path;
+    private final String path;
 
-    public final HeaderParams headers;
+    private final HeaderParams headers;
 
-    public final CookieParams cookies;
+    private final CookieParams cookies;
 
-    public final QueryParams queryParams;
+    private final QueryParams queryParams;
 
-    public final PathParams pathParams;
+    private final PathParams pathParams;
 
-    public final RequestBody body;
+    private final RequestBody body;
 
     Request(HttpMethod method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, RequestBody body) {
         this.method = method;
@@ -47,6 +47,34 @@ public final class Request {
         this.queryParams = queryParams;
         this.pathParams = pathParams;
         this.body = body;
+    }
+
+    public HttpMethod method() {
+        return method;
+    }
+
+    public String path() {
+        return path;
+    }
+
+    public HeaderParams headers() {
+        return headers;
+    }
+
+    public CookieParams cookies() {
+        return cookies;
+    }
+
+    public QueryParams queryParams() {
+        return queryParams;
+    }
+
+    public PathParams pathParams() {
+        return pathParams;
+    }
+
+    public RequestBody body() {
+        return body;
     }
 
     public MediaType contentType() {

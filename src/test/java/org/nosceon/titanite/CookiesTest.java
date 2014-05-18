@@ -31,7 +31,7 @@ public class CookiesTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) {
         return
             server
-                .register(GET, "/a", (r) -> ok().body(r.cookies.getString("p", "default value")).toFuture())
+                .register(GET, "/a", (r) -> ok().body(r.cookies().getString("p", "default value")).toFuture())
                 .register(GET, "/cookie", (r) -> ok().cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")).toFuture())
                 .start();
     }
