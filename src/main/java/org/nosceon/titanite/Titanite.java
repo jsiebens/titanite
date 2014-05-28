@@ -18,9 +18,7 @@ package org.nosceon.titanite;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.nosceon.titanite.json.JsonMapperLoader;
 import org.nosceon.titanite.service.FileService;
-import org.nosceon.titanite.service.PublicResourceService;
 import org.nosceon.titanite.service.ResourceService;
-import org.nosceon.titanite.service.WebJarResourceService;
 import org.nosceon.titanite.view.ViewRendererLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,24 +51,24 @@ public final class Titanite {
         return new ErrorFilter();
     }
 
-    public static Function<Request, CompletionStage<Response>> fileService(String directory) {
+    public static Function<Request, CompletionStage<Response>> files(String directory) {
         return new FileService(new File(directory));
     }
 
-    public static Function<Request, CompletionStage<Response>> fileService(File directory) {
+    public static Function<Request, CompletionStage<Response>> files(File directory) {
         return new FileService(directory);
     }
 
-    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource) {
+    public static Function<Request, CompletionStage<Response>> resources(String baseResource) {
         return new ResourceService(baseResource);
     }
 
     public static Function<Request, CompletionStage<Response>> publicResources() {
-        return new PublicResourceService();
+        return new ResourceService(ResourceService.PUBLIC_RESOURCES);
     }
 
     public static Function<Request, CompletionStage<Response>> webJarResources() {
-        return new WebJarResourceService();
+        return new ResourceService(ResourceService.WEBJAR_RESOURCES);
     }
 
     public static final class Responses {

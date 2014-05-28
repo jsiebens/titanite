@@ -38,6 +38,10 @@ import static org.nosceon.titanite.Titanite.Responses.*;
  */
 public class ResourceService implements Function<Request, CompletionStage<Response>> {
 
+    public static final String WEBJAR_RESOURCES = "/META-INF/resources/webjars";
+
+    public static final String PUBLIC_RESOURCES = "/public";
+
     private final String baseResource;
 
     private final Executor executor;
