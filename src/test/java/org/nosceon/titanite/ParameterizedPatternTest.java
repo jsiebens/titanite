@@ -67,7 +67,12 @@ public class ParameterizedPatternTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIdentifierOccursMoreThanOnce() {
-        new ParameterizedPattern("/hello/{name}/id/{name}");
+        new ParameterizedPattern("/hello/:name/id/:name");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIdentifierOccursMoreThanOnceWithMultiSegment() {
+        new ParameterizedPattern("/hello/:name/id/*name");
     }
 
 }

@@ -24,7 +24,7 @@ public interface HttpServerConfig {
 
     int DEFAULT_IO_WORKER_COUNT = Runtime.getRuntime().availableProcessors() * 2;
 
-    int DEFAULT_MAX_REQUEST_SIZE = 1024 * 1024 * 10;
+    long DEFAULT_MAX_REQUEST_SIZE = 1024 * 1024 * 10;
 
     int getPort();
 

@@ -60,8 +60,7 @@ public final class Response {
     }
 
     public Response location(String location) {
-        headers.set(LOCATION, location);
-        return this;
+        return location(URI.create(location));
     }
 
     public Response location(URI location) {

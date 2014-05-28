@@ -51,6 +51,7 @@ public class HeadersTest extends AbstractE2ETest {
                             .type(MediaType.APPLICATION_XML)
                             .language(LOCALE)
                             .lastModified(DATE)
+                            .location(uri("/location"))
                             .toFuture()
                 )
 
@@ -75,6 +76,7 @@ public class HeadersTest extends AbstractE2ETest {
             .header(HttpHeaders.CONTENT_TYPE, equalTo("application/xml"))
             .header(HttpHeaders.LAST_MODIFIED, equalTo("Thu, 01 Jan 1970 00:00:05 GMT"))
             .header(HttpHeaders.CONTENT_LANGUAGE, equalTo("it_IT"))
+            .header(HttpHeaders.LOCATION, equalTo(uri("/location")))
             .when().get(uri("/headers"));
 
         given().header("p", "apple").header("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().get(uri("/ma"));

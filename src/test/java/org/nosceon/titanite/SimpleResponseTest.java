@@ -15,6 +15,7 @@
  */
 package org.nosceon.titanite;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -25,22 +26,28 @@ import static org.nosceon.titanite.Titanite.Responses.ok;
 /**
  * @author Johan Siebens
  */
-public class CookiesTest extends AbstractE2ETest {
+public class SimpleResponseTest extends AbstractE2ETest {
 
     @Override
-    protected Shutdownable configureAndStartHttpServer(HttpServer server) {
+    protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(GET, "/a", (r) -> ok().body(r.cookies().getString("p", "default value")).toFuture())
-                .register(GET, "/cookie", (r) -> ok().cookie("lorem", "ipsum").cookie(new Cookie("fruit", "apple").version(2).comment("my comment").path("/cookie")).toFuture())
+                .register(GET, "/text", (r) -> ok().text("Hello World").toFuture())
+                .register(GET, "/html", (r) -> ok().html("<h1>Hello World</h1>").toFuture())
                 .start();
     }
 
     @Test
     public void test() {
-        given().cookie("p", "apple").expect().statusCode(200).body(equalTo("apple")).when().get(uri("/a"));
-        given().expect().statusCode(200).body(equalTo("default value")).when().get(uri("/a"));
-        given().expect().statusCode(200).cookie("lorem", "ipsum").cookie("fruit", "apple").when().get(uri("/cookie"));
+        given()
+            .expect()
+            .header(HttpHeaders.Names.CONTENT_TYPE, "text/plain")
+            .statusCode(200).body(equalTo("Hello World")).when().get(uri("/text"));
+
+        given()
+            .expect()
+            .header(HttpHeaders.Names.CONTENT_TYPE, "text/html")
+            .statusCode(200).body(equalTo("<h1>Hello World</h1>")).when().get(uri("/html"));
     }
 
 }
