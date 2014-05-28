@@ -22,18 +22,13 @@ import static org.nosceon.titanite.Exceptions.internalServerError;
 /**
  * @author Johan Siebens
  */
-public final class HttpServerException extends RuntimeException {
+public class HttpServerException extends RuntimeException {
 
-    private Response response;
+    @FunctionalInterface
+    public static interface Action {
 
-    public HttpServerException(String message, Response response) {
-        super(message);
-        this.response = response;
-    }
+        void run() throws Exception;
 
-    public HttpServerException(Throwable cause, Response response) {
-        super(String.valueOf(response.status()), cause);
-        this.response = response;
     }
 
     public static <T> T call(Callable<T> callable) throws HttpServerException {
@@ -60,15 +55,24 @@ public final class HttpServerException extends RuntimeException {
         }
     }
 
-    public Response getResponse() {
-        return response;
+    private final Response response;
+
+    public HttpServerException(Response response) {
+        this(String.valueOf(response.status()), response);
     }
 
-    @FunctionalInterface
-    public static interface Action {
+    public HttpServerException(String message, Response response) {
+        super(message);
+        this.response = response;
+    }
 
-        void run() throws Exception;
+    public HttpServerException(Throwable cause, Response response) {
+        super(String.valueOf(response.status()), cause);
+        this.response = response;
+    }
 
+    public final Response getResponse() {
+        return response;
     }
 
 }
