@@ -27,7 +27,7 @@ import static org.nosceon.titanite.Titanite.Responses.methodNotAllowed;
 /**
  * @author Johan Siebens
  */
-public final class Router {
+final class Router {
 
     public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed().toFuture());
 
@@ -35,7 +35,7 @@ public final class Router {
 
     private final RoutingResult fallback;
 
-    public Router(
+    Router(
         String id,
         Optional<Filter> filter,
         List<Route> routings,
