@@ -15,15 +15,81 @@
  */
 package org.nosceon.titanite;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Johan Siebens
  */
-public enum Method {
+public final class Method {
 
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE
+    public static final Method GET = new Method("GET");
+
+    public static final Method POST = new Method("POST");
+
+    public static final Method PUT = new Method("PUT");
+
+    public static final Method PATCH = new Method("PATCH");
+
+    public static final Method DELETE = new Method("DELETE");
+
+    private static final Map<String, Method> METHODS = new HashMap<>();
+
+    static {
+        METHODS.put(GET.toString(), GET);
+        METHODS.put(POST.toString(), POST);
+        METHODS.put(PUT.toString(), PUT);
+        METHODS.put(PATCH.toString(), PATCH);
+        METHODS.put(DELETE.toString(), DELETE);
+    }
+
+    private final String name;
+
+    private Method(String name) {
+        this.name = name;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return name().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Method)) {
+            return false;
+        }
+
+        Method that = (Method) o;
+        return name().equals(that.name());
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public static Method valueOf(String name) {
+        if (name == null) {
+            throw new NullPointerException("name");
+        }
+
+        name = name.trim();
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("empty name");
+        }
+
+        Method result = METHODS.get(name);
+        if (result != null) {
+            return result;
+        }
+        else {
+            return new Method(name);
+        }
+    }
 
 }

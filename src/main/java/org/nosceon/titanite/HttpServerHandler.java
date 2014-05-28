@@ -106,7 +106,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
                 Request req =
                     new Request(
-                        request.getMethod(),
+                        Method.valueOf(request.getMethod().name()),
                         qsd.path(),
                         new HeaderParams(request),
                         new CookieParams(cookies),

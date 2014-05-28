@@ -16,7 +16,6 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
 
 import static java.util.Optional.ofNullable;
 
@@ -25,7 +24,7 @@ import static java.util.Optional.ofNullable;
  */
 public final class Request {
 
-    private final HttpMethod method;
+    private final Method method;
 
     private final String path;
 
@@ -39,7 +38,7 @@ public final class Request {
 
     private final RequestBody body;
 
-    Request(HttpMethod method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, RequestBody body) {
+    Request(Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, RequestBody body) {
         this.method = method;
         this.path = path;
         this.headers = headers;
@@ -49,7 +48,7 @@ public final class Request {
         this.body = body;
     }
 
-    public HttpMethod method() {
+    public Method method() {
         return method;
     }
 
