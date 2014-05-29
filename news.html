@@ -16,7 +16,7 @@ title: Titanite - News
 		<h3>{{ post.title }}</h3>
         <p>{{ post.date | date: "%B %e, %Y" }}</p>
         {% if post.summary %}<p>{{ post.summary }}</p>{% endif %}
-        <p><a href="{{ post.url }}">read more...</a></p>
+        <p><a href="{{ site.baseurl }}{{ post.url }}">read more...</a></p>
 	</div>
 </div>
 <hr/>
