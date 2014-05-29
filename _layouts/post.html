@@ -28,10 +28,10 @@ layout: default
 	<div class="col-md-6">
 		<p class="pull-right">
 			{% if page.previous.url %} 
-				<a href="{{page.previous.url}}" title="Previous Post: {{page.previous.title}}">&laquo; previous</a>
+				<a href="{{ site.baseurl }}{{page.previous.url}}" title="Previous Post: {{page.previous.title}}">&laquo; previous</a>
 			{% endif %}   
 			{% if page.next.url %} 	
-				<a style="padding-left: 5px" href="{{page.next.url}}" title="Next Post: {{page.next.title}}">next &raquo;</span></a> 	
+				<a style="padding-left: 5px" href="{{ site.baseurl }}{{page.next.url}}" title="Next Post: {{page.next.title}}">next &raquo;</span></a> 	
 			{% endif %} 
 		</p>  
 	</div>
