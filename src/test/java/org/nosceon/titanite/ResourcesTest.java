@@ -19,9 +19,8 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.Titanite.publicResources;
-import static org.nosceon.titanite.Titanite.webJarResources;
+import static org.nosceon.titanite.Titanite.Assets.sendPublicResource;
+import static org.nosceon.titanite.Titanite.Assets.sendWebJarResource;
 
 /**
  * @author Johan Siebens
@@ -32,8 +31,10 @@ public class ResourcesTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(Method.GET, "/a", (r) -> ok().toFuture())
-                .register(Method.GET, "/*path", publicResources(), webJarResources())
+                .register(Method.GET, "/*path",
+                    req -> sendPublicResource(req).toFuture(),
+                    req -> sendWebJarResource(req).toFuture()
+                )
                 .start();
     }
 

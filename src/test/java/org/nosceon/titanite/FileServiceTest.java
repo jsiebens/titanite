@@ -20,13 +20,13 @@ import com.google.common.io.Files;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.nosceon.titanite.service.FileService;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.Titanite.Assets.sendFile;
 
 /**
  * @author Johan Siebens
@@ -53,8 +53,8 @@ public class FileServiceTest extends AbstractE2ETest {
 
         return
             server
-                .register(Method.GET, "/a/*path", new FileService(docRoot))
-                .register(Method.GET, "/*path", new FileService(docRoot))
+                .register(Method.GET, "/a/*path", req -> sendFile(req, docRoot, req.pathParams().getString("path")).toFuture())
+                .register(Method.GET, "/*path", req -> sendFile(req, docRoot).toFuture())
                 .start();
     }
 
