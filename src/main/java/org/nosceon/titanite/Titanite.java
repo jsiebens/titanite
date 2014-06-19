@@ -51,24 +51,44 @@ public final class Titanite {
         return new ErrorFilter();
     }
 
-    public static Function<Request, CompletionStage<Response>> files(String directory) {
+    public static Function<Request, CompletionStage<Response>> fileService(String directory) {
         return new FileService(new File(directory));
     }
 
-    public static Function<Request, CompletionStage<Response>> files(File directory) {
+    public static Function<Request, CompletionStage<Response>> fileService(String directory, Function<Request, String> path) {
+        return new FileService(new File(directory), path);
+    }
+
+    public static Function<Request, CompletionStage<Response>> fileService(File directory) {
         return new FileService(directory);
     }
 
-    public static Function<Request, CompletionStage<Response>> resources(String baseResource) {
+    public static Function<Request, CompletionStage<Response>> fileService(File directory, Function<Request, String> path) {
+        return new FileService(directory, path);
+    }
+
+    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource) {
         return new ResourceService(baseResource);
     }
 
-    public static Function<Request, CompletionStage<Response>> publicResources() {
+    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource, Function<Request, String> path) {
+        return new ResourceService(baseResource, path);
+    }
+
+    public static Function<Request, CompletionStage<Response>> publicResourceService() {
         return new ResourceService(ResourceService.PUBLIC_RESOURCES);
     }
 
-    public static Function<Request, CompletionStage<Response>> webJarResources() {
+    public static Function<Request, CompletionStage<Response>> publicResourceService(Function<Request, String> path) {
+        return new ResourceService(ResourceService.PUBLIC_RESOURCES, path);
+    }
+
+    public static Function<Request, CompletionStage<Response>> webJarResourceService() {
         return new ResourceService(ResourceService.WEBJAR_RESOURCES);
+    }
+
+    public static Function<Request, CompletionStage<Response>> webJarResourceService(Function<Request, String> path) {
+        return new ResourceService(ResourceService.WEBJAR_RESOURCES, path);
     }
 
     public static final class Responses {

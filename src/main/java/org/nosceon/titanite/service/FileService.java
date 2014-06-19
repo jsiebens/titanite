@@ -40,12 +40,19 @@ public final class FileService implements Function<Request, CompletionStage<Resp
 
     private final Executor executor;
 
+    private final Function<Request, String> pathExtractor;
+
     public FileService(File docRoot) {
-        this(docRoot, Runnable::run);
+        this(docRoot, Request::path);
     }
 
-    public FileService(File docRoot, Executor executor) {
+    public FileService(File docRoot, Function<Request, String> pathExtractor) {
+        this(docRoot, pathExtractor, Runnable::run);
+    }
+
+    public FileService(File docRoot, Function<Request, String> pathExtractor, Executor executor) {
         this.docRoot = docRoot;
+        this.pathExtractor = pathExtractor;
         this.executor = executor;
     }
 
@@ -55,7 +62,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
     }
 
     private Response internalApply(Request request) {
-        String path = Optional.ofNullable(request.pathParams().getString("path")).get();
+        String path = Optional.ofNullable(pathExtractor.apply(request)).get();
 
         if (path.contains("..")) {
             return forbidden();

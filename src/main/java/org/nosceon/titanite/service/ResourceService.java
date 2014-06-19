@@ -46,12 +46,19 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
 
     private final Executor executor;
 
+    private final Function<Request, String> pathExtractor;
+
     public ResourceService(String baseResource) {
-        this(baseResource, Runnable::run);
+        this(baseResource, Request::path);
     }
 
-    public ResourceService(String baseResource, Executor executor) {
+    public ResourceService(String baseResource, Function<Request, String> pathExtractor) {
+        this(baseResource, pathExtractor, Runnable::run);
+    }
+
+    public ResourceService(String baseResource, Function<Request, String> pathExtractor, Executor executor) {
         this.baseResource = baseResource;
+        this.pathExtractor = pathExtractor;
         this.executor = executor;
     }
 
@@ -61,7 +68,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     private Response internalApply(Request request) {
-        String path = Optional.ofNullable(request.pathParams().getString("path")).get();
+        String path = Optional.ofNullable(pathExtractor.apply(request)).get();
 
         if (path.contains("..")) {
             return forbidden();

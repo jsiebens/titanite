@@ -20,8 +20,8 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.Titanite.publicResources;
-import static org.nosceon.titanite.Titanite.webJarResources;
+import static org.nosceon.titanite.Titanite.publicResourceService;
+import static org.nosceon.titanite.Titanite.webJarResourceService;
 
 /**
  * @author Johan Siebens
@@ -32,14 +32,15 @@ public class ResourcesTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(Method.GET, "/a", (r) -> ok().toFuture())
-                .register(Method.GET, "/*path", publicResources(), webJarResources())
+                .register(Method.GET, "/a/b/c/*mycustompath", publicResourceService(req -> req.pathParams().getString("mycustompath")))
+                .register(Method.GET, "/*path", publicResourceService(), webJarResourceService())
                 .start();
     }
 
     @Test
     public void test() {
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
+        given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/a/b/c/hello1.txt"));
         given().expect().statusCode(403).when().get(uri("/../public/hello1.txt"));
         given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri("/hello2.txt"));
         given().expect().statusCode(404).when().get(uri("/hello3.txt"));
