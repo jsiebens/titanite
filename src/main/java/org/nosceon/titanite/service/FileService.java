@@ -68,14 +68,18 @@ public final class FileService implements Function<Request, CompletionStage<Resp
             return forbidden();
         }
 
+        return serveFile(request, new File(docRoot, path));
+    }
+
+    public static Response serveFile(Request request, File file) {
         return
-            ofNullable(new File(docRoot, path))
+            ofNullable(file)
                 .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
                 .orElseGet(Titanite.Responses::notFound);
     }
 
-    private Response createResponse(Request request, File file) {
+    private static Response createResponse(Request request, File file) {
         Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
         long lastModified = file.lastModified();
 

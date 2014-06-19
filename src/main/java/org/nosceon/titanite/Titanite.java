@@ -51,6 +51,10 @@ public final class Titanite {
         return new ErrorFilter();
     }
 
+    public static Response serveFile(Request request, File file) {
+        return FileService.serveFile(request, file);
+    }
+
     public static Function<Request, CompletionStage<Response>> fileService(String directory) {
         return new FileService(new File(directory));
     }
@@ -65,6 +69,10 @@ public final class Titanite {
 
     public static Function<Request, CompletionStage<Response>> fileService(File directory, Function<Request, String> path) {
         return new FileService(directory, path);
+    }
+
+    public static Response serveResource(Request request, String path) {
+        return ResourceService.serveResource(request, path);
     }
 
     public static Function<Request, CompletionStage<Response>> resourceService(String baseResource) {

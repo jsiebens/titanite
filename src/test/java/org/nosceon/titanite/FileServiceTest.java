@@ -28,6 +28,7 @@ import java.io.IOException;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Titanite.fileService;
+import static org.nosceon.titanite.Titanite.serveFile;
 
 /**
  * @author Johan Siebens
@@ -54,6 +55,7 @@ public class FileServiceTest extends AbstractE2ETest {
 
         return
             server
+                .register(Method.GET, "/lorem.txt", req -> serveFile(req, txt).toFuture())
                 .register(Method.GET, "/a/b/c/*mycustompath", fileService(docRoot, req -> req.pathParams().getString("mycustompath")))
                 .register(Method.GET, "/*path", fileService(docRoot))
                 .start();
@@ -61,14 +63,10 @@ public class FileServiceTest extends AbstractE2ETest {
 
     @Test
     public void test() throws IOException {
-        given()
-            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/temporary.txt"));
-
-        given()
-            .expect().statusCode(200).body(equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")).when().get(uri("/a/b/c/temporary.txt"));
-
-        given()
-            .expect().statusCode(403).when().get(uri("/../forbidden.txt"));
+        given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/lorem.txt"));
+        given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/temporary.txt"));
+        given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/a/b/c/temporary.txt"));
+        given().expect().statusCode(403).when().get(uri("/../forbidden.txt"));
     }
 
 }

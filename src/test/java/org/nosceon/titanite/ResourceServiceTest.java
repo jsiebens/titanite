@@ -21,17 +21,19 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Titanite.Responses.ok;
 import static org.nosceon.titanite.Titanite.publicResourceService;
+import static org.nosceon.titanite.Titanite.serveResource;
 import static org.nosceon.titanite.Titanite.webJarResourceService;
 
 /**
  * @author Johan Siebens
  */
-public class ResourcesTest extends AbstractE2ETest {
+public class ResourceServiceTest extends AbstractE2ETest {
 
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
+                .register(Method.GET, "/lorem.txt", req -> serveResource(req, "/public/hello.txt").toFuture())
                 .register(Method.GET, "/a/b/c/*mycustompath", publicResourceService(req -> req.pathParams().getString("mycustompath")))
                 .register(Method.GET, "/*path", publicResourceService(), webJarResourceService())
                 .start();

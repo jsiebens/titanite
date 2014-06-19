@@ -74,14 +74,18 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
             return forbidden();
         }
 
+        return serveResource(request, baseResource + '/' + path);
+    }
+
+    public static Response serveResource(Request request, String path) {
         return
-            ofNullable(newClassPathResource(baseResource + '/' + path))
+            ofNullable(newClassPathResource(path))
                 .filter((r) -> r.exists() && !r.isDirectory())
                 .map((r) -> createResponse(request, r))
                 .orElseGet(Titanite.Responses::notFound);
     }
 
-    private Response createResponse(Request request, Resource resource) {
+    private static Response createResponse(Request request, Resource resource) {
         Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
         long lastModified = resource.lastModified();
 
