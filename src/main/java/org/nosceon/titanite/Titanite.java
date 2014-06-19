@@ -16,22 +16,17 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.eclipse.jetty.util.resource.Resource;
 import org.nosceon.titanite.json.JsonMapperLoader;
+import org.nosceon.titanite.service.FileService;
+import org.nosceon.titanite.service.ResourceService;
 import org.nosceon.titanite.view.ViewRendererLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Date;
-import java.util.Optional;
-
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
-import static java.util.Optional.ofNullable;
-import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
-import static org.nosceon.titanite.HttpServerException.call;
-import static org.nosceon.titanite.Titanite.Responses.*;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * @author Johan Siebens
@@ -54,6 +49,26 @@ public final class Titanite {
 
     public static ErrorFilter errors() {
         return new ErrorFilter();
+    }
+
+    public static Function<Request, CompletionStage<Response>> files(String directory) {
+        return new FileService(new File(directory));
+    }
+
+    public static Function<Request, CompletionStage<Response>> files(File directory) {
+        return new FileService(directory);
+    }
+
+    public static Function<Request, CompletionStage<Response>> resources(String baseResource) {
+        return new ResourceService(baseResource);
+    }
+
+    public static Function<Request, CompletionStage<Response>> publicResources() {
+        return new ResourceService(ResourceService.PUBLIC_RESOURCES);
+    }
+
+    public static Function<Request, CompletionStage<Response>> webJarResources() {
+        return new ResourceService(ResourceService.WEBJAR_RESOURCES);
     }
 
     public static final class Responses {
@@ -136,100 +151,6 @@ public final class Titanite {
 
         public static Response notImplemented() {
             return new Response(HttpResponseStatus.NOT_IMPLEMENTED);
-        }
-
-    }
-
-    public static final class Assets {
-
-        public static Response sendFile(Request request, File base) {
-            return sendFile(request, base, request.path());
-        }
-
-        public static Response sendFile(Request request, File base, String path) {
-            if (path.contains("..")) {
-                return forbidden();
-            }
-
-            File file = new File(base, path);
-
-            if (!file.exists() || !file.canRead() || file.isHidden() || file.isDirectory()) {
-                return notFound();
-            }
-
-            Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
-            long lastModified = file.lastModified();
-
-            if (lastModified <= 0) {
-                return
-                    ok()
-                        .type(MimeTypes.contentType(file.getName()))
-                        .body(file);
-            }
-            else {
-                return
-                    ifModifiedSince
-                        .filter((d) -> lastModified <= d.getTime())
-                        .map((d) -> notModified())
-                        .orElseGet(() ->
-                            ok()
-                                .type(MimeTypes.contentType(file.getName()))
-                                .lastModified(new Date(lastModified))
-                                .body(file));
-            }
-        }
-
-        public static Response sendResource(Request request, String base) {
-            return sendResource(request, base, request.path());
-        }
-
-        public static Response sendResource(Request request, String base, String path) {
-            if (path.contains("..")) {
-                return forbidden();
-            }
-
-            Resource resource = newClassPathResource(base).getResource(path);
-
-            if (!resource.exists() || resource.isDirectory()) {
-                return notFound();
-            }
-
-            Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
-            long lastModified = resource.lastModified();
-
-            if (lastModified <= 0) {
-                return
-                    ok()
-                        .type(MimeTypes.contentType(resource.getName()))
-                        .body(call(resource::getInputStream));
-            }
-            else {
-                return
-                    ifModifiedSince
-                        .filter((d) -> lastModified <= d.getTime())
-                        .map((d) -> notModified())
-                        .orElseGet(() ->
-                            ok()
-                                .type(MimeTypes.contentType(resource.getName()))
-                                .lastModified(new Date(lastModified))
-                                .body(call(resource::getInputStream)));
-            }
-        }
-
-        public static Response sendPublicResource(Request request) {
-            return sendPublicResource(request, request.path());
-        }
-
-        public static Response sendPublicResource(Request request, String path) {
-            return sendResource(request, "/public", path);
-        }
-
-        public static Response sendWebJarResource(Request request) {
-            return sendWebJarResource(request, request.path());
-        }
-
-        public static Response sendWebJarResource(Request request, String path) {
-            return sendResource(request, "/META-INF/resources/webjars", path);
         }
 
     }
