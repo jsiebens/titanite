@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
  */
 final class ParameterizedPattern {
 
+    private static final Pattern PARAM_NAME_PATTERN = Pattern.compile("[a-zA-Z][0-9a-zA-Z]*");
+
     private final String pattern;
 
     private final Pattern compiledPattern;
@@ -78,9 +80,9 @@ final class ParameterizedPattern {
             sb.append("/");
 
             if (n.startsWith(":")) {
-                String g = n.substring(1);
+                String g = validateName(n.substring(1));
                 if (!groups.add(g)) {
-                    throw new IllegalArgumentException("Cannot use identifier " + g + " more than once in pattern string");
+                    throw new IllegalArgumentException("Cannot use identifier '" + g + "' more than once in pattern string");
                 }
                 sb.append("(?<").append(g).append(">[^\\/]+)");
             }
@@ -88,9 +90,9 @@ final class ParameterizedPattern {
                 if (segments.hasNext()) {
                     throw new IllegalArgumentException("Dynamic part over more than one segment should be placed at the end");
                 }
-                String g = n.substring(1);
+                String g = validateName(n.substring(1));
                 if (!groups.add(g)) {
-                    throw new IllegalArgumentException("Cannot use identifier " + g + " more than once in pattern string");
+                    throw new IllegalArgumentException("Cannot use identifier '" + g + "' more than once in pattern string");
                 }
                 sb.append("(?<").append(g).append(">.+)");
             }
@@ -100,6 +102,13 @@ final class ParameterizedPattern {
         }
 
         return new Data(sb.toString(), groups);
+    }
+
+    private static String validateName(String n) {
+        if (!PARAM_NAME_PATTERN.matcher(n).matches()) {
+            throw new IllegalArgumentException("Invalid identifier '" + n + "', it does not match [a-zA-Z][0-9a-zA-Z]*");
+        }
+        return n;
     }
 
     private static class Data {

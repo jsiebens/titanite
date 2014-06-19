@@ -17,6 +17,8 @@ package org.nosceon.titanite;
 
 import org.junit.Test;
 
+import java.util.regex.Pattern;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -36,6 +38,16 @@ public class ParameterizedPatternTest {
         assertThat(matcher.parameters().get("id"), equalTo("123"));
 
         assertThat(pattern.matcher("/lorem/ipsum").matches(), is(false));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testParameterizedPatternWithUnderscoreInParameterName() {
+        new ParameterizedPattern("/hello/:with_underscore");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testParameterizedPatternWithDashInParameterName() {
+        new ParameterizedPattern("/hello/:with-dash");
     }
 
     @Test
