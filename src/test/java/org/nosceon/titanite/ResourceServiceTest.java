@@ -38,12 +38,10 @@ public class ResourceServiceTest extends AbstractE2ETest {
 
     @Test
     public void testA() {
-        /*
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/a/b/c/hello1.txt"));
         given().expect().statusCode(403).when().get(uri("/../public/hello1.txt"));
         given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri("/hello2.txt"));
         given().expect().statusCode(404).when().get(uri("/hello3.txt"));
-        */
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
     }
 
