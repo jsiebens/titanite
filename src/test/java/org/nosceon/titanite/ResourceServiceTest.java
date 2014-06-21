@@ -19,10 +19,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.Titanite.publicResourceService;
-import static org.nosceon.titanite.Titanite.serveResource;
-import static org.nosceon.titanite.Titanite.webJarResourceService;
+import static org.nosceon.titanite.Titanite.*;
 
 /**
  * @author Johan Siebens
@@ -40,13 +37,24 @@ public class ResourceServiceTest extends AbstractE2ETest {
     }
 
     @Test
-    public void test() {
-        given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
+    public void testA() {
+        /*
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/a/b/c/hello1.txt"));
         given().expect().statusCode(403).when().get(uri("/../public/hello1.txt"));
         given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri("/hello2.txt"));
         given().expect().statusCode(404).when().get(uri("/hello3.txt"));
+        */
+        given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
     }
 
+    @Test
+    public void testB() {
+        given().expect().statusCode(200).when().get(uri("/jquery/1.9.0/jquery.js"));
+    }
+
+    @Test
+    public void testC() {
+        given().expect().statusCode(404).when().get(uri("/jquery/1.9.0"));
+    }
 
 }

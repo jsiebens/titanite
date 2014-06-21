@@ -15,6 +15,7 @@
  */
 package org.nosceon.titanite.service;
 
+import com.google.common.base.CharMatcher;
 import org.eclipse.jetty.util.resource.Resource;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
@@ -38,6 +39,8 @@ import static org.nosceon.titanite.Titanite.Responses.*;
  */
 public class ResourceService implements Function<Request, CompletionStage<Response>> {
 
+    private static final CharMatcher SLASH = CharMatcher.is('/');
+
     public static final String WEBJAR_RESOURCES = "/META-INF/resources/webjars";
 
     public static final String PUBLIC_RESOURCES = "/public";
@@ -57,7 +60,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     public ResourceService(String baseResource, Function<Request, String> pathExtractor, Executor executor) {
-        this.baseResource = baseResource;
+        this.baseResource = SLASH.trimTrailingFrom(baseResource);
         this.pathExtractor = pathExtractor;
         this.executor = executor;
     }
@@ -74,7 +77,7 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
             return forbidden();
         }
 
-        return serveResource(request, baseResource + '/' + path);
+        return serveResource(request, baseResource + '/' + SLASH.trimLeadingFrom(path));
     }
 
     public static Response serveResource(Request request, String path) {
