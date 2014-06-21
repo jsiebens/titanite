@@ -16,28 +16,31 @@
 package org.nosceon.titanite.service;
 
 import com.google.common.base.CharMatcher;
-import org.eclipse.jetty.util.resource.Resource;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
 import org.nosceon.titanite.Titanite;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.jar.JarEntry;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.eclipse.jetty.util.resource.Resource.newClassPathResource;
 import static org.nosceon.titanite.HttpServerException.call;
 import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
  * @author Johan Siebens
  */
-public class ResourceService implements Function<Request, CompletionStage<Response>> {
+public final class ResourceService implements Function<Request, CompletionStage<Response>> {
 
     private static final CharMatcher SLASH = CharMatcher.is('/');
 
@@ -81,22 +84,37 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
     }
 
     public static Response serveResource(Request request, String path) {
-        return
-            ofNullable(newClassPathResource(path))
-                .filter((r) -> r.exists() && !r.isDirectory())
-                .map((r) -> createResponse(request, r))
-                .orElseGet(Titanite.Responses::notFound);
+        String trimmedPath = SLASH.trimFrom(path);
+        URL url = getResource(trimmedPath);
+
+        if (url != null) {
+            String protocol = url.getProtocol();
+            switch (protocol) {
+                case "file":
+                    return FileService.serveFile(request, new File(url.getFile()));
+                case "jar":
+                    // http://stackoverflow.com/a/20107785
+                    if (getResource(trimmedPath + '/') == null) {
+                        return createResponseFromJarResource(request, url);
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported protocol " + url.getProtocol() + " for resource " + url);
+            }
+        }
+
+        return notFound();
     }
 
-    private static Response createResponse(Request request, Resource resource) {
+    private static Response createResponseFromJarResource(Request request, URL resource) {
         Optional<Date> ifModifiedSince = ofNullable(request.headers().getDate(IF_MODIFIED_SINCE));
-        long lastModified = resource.lastModified();
+        long lastModified = lastModificationDateFromJarResource(resource);
 
         if (lastModified <= 0) {
             return
                 ok()
-                    .type(MimeTypes.contentType(resource.getName()))
-                    .body(call(resource::getInputStream));
+                    .type(MimeTypes.contentType(resource.toString()))
+                    .body(call(resource::openStream));
         }
         else {
             return
@@ -105,10 +123,44 @@ public class ResourceService implements Function<Request, CompletionStage<Respon
                     .map((d) -> notModified())
                     .orElseGet(() ->
                         ok()
-                            .type(MimeTypes.contentType(resource.getName()))
+                            .type(MimeTypes.contentType(resource.toString()))
                             .lastModified(new Date(lastModified))
-                            .body(call(resource::getInputStream)));
+                            .body(call(resource::openStream)));
         }
+    }
+
+    private static long lastModificationDateFromJarResource(URL url) {
+        try {
+            final JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
+            final JarEntry entry = jarConnection.getJarEntry();
+            return entry.getTime();
+        }
+        catch (IOException ignored) {
+            return 0;
+        }
+    }
+
+    private static URL getResource(String name) {
+        URL url = null;
+
+        ClassLoader ccl = Thread.currentThread().getContextClassLoader();
+
+        if (ccl != null) {
+            url = ccl.getResource(name);
+        }
+
+        if (url == null) {
+            ClassLoader cl = Titanite.class.getClassLoader();
+            if (cl != null && cl != ccl) {
+                url = cl.getResource(name);
+            }
+        }
+
+        if (url == null) {
+            url = ClassLoader.getSystemResource(name);
+        }
+
+        return url;
     }
 
 }

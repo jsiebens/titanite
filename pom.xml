@@ -75,11 +75,6 @@
       <artifactId>guava</artifactId>
       <version>17.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-      <version>9.1.0.v20131115</version>
-    </dependency>
 
     <!-- json libs -->
     <dependency>
