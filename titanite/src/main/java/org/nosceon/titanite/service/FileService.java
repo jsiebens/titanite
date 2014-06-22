@@ -30,6 +30,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.nosceon.titanite.Titanite.Responses.*;
+import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
 
 /**
  * @author Johan Siebens
@@ -86,7 +87,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
         if (lastModified <= 0) {
             return
                 ok()
-                    .type(MimeTypes.contentType(file.getName()))
+                    .type(getMediaTypeFromFileName(file.getName()))
                     .body(file);
         }
         else {
@@ -96,7 +97,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
                     .map((d) -> notModified())
                     .orElseGet(() ->
                         ok()
-                            .type(MimeTypes.contentType(file.getName()))
+                            .type(getMediaTypeFromFileName(file.getName()))
                             .lastModified(new Date(lastModified))
                             .body(file));
         }

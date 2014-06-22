@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.google.common.io.ByteStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -99,7 +98,7 @@ public final class Response {
     }
 
     public Response body(InputStream in) {
-        return body(o -> ByteStreams.copy(in, o));
+        return body(o -> Utils.copy(in, o));
     }
 
     public Response body(BodyWriter bodyWriter) {

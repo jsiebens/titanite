@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.google.common.io.CharStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.CompositeByteBuf;
@@ -285,7 +284,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public String asText() {
-            return call(() -> CharStreams.toString(new InputStreamReader(asStream())));
+            return call(() -> Utils.toString(new InputStreamReader(asStream())));
         }
 
         @Override

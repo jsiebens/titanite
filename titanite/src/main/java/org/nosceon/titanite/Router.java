@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.google.common.base.Strings;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.*;
@@ -72,7 +71,7 @@ final class Router {
             mapping.put(pp, map);
         }
         if (map.putIfAbsent(method, createFunction(filter, function)) == null) {
-            Titanite.LOG.info(id + " route added: " + Strings.padEnd(method.toString(), 7, ' ') + pattern);
+            Titanite.LOG.info(id + " route added: " + Utils.padEnd(method.toString(), 7, ' ') + pattern);
         }
         return this;
     }

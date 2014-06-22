@@ -15,12 +15,16 @@
  */
 package org.nosceon.titanite;
 
-import java.util.function.Predicate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Johan Siebens
  */
-public final class MediaType implements Predicate<MediaType> {
+public final class MediaType {
+
+    public static final String WILDCARD = "*";
 
     public final static MediaType APPLICATION_XML = valueOf("application/xml");
 
@@ -44,36 +48,69 @@ public final class MediaType implements Predicate<MediaType> {
 
     public final static MediaType TEXT_HTML = valueOf("text/html");
 
-    private final com.google.common.net.MediaType delegate;
+    private final String type;
 
-    public static MediaType valueOf(String value) {
-        return new MediaType(com.google.common.net.MediaType.parse(value));
+    private final String subType;
+
+    private final Map<String, String> parameters;
+
+    private MediaType(String type, String subType, Map<String, String> parameters) {
+        this.type = type;
+        this.subType = subType;
+        this.parameters = Collections.unmodifiableMap(parameters);
     }
 
-    private MediaType(com.google.common.net.MediaType delegate) {
-        this.delegate = delegate;
+    public String getType() {
+        return type;
     }
 
-    public String type() {
-        return delegate.type();
+    public String getSubType() {
+        return subType;
     }
 
-    public String subtype() {
-        return delegate.subtype();
-    }
-
-    public boolean is(MediaType mediaType) {
-        return delegate.is(mediaType.delegate);
-    }
-
-    @Override
-    public boolean test(MediaType mediaType) {
-        return delegate.is(mediaType.delegate);
+    public String getParameter(String parameter) {
+        return parameters.get(parameter);
     }
 
     @Override
     public String toString() {
-        return delegate.toString();
+        StringBuilder builder =
+            new StringBuilder()
+                .append(this.type)
+                .append('/')
+                .append(this.subType);
+
+        this.parameters.entrySet().forEach(
+            e -> builder
+                .append(';')
+                .append(e.getKey())
+                .append('=')
+                .append(e.getValue())
+        );
+
+        return builder.toString();
+    }
+
+    public static MediaType valueOf(String value) {
+        String[] parts = value.split(";");
+        Map<String, String> parameters = new HashMap<>();
+
+        for (int i = 1; i < parts.length; ++i) {
+            String p = parts[i];
+            String[] subParts = p.split("=");
+            if (subParts.length == 2) {
+                parameters.put(subParts[0].trim(), subParts[1].trim());
+            }
+        }
+        String fullType = parts[0].trim();
+
+        if (fullType.equals(WILDCARD)) {
+            fullType = WILDCARD + '/' + WILDCARD;
+        }
+
+        String[] types = fullType.split("/");
+
+        return new MediaType(types[0].trim(), types[1].trim(), parameters);
     }
 
 }

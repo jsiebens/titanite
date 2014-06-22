@@ -15,10 +15,9 @@
  */
 package org.nosceon.titanite.service;
 
-import com.google.common.base.CharMatcher;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
-import org.nosceon.titanite.Titanite;
+import org.nosceon.titanite.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,13 +35,15 @@ import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.nosceon.titanite.HttpServerException.call;
 import static org.nosceon.titanite.Titanite.Responses.*;
+import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
+import static org.nosceon.titanite.Utils.getResource;
 
 /**
  * @author Johan Siebens
  */
 public final class ResourceService implements Function<Request, CompletionStage<Response>> {
 
-    private static final CharMatcher SLASH = CharMatcher.is('/');
+    private static final char SLASH = '/';
 
     public static final String WEBJAR_RESOURCES = "/META-INF/resources/webjars";
 
@@ -63,7 +64,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
     }
 
     public ResourceService(String baseResource, Function<Request, String> pathExtractor, Executor executor) {
-        this.baseResource = SLASH.trimTrailingFrom(baseResource);
+        this.baseResource = Utils.trimTrailing(SLASH, baseResource);
         this.pathExtractor = pathExtractor;
         this.executor = executor;
     }
@@ -80,11 +81,11 @@ public final class ResourceService implements Function<Request, CompletionStage<
             return forbidden();
         }
 
-        return serveResource(request, baseResource + '/' + SLASH.trimLeadingFrom(path));
+        return serveResource(request, baseResource + SLASH + Utils.trimLeading(SLASH, path));
     }
 
     public static Response serveResource(Request request, String path) {
-        String trimmedPath = SLASH.trimFrom(path);
+        String trimmedPath = Utils.trim(SLASH, path);
         URL url = getResource(trimmedPath);
 
         if (url != null) {
@@ -113,7 +114,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
         if (lastModified <= 0) {
             return
                 ok()
-                    .type(MimeTypes.contentType(resource.toString()))
+                    .type(getMediaTypeFromFileName(resource.toString()))
                     .body(call(resource::openStream));
         }
         else {
@@ -123,7 +124,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
                     .map((d) -> notModified())
                     .orElseGet(() ->
                         ok()
-                            .type(MimeTypes.contentType(resource.toString()))
+                            .type(getMediaTypeFromFileName(resource.toString()))
                             .lastModified(new Date(lastModified))
                             .body(call(resource::openStream)));
         }
@@ -140,27 +141,5 @@ public final class ResourceService implements Function<Request, CompletionStage<
         }
     }
 
-    private static URL getResource(String name) {
-        URL url = null;
-
-        ClassLoader ccl = Thread.currentThread().getContextClassLoader();
-
-        if (ccl != null) {
-            url = ccl.getResource(name);
-        }
-
-        if (url == null) {
-            ClassLoader cl = Titanite.class.getClassLoader();
-            if (cl != null && cl != ccl) {
-                url = cl.getResource(name);
-            }
-        }
-
-        if (url == null) {
-            url = ClassLoader.getSystemResource(name);
-        }
-
-        return url;
-    }
 
 }

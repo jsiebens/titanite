@@ -15,7 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import com.google.common.base.Strings;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.util.concurrent.ThreadFactory;
@@ -36,7 +35,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     }
 
     public HttpServer(HttpServerConfig config) {
-        super("Http Server [" + Strings.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0') + "]");
+        super("Http Server [" + Utils.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0') + "]");
         this.config = config;
     }
 

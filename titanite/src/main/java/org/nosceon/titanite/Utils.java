@@ -1,0 +1,121 @@
+package org.nosceon.titanite;
+
+import javax.activation.MimetypesFileTypeMap;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.nio.CharBuffer;
+
+/**
+ * @author Johan Siebens
+ */
+public class Utils {
+
+    private static MimetypesFileTypeMap MIME_TYPES;
+
+    static {
+        try {
+            MIME_TYPES = new MimetypesFileTypeMap(getResource("META-INF/mime.types").openStream());
+        }
+        catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static String trimLeading(char c, String value) {
+        if (value.charAt(0) == c) {
+            return value.substring(1);
+        }
+        return value;
+    }
+
+    public static String trimTrailing(char c, String value) {
+        int end = value.length() - 1;
+        if (value.charAt(end) == c) {
+            return value.substring(0, end - 1);
+        }
+        return value;
+    }
+
+    public static String trim(char c, String value) {
+        return trimTrailing(c, trimLeading(c, value));
+    }
+
+    public static String padStart(String string, int minLength, char padChar) {
+        if (string.length() >= minLength) {
+            return string;
+        }
+        StringBuilder sb = new StringBuilder(minLength);
+        for (int i = string.length(); i < minLength; i++) {
+            sb.append(padChar);
+        }
+        sb.append(string);
+        return sb.toString();
+    }
+
+    public static String padEnd(String string, int minLength, char padChar) {
+        if (string.length() >= minLength) {
+            return string;
+        }
+        StringBuilder sb = new StringBuilder(minLength);
+        sb.append(string);
+        for (int i = string.length(); i < minLength; i++) {
+            sb.append(padChar);
+        }
+        return sb.toString();
+    }
+
+    public static String toString(Readable r) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        CharBuffer buf = CharBuffer.allocate(0x800);
+        while (r.read(buf) != -1) {
+            buf.flip();
+            sb.append(buf);
+            buf.clear();
+        }
+        return sb.toString();
+    }
+
+    public static long copy(InputStream from, OutputStream to) throws IOException {
+        byte[] buf = new byte[0x1000];
+        long total = 0;
+        while (true) {
+            int r = from.read(buf);
+            if (r == -1) {
+                break;
+            }
+            to.write(buf, 0, r);
+            total += r;
+        }
+        return total;
+    }
+
+    public static MediaType getMediaTypeFromFileName(String name) {
+        return MediaType.valueOf(MIME_TYPES.getContentType(name));
+    }
+
+    public static URL getResource(String name) {
+        URL url = null;
+
+        ClassLoader ccl = Thread.currentThread().getContextClassLoader();
+
+        if (ccl != null) {
+            url = ccl.getResource(name);
+        }
+
+        if (url == null) {
+            ClassLoader cl = Titanite.class.getClassLoader();
+            if (cl != null && cl != ccl) {
+                url = cl.getResource(name);
+            }
+        }
+
+        if (url == null) {
+            url = ClassLoader.getSystemResource(name);
+        }
+
+        return url;
+    }
+
+}
