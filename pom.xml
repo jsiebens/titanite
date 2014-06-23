@@ -31,7 +31,7 @@
   <version>1.0.0.Alpha2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Titanite Parent</name>
+  <name>Titanite - Parent</name>
   <url>https://github.com/nosceon/titanite</url>
 
   <inceptionYear>2014</inceptionYear>
