@@ -15,12 +15,14 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.exception.InvalidQueryParamException;
+
 import java.util.*;
 
 /**
  * @author Johan Siebens
  */
-public final class QueryParams implements SingleParams, MultiParams {
+public final class QueryParams extends MultiParams {
 
     private Map<String, List<String>> values;
 
@@ -41,6 +43,11 @@ public final class QueryParams implements SingleParams, MultiParams {
     @Override
     public List<String> getStrings(String name) {
         return Optional.ofNullable(values.get(name)).orElse(Collections.<String>emptyList());
+    }
+
+    @Override
+    protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+        return new InvalidQueryParamException(e, type, name, value);
     }
 
 }

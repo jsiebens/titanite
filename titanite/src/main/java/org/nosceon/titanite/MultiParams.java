@@ -23,36 +23,43 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Johan Siebens
  */
-public interface MultiParams extends Params {
+abstract class MultiParams extends SingleParams {
 
-    List<String> getStrings(String name);
+    public abstract List<String> getStrings(String name);
 
-    default <V> List<V> getValues(String name, Function<String, V> f) {
-        return getStrings(name).stream().map(f).collect(toList());
+    private <V> List<V> getAndTranslateValues(String name, String type, Function<String, V> f) {
+        return getStrings(name).stream().map(value -> {
+            try {
+                return f.apply(value);
+            }
+            catch (Exception e) {
+                throw translate(e, type, name, value);
+            }
+        }).collect(toList());
     }
 
-    default List<Short> getShorts(String name) {
-        return getValues(name, SHORT);
+    public final List<Short> getShorts(String name) {
+        return getAndTranslateValues(name, "short", SHORT);
     }
 
-    default List<Integer> getInts(String name) {
-        return getValues(name, INT);
+    public final List<Integer> getInts(String name) {
+        return getAndTranslateValues(name, "int", INT);
     }
 
-    default List<Long> getLongs(String name) {
-        return getValues(name, LONG);
+    public final List<Long> getLongs(String name) {
+        return getAndTranslateValues(name, "long", LONG);
     }
 
-    default List<Float> getFloats(String name) {
-        return getValues(name, FLOAT);
+    public final List<Float> getFloats(String name) {
+        return getAndTranslateValues(name, "float", FLOAT);
     }
 
-    default List<Double> getDoubles(String name) {
-        return getValues(name, DOUBLE);
+    public final List<Double> getDoubles(String name) {
+        return getAndTranslateValues(name, "double", DOUBLE);
     }
 
-    default List<Boolean> getBooleans(String name) {
-        return getValues(name, BOOLEAN);
+    public final List<Boolean> getBooleans(String name) {
+        return getAndTranslateValues(name, "boolean", BOOLEAN);
     }
 
 }

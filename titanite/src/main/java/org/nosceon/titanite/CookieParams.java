@@ -15,6 +15,8 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.exception.InvalidCookieParamException;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +24,7 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public final class CookieParams implements SingleParams {
+public final class CookieParams extends SingleParams {
 
     private final Map<String, CookieParam> cookies;
 
@@ -41,6 +43,11 @@ public final class CookieParams implements SingleParams {
     @Override
     public String getString(String name) {
         return Optional.ofNullable(cookies.get(name)).map(CookieParam::value).orElse(null);
+    }
+
+    @Override
+    protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+        return new InvalidCookieParamException(e, type, name, value);
     }
 
 }

@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.*;
@@ -59,7 +60,24 @@ public class MultiParamsTest {
     }
 
     private MultiParams params(String key, String... values) {
-        return name -> key.equals(name) ? Arrays.asList(values) : Collections.emptyList();
+        return new MultiParams() {
+
+            @Override
+            public List<String> getStrings(String name) {
+                return key.equals(name) ? Arrays.asList(values) : Collections.emptyList();
+            }
+
+            @Override
+            public String getString(String name) {
+                throw new UnsupportedOperationException("Not implemented");
+            }
+
+            @Override
+            protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+                return new IllegalArgumentException();
+            }
+
+        };
     }
 
 }

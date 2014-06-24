@@ -19,6 +19,8 @@ import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import org.nosceon.titanite.exception.InvalidFormParamException;
+import org.nosceon.titanite.exception.InvalidQueryParamException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +31,7 @@ import static org.nosceon.titanite.HttpServerException.call;
 /**
  * @author Johan Siebens
  */
-public final class FormParams implements SingleParams, MultiParams {
+public final class FormParams extends MultiParams {
 
     private HttpPostRequestDecoder decoder;
 
@@ -57,6 +59,11 @@ public final class FormParams implements SingleParams, MultiParams {
                 .stream()
                 .map(this::toString)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+        return new InvalidFormParamException(e, type, name, value);
     }
 
     private String toString(InterfaceHttpData p) {

@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
-
-import org.nosceon.titanite.exception.InvalidPathParamException;
-
-import java.util.Map;
+package org.nosceon.titanite.exception;
 
 /**
  * @author Johan Siebens
  */
-public final class PathParams extends SingleParams {
+public final class InvalidPathParamException extends AbstractInvalidParameterException {
 
-    private Map<String, String> values;
-
-    PathParams(Map<String, String> values) {
-        this.values = values;
-    }
-
-    @Override
-    public String getString(String name) {
-        return values.get(name);
-    }
-
-    @Override
-    protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
-        return new InvalidPathParamException(e, type, name, value);
+    public InvalidPathParamException(Throwable cause, String type, String name, String value) {
+        super(cause, "path", type, name, value);
     }
 
 }

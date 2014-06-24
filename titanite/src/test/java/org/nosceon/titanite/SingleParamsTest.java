@@ -70,7 +70,19 @@ public class SingleParamsTest {
     }
 
     private SingleParams params(String key, String value) {
-        return name -> name.equals(key) ? value : null;
+        return new SingleParams() {
+
+            @Override
+            public String getString(String name) {
+                return name.equals(key) ? value : null;
+            }
+
+            @Override
+            protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+                return new IllegalArgumentException();
+            }
+
+        };
     }
 
 }

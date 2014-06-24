@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
-
-import java.util.function.Function;
+package org.nosceon.titanite.exception;
 
 /**
  * @author Johan Siebens
  */
-interface Params {
+public final class InvalidHeaderParamException extends AbstractInvalidParameterException {
 
-    Function<String, Short> SHORT = Short::valueOf;
+    public InvalidHeaderParamException(Throwable cause, String type, String name, String value) {
+        super(cause, "header", type, name, value);
+    }
 
-    Function<String, Integer> INT = Integer::valueOf;
-
-    Function<String, Long> LONG = Long::valueOf;
-
-    Function<String, Float> FLOAT = Float::valueOf;
-
-    Function<String, Double> DOUBLE = Double::valueOf;
-
-    Function<String, Boolean> BOOLEAN = s -> s.equals("1") || s.equals("t") || s.equals("true") || s.equals("on");
-    
 }

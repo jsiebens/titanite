@@ -22,68 +22,85 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Johan Siebens
  */
-public interface SingleParams extends Params {
+abstract class SingleParams {
+
+    protected static final Function<String, Short> SHORT = Short::valueOf;
+
+    protected static final Function<String, Integer> INT = Integer::valueOf;
+
+    protected static final Function<String, Long> LONG = Long::valueOf;
+
+    protected static final Function<String, Float> FLOAT = Float::valueOf;
+
+    protected static final Function<String, Double> DOUBLE = Double::valueOf;
+
+    protected static final Function<String, Boolean> BOOLEAN = s -> s.equals("1") || s.equals("t") || s.equals("true") || s.equals("on");
 
     public abstract String getString(String name);
 
-    default String getString(String name, String defaultValue) {
+    protected abstract IllegalArgumentException translate(Exception e, String type, String name, String value);
+
+    private <V> V getAndTranslateValue(String name, String type, Function<String, V> f, V defaultValue) {
+        return ofNullable(getString(name)).map(value -> {
+            try {
+                return f.apply(value);
+            }
+            catch (Exception e) {
+                throw translate(e, type, name, value);
+            }
+        }).orElse(defaultValue);
+    }
+
+    public final String getString(String name, String defaultValue) {
         return ofNullable(getString(name)).orElse(defaultValue);
     }
 
-    default <V> V getValue(String name, Function<String, V> f) {
-        return ofNullable(getString(name)).map(f).orElse(null);
+    public final Short getShort(String name) {
+        return getAndTranslateValue(name, "short", SHORT, null);
     }
 
-    default <V> V getValue(String name, Function<String, V> f, V defaultValue) {
-        return ofNullable(getString(name)).map(f).orElse(defaultValue);
+    public final short getShort(String name, short defaultValue) {
+        return getAndTranslateValue(name, "short", SHORT, defaultValue);
     }
 
-    default Short getShort(String name) {
-        return getValue(name, SHORT);
+    public final Integer getInt(String name) {
+        return getAndTranslateValue(name, "int", INT, null);
     }
 
-    default short getShort(String name, short defaultValue) {
-        return getValue(name, SHORT, defaultValue);
+    public final int getInt(String name, int defaultValue) {
+        return getAndTranslateValue(name, "int", INT, defaultValue);
     }
 
-    default Integer getInt(String name) {
-        return getValue(name, INT);
+    public final Long getLong(String name) {
+        return getAndTranslateValue(name, "long", LONG, null);
     }
 
-    default int getInt(String name, int defaultValue) {
-        return getValue(name, INT, defaultValue);
+    public final long getLong(String name, long defaultValue) {
+        return getAndTranslateValue(name, "long", LONG, defaultValue);
     }
 
-    default Long getLong(String name) {
-        return getValue(name, LONG);
+    public final Float getFloat(String name) {
+        return getAndTranslateValue(name, "float", FLOAT, null);
     }
 
-    default long getLong(String name, long defaultValue) {
-        return getValue(name, LONG, defaultValue);
+    public final float getFloat(String name, float defaultValue) {
+        return getAndTranslateValue(name, "float", FLOAT, defaultValue);
     }
 
-    default Float getFloat(String name) {
-        return getValue(name, FLOAT);
+    public final Double getDouble(String name) {
+        return getAndTranslateValue(name, "double", DOUBLE, null);
     }
 
-    default float getFloat(String name, float defaultValue) {
-        return getValue(name, FLOAT, defaultValue);
+    public final double getDouble(String name, double defaultValue) {
+        return getAndTranslateValue(name, "double", DOUBLE, defaultValue);
     }
 
-    default Double getDouble(String name) {
-        return getValue(name, DOUBLE);
+    public final Boolean getBoolean(String name) {
+        return getAndTranslateValue(name, "boolean", BOOLEAN, null);
     }
 
-    default double getDouble(String name, double defaultValue) {
-        return getValue(name, DOUBLE, defaultValue);
-    }
-
-    default Boolean getBoolean(String name) {
-        return getValue(name, BOOLEAN);
-    }
-
-    default boolean getBoolean(String name, boolean defaultValue) {
-        return getValue(name, BOOLEAN, defaultValue);
+    public final boolean getBoolean(String name, boolean defaultValue) {
+        return getAndTranslateValue(name, "boolean", BOOLEAN, defaultValue);
     }
 
 }

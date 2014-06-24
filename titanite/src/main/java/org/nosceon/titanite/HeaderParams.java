@@ -17,6 +17,7 @@ package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
+import org.nosceon.titanite.exception.InvalidHeaderParamException;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -26,7 +27,7 @@ import java.util.Optional;
 /**
  * @author Johan Siebens
  */
-public final class HeaderParams implements SingleParams, MultiParams {
+public final class HeaderParams extends MultiParams {
 
     private HttpMessage message;
 
@@ -54,6 +55,11 @@ public final class HeaderParams implements SingleParams, MultiParams {
                     return Optional.empty();
                 }
             }).orElse(null);
+    }
+
+    @Override
+    protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
+        return new InvalidHeaderParamException(e, type, name, value);
     }
 
 }
