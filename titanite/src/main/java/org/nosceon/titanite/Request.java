@@ -17,7 +17,13 @@ package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
 
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
+import static org.nosceon.titanite.MediaType.ANY;
+import static org.nosceon.titanite.MediaType.bestCandidate;
 
 /**
  * @author Johan Siebens
@@ -78,6 +84,14 @@ public final class Request {
 
     public MediaType contentType() {
         return ofNullable(headers.getString(HttpHeaders.Names.CONTENT_TYPE)).map(MediaType::valueOf).orElse(null);
+    }
+
+    public List<MediaType> acceptableTypes() {
+        return ofNullable(headers.getString(HttpHeaders.Names.ACCEPT)).map(MediaType::valuesOf).orElse(singletonList(ANY));
+    }
+
+    public MediaType acceptableType(Collection<MediaType> candidates) {
+        return bestCandidate(acceptableTypes(), candidates);
     }
 
     public String baseUri() {
