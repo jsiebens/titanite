@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -96,6 +97,18 @@ public final class Request {
 
     public boolean accepts(MediaType mediaType) {
         return MediaType.accepts(acceptableTypes(), mediaType);
+    }
+
+    public List<AcceptableLanguage> acceptableLanguages() {
+        return ofNullable(headers.getString(HttpHeaders.Names.ACCEPT_LANGUAGE)).map(AcceptableLanguage::valuesOf).orElse(singletonList(AcceptableLanguage.ANY));
+    }
+
+    public Locale acceptableLanguage(Collection<Locale> candidates) {
+        return AcceptableLanguage.bestCandidate(acceptableLanguages(), candidates);
+    }
+
+    public boolean acceptsLanguauge(Locale locale) {
+        return AcceptableLanguage.accepts(acceptableLanguages(), locale);
     }
 
     public String baseUri() {
