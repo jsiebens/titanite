@@ -334,7 +334,7 @@ public final class MediaType {
     }
 
     public static List<MediaType> valuesOf(String values) {
-        return asList(values.split(",\\s*")).stream().map(MediaType::valueOf).collect(toList());
+        return asList(values.split(",\\s*")).stream().map(MediaType::valueOf).sorted(COMPARATOR).collect(toList());
     }
 
     private static final Comparator<MediaType> COMPARATOR = new MediaTypeComparator();
