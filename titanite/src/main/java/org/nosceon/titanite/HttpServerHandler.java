@@ -126,8 +126,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                             }
 
                             if (e instanceof HttpServerException) {
-                                Titanite.LOG.error("error processing request", e);
                                 response = ((HttpServerException) e).getResponse();
+
+                                if (response.status() >= 500) {
+                                    Titanite.LOG.error("error processing request", e);
+                                }
                             }
                             else {
                                 Titanite.LOG.error("error processing request", e);

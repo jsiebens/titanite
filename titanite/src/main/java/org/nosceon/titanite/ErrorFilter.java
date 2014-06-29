@@ -74,13 +74,21 @@ public final class ErrorFilter implements Filter {
             return function.apply(request, t);
         }
 
-        Titanite.LOG.error("error processing request", e);
 
         if (e instanceof HttpServerException) {
-            return ((HttpServerException) e).getResponse();
+            Response response = ((HttpServerException) e).getResponse();
+
+            if (response.status() >= 500) {
+                Titanite.LOG.error("error processing request", e);
+            }
+
+            return response;
+        }
+        else {
+            Titanite.LOG.error("error processing request", e);
+            return internalServerError();
         }
 
-        return internalServerError();
     }
 
     private Throwable lookupCause(CompletionException e) {
