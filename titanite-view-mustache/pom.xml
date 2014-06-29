@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.nosceon.titanite</groupId>
     <artifactId>titanite-parent</artifactId>
-    <version>1.0.0.Alpha2-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>titanite-view-mustache</artifactId>
