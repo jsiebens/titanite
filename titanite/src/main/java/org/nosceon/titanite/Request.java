@@ -94,6 +94,10 @@ public final class Request {
         return bestCandidate(acceptableTypes(), candidates);
     }
 
+    public boolean accepts(MediaType mediaType) {
+        return MediaType.accepts(acceptableTypes(), mediaType);
+    }
+
     public String baseUri() {
         return "http://" + headers.getString(HttpHeaders.Names.HOST);
     }

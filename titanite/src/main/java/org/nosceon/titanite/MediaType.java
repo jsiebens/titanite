@@ -319,6 +319,10 @@ public final class MediaType {
                 .orElse(null);
     }
 
+    public static boolean accepts(List<MediaType> ranges, MediaType candidate) {
+        return bestCandidate(ranges, Collections.singletonList(candidate)) != null;
+    }
+
     private static int index(List<MediaType> types, MediaType candidate) {
         for (int i = 0; i < types.size(); i++) {
             MediaType type = types.get(i);
