@@ -21,42 +21,38 @@ import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+import static java.util.Collections.emptyMap;
 import static org.nosceon.titanite.Titanite.Responses.methodNotAllowed;
+import static org.nosceon.titanite.Titanite.Responses.notFound;
 
 /**
  * @author Johan Siebens
  */
 final class Router {
 
-    public static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(Collections.emptyMap(), (r) -> methodNotAllowed().toFuture());
+    private static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(emptyMap(), (r) -> methodNotAllowed().toFuture());
+
+    private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), (r) -> notFound().toFuture());
 
     private final Map<ParameterizedPattern, Map<Method, Function<Request, CompletionStage<Response>>>> mapping = new LinkedHashMap<>();
 
-    private final RoutingResult fallback;
-
-    Router(
-        String id,
-        Optional<Filter> filter,
-        List<Route> routings,
-        Function<Request, CompletionStage<Response>> fallback) {
-
-        this.fallback = new RoutingResult(Collections.emptyMap(), createFunction(filter, fallback));
+    Router(String id, Optional<Filter> filter, List<Route> routings) {
         for (Route r : routings) {
             add(id, filter, r.method(), r.pattern(), r.function());
         }
     }
 
-    RoutingResult find(HttpMethod method, String pattern) {
-        Method map = map(method);
-        if (map != null) {
+    RoutingResult find(HttpMethod httpMethod, String pattern) {
+        Method method = map(httpMethod);
+        if (method != null) {
             for (Map.Entry<ParameterizedPattern, Map<Method, Function<Request, CompletionStage<Response>>>> entry : mapping.entrySet()) {
                 ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
                 if (matcher.matches()) {
-                    Function<Request, CompletionStage<Response>> f = entry.getValue().get(map);
+                    Function<Request, CompletionStage<Response>> f = entry.getValue().get(method);
                     return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
                 }
             }
-            return fallback;
+            return NOT_FOUND;
         }
         else {
             return METHOD_NOT_ALLOWED;

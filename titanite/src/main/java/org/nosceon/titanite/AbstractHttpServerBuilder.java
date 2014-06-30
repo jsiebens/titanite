@@ -37,8 +37,6 @@ import static org.nosceon.titanite.HttpServerException.call;
  */
 public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuilder> {
 
-    private Function<Request, CompletionStage<Response>> fallback = (r) -> Titanite.Responses.notFound().toFuture();
-
     private final List<Route> routings = new LinkedList<>();
 
     private Optional<Filter> filter = Optional.empty();
@@ -87,7 +85,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
-        Router router = new Router(id, filter, routings, fallback);
+        Router router = new Router(id, filter, routings);
 
         new ServerBootstrap()
             .group(workers)
