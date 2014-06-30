@@ -25,11 +25,15 @@ final class Route {
 
     private final Method method;
 
-    private final String pattern;
+    private final ParameterizedPattern pattern;
 
     private final Function<Request, CompletionStage<Response>> function;
 
     Route(Method method, String pattern, Function<Request, CompletionStage<Response>> function) {
+        this(method, new ParameterizedPattern(pattern), function);
+    }
+
+    Route(Method method, ParameterizedPattern pattern, Function<Request, CompletionStage<Response>> function) {
         this.method = method;
         this.pattern = pattern;
         this.function = function;
@@ -39,12 +43,16 @@ final class Route {
         return method;
     }
 
-    public String pattern() {
+    public ParameterizedPattern pattern() {
         return pattern;
     }
 
     public Function<Request, CompletionStage<Response>> function() {
         return function;
+    }
+
+    public boolean hasMethod(Method method) {
+        return this.method.equals(method);
     }
 
 }

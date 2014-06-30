@@ -17,11 +17,14 @@ package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpMethod;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toList;
 import static org.nosceon.titanite.Titanite.Responses.methodNotAllowed;
 import static org.nosceon.titanite.Titanite.Responses.notFound;
 
@@ -34,42 +37,45 @@ final class Router {
 
     private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), (r) -> notFound().toFuture());
 
-    private final Map<ParameterizedPattern, Map<Method, Function<Request, CompletionStage<Response>>>> mapping = new LinkedHashMap<>();
+    private final List<Route> routes = new LinkedList<>();
+
+    private final String id;
 
     Router(String id, Optional<Filter> filter, List<Route> routings) {
-        for (Route r : routings) {
-            add(id, filter, r.method(), r.pattern(), r.function());
-        }
+        this.id = id;
+        this.routes.addAll(routings.stream().map(r -> filteredRoute(filter, r)).collect(toList()));
     }
 
-    RoutingResult find(HttpMethod httpMethod, String pattern) {
+    RoutingResult find(HttpMethod httpMethod, String path) {
         Method method = map(httpMethod);
-        if (method != null) {
-            for (Map.Entry<ParameterizedPattern, Map<Method, Function<Request, CompletionStage<Response>>>> entry : mapping.entrySet()) {
-                ParameterizedPattern.Matcher matcher = entry.getKey().matcher(pattern);
-                if (matcher.matches()) {
-                    Function<Request, CompletionStage<Response>> f = entry.getValue().get(method);
-                    return f != null ? new RoutingResult(matcher.parameters(), f) : METHOD_NOT_ALLOWED;
-                }
-            }
+
+        List<Route> candidates =
+            this.routes
+                .stream()
+                .filter(r -> r.pattern().matches(path))
+                .collect(toList());
+
+        if (candidates.isEmpty()) {
             return NOT_FOUND;
         }
         else {
-            return METHOD_NOT_ALLOWED;
+            return
+                candidates
+                    .stream()
+                    .filter(route -> route.hasMethod(method))
+                    .findFirst()
+                    .map(route -> {
+                        ParameterizedPattern.Matcher matcher = route.pattern().matcher(path);
+                        return new RoutingResult(matcher.parameters(), route.function());
+                    })
+                    .orElseGet(() -> METHOD_NOT_ALLOWED);
         }
+
     }
 
-    private Router add(String id, Optional<Filter> filter, Method method, String pattern, Function<Request, CompletionStage<Response>> function) {
-        ParameterizedPattern pp = new ParameterizedPattern(pattern);
-        Map<Method, Function<Request, CompletionStage<Response>>> map = mapping.get(pp);
-        if (map == null) {
-            map = new HashMap<>();
-            mapping.put(pp, map);
-        }
-        if (map.putIfAbsent(method, createFunction(filter, function)) == null) {
-            Titanite.LOG.info(id + " route added: " + Utils.padEnd(method.toString(), 7, ' ') + pattern);
-        }
-        return this;
+    private Route filteredRoute(Optional<Filter> filter, Route r) {
+        Titanite.LOG.info(id + " route added: " + Utils.padEnd(r.method().toString(), 7, ' ') + r.pattern());
+        return new Route(r.method(), r.pattern(), createFunction(filter, r.function()));
     }
 
     private Function<Request, CompletionStage<Response>> createFunction(Optional<Filter> filter, Function<Request, CompletionStage<Response>> function) {

@@ -16,6 +16,7 @@
 package org.nosceon.titanite;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -27,21 +28,19 @@ final class ParameterizedPattern {
 
     private final String pattern;
 
-    private final Pattern compiledPattern;
-
-    private final Set<String> parameters;
+    private final Function<String, Matcher> supplier;
 
     public ParameterizedPattern(String input) {
-        final Data p = parse(input);
-        this.pattern = p.pattern;
-        this.parameters = p.parameters;
-        this.compiledPattern = Pattern.compile(p.pattern);
+        this.pattern = input;
+        this.supplier = createMatcherSupplier(input);
+    }
+
+    public boolean matches(String path) {
+        return matcher(path).matches();
     }
 
     public Matcher matcher(String path) {
-        return this.parameters.isEmpty() ?
-            new Equals(pattern, path) :
-            new Default(compiledPattern.matcher(path), parameters);
+        return supplier.apply(path);
     }
 
     @Override
@@ -52,15 +51,32 @@ final class ParameterizedPattern {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         ParameterizedPattern that = (ParameterizedPattern) o;
-        return parameters.equals(that.parameters) && pattern.equals(that.pattern);
+
+        return pattern.equals(that.pattern);
     }
 
     @Override
     public int hashCode() {
-        int result = pattern.hashCode();
-        result = 31 * result + parameters.hashCode();
-        return result;
+        return pattern.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return pattern;
+    }
+
+    private static Function<String, Matcher> createMatcherSupplier(String input) {
+        Data p = parse(input);
+
+        if (p.parameters.isEmpty()) {
+            return s -> new Equals(p.pattern, s);
+        }
+        else {
+            Pattern compiledPattern = Pattern.compile(p.pattern);
+            return s -> new Default(compiledPattern.matcher(s), p.parameters);
+        }
     }
 
     private static Data parse(String input) {
@@ -134,25 +150,25 @@ final class ParameterizedPattern {
 
     private static class Default implements Matcher {
 
-        private final java.util.regex.Matcher matcher;
+        private final boolean matches;
 
-        private final Collection<String> parameters;
+        private Map<String, String> parameters = new LinkedHashMap<>();
 
         public Default(java.util.regex.Matcher matcher, Collection<String> parameters) {
-            this.matcher = matcher;
-            this.parameters = parameters;
+            this.matches = matcher.matches();
+            if (this.matches()) {
+                for (String name : parameters) {
+                    this.parameters.put(name, matcher.group(name));
+                }
+            }
         }
 
         public boolean matches() {
-            return matcher.matches();
+            return matches;
         }
 
         public Map<String, String> parameters() {
-            Map<String, String> result = new LinkedHashMap<>(parameters.size());
-            for (String name : parameters) {
-                result.put(name, matcher.group(name));
-            }
-            return result;
+            return parameters;
         }
 
     }
