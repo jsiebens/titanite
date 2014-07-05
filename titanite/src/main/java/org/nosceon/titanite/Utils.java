@@ -15,12 +15,18 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.view.ViewRenderer;
+
 import javax.activation.MimetypesFileTypeMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
@@ -133,4 +139,31 @@ public class Utils {
         return url;
     }
 
+    public static <T> Supplier<T> serviceSupplier(Class<T> type) {
+        List<T> mappers = asList(ServiceLoader.load(type));
+
+        if (mappers.isEmpty()) {
+            return () -> {
+                throw new IllegalStateException("no " + type.getName() + " implementation found");
+            };
+        }
+
+        if (mappers.size() > 1) {
+            return () -> {
+                throw new IllegalStateException("multiple " + type.getName() + " implementations found");
+            };
+        }
+
+        T m = mappers.get(0);
+
+        return () -> m;
+    }
+
+    private static <T> List<T> asList(Iterable<T> values) {
+        List<T> result = new ArrayList<>();
+        for (T t : values) {
+            result.add(t);
+        }
+        return result;
+    }
 }

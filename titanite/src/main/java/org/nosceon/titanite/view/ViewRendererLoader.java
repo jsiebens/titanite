@@ -16,9 +16,8 @@
 package org.nosceon.titanite.view;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
+import org.nosceon.titanite.Utils;
+
 import java.util.function.Supplier;
 
 /**
@@ -33,41 +32,13 @@ public class ViewRendererLoader {
         private final Supplier<ViewRenderer> renderer;
 
         private Singleton() {
-            this.renderer = load();
+            this.renderer = Utils.serviceSupplier(ViewRenderer.class);
         }
 
     }
 
     public static ViewRenderer get() {
         return Singleton.INSTANCE.renderer.get();
-    }
-
-    private static Supplier<ViewRenderer> load() {
-        List<ViewRenderer> mappers = asList(ServiceLoader.load(ViewRenderer.class));
-
-        if (mappers.isEmpty()) {
-            return () -> {
-                throw new IllegalStateException("no ViewRenderer implementation found");
-            };
-        }
-
-        if (mappers.size() > 1) {
-            return () -> {
-                throw new IllegalStateException("multiple ViewRenderer implementations found");
-            };
-        }
-
-        ViewRenderer m = mappers.get(0);
-
-        return () -> m;
-    }
-
-    private static List<ViewRenderer> asList(Iterable<ViewRenderer> mappers) {
-        List<ViewRenderer> result = new ArrayList<>();
-        for (ViewRenderer mapper : mappers) {
-            result.add(mapper);
-        }
-        return result;
     }
 
 }

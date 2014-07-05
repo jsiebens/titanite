@@ -15,9 +15,8 @@
  */
 package org.nosceon.titanite.json;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
+import org.nosceon.titanite.Utils;
+
 import java.util.function.Supplier;
 
 /**
@@ -32,41 +31,13 @@ public class JsonMapperLoader {
         private final Supplier<JsonMapper> mapper;
 
         private Singleton() {
-            this.mapper = load();
+            this.mapper = Utils.serviceSupplier(JsonMapper.class);
         }
 
     }
 
     public static JsonMapper get() {
         return Singleton.INSTANCE.mapper.get();
-    }
-
-    private static Supplier<JsonMapper> load() {
-        List<JsonMapper> mappers = asList(ServiceLoader.load(JsonMapper.class));
-
-        if (mappers.isEmpty()) {
-            return () -> {
-                throw new IllegalStateException("no JsonMapper implementation found");
-            };
-        }
-
-        if (mappers.size() > 1) {
-            return () -> {
-                throw new IllegalStateException("multiple JsonMapper implementations found");
-            };
-        }
-
-        JsonMapper m = mappers.get(0);
-
-        return () -> m;
-    }
-
-    private static List<JsonMapper> asList(Iterable<JsonMapper> mappers) {
-        List<JsonMapper> result = new ArrayList<>();
-        for (JsonMapper mapper : mappers) {
-            result.add(mapper);
-        }
-        return result;
     }
 
 }
