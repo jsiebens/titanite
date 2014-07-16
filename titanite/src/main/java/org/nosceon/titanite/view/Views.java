@@ -20,23 +20,10 @@ import org.nosceon.titanite.BodyWriter;
 /**
  * @author Johan Siebens
  */
-public interface ViewRenderer {
+public final class Views {
 
-    BodyWriter apply(Object view);
-
-    public default String templateOf(Object o) {
-        if (o instanceof View) {
-            return ((View) o).template;
-        }
-        else {
-            View.Template template = o.getClass().getAnnotation(View.Template.class);
-
-            if (template != null) {
-                return template.value();
-            }
-
-            throw new IllegalArgumentException(o.getClass() + " does not extend View or is not annotated with ViewTemplate");
-        }
+    public static BodyWriter render(Object view) {
+        return ViewRendererLoader.get().apply(view);
     }
 
 }

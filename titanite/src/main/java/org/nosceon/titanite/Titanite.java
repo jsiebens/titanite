@@ -183,24 +183,4 @@ public final class Titanite {
 
     }
 
-    public static final class JsonSupport {
-
-        public static <T> BodyReader<T> json(Class<T> type) {
-            return JsonMapperLoader.get().in(type);
-        }
-
-        public static BodyWriter json(Object value) {
-            return JsonMapperLoader.get().out(value);
-        }
-
-    }
-
-    public static final class ViewSupport {
-
-        public static BodyWriter render(Object view) {
-            return ViewRendererLoader.get().apply(view);
-        }
-
-    }
-
 }

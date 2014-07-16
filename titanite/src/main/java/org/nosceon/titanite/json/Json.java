@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.view;
+package org.nosceon.titanite.json;
 
+import org.nosceon.titanite.BodyReader;
 import org.nosceon.titanite.BodyWriter;
 
 /**
  * @author Johan Siebens
  */
-public interface ViewRenderer {
+public final class Json {
 
-    BodyWriter apply(Object view);
+    public static <T> BodyReader<T> json(Class<T> type) {
+        return JsonMapperLoader.get().in(type);
+    }
 
-    public default String templateOf(Object o) {
-        if (o instanceof View) {
-            return ((View) o).template;
-        }
-        else {
-            View.Template template = o.getClass().getAnnotation(View.Template.class);
-
-            if (template != null) {
-                return template.value();
-            }
-
-            throw new IllegalArgumentException(o.getClass() + " does not extend View or is not annotated with ViewTemplate");
-        }
+    public static BodyWriter json(Object value) {
+        return JsonMapperLoader.get().out(value);
     }
 
 }
