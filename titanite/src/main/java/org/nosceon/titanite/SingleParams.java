@@ -22,7 +22,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Johan Siebens
  */
-abstract class SingleParams {
+public abstract class SingleParams {
 
     protected static final Function<String, Short> SHORT = Short::valueOf;
 
