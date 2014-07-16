@@ -45,6 +45,8 @@ public final class Request {
 
     private final RequestBody body;
 
+    private final Attributes attributes;
+
     Request(Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, RequestBody body) {
         this.method = method;
         this.path = path;
@@ -53,6 +55,7 @@ public final class Request {
         this.queryParams = queryParams;
         this.pathParams = pathParams;
         this.body = body;
+        this.attributes = new Attributes();
     }
 
     public Method method() {
@@ -81,6 +84,10 @@ public final class Request {
 
     public RequestBody body() {
         return body;
+    }
+
+    public Attributes attributes() {
+        return attributes;
     }
 
     public MediaType contentType() {
@@ -113,6 +120,11 @@ public final class Request {
 
     public String baseUri() {
         return "http://" + headers.getString(HttpHeaders.Names.HOST);
+    }
+
+    public Request withAttribute(String key, Object value) {
+        this.attributes.set(key, value);
+        return this;
     }
 
 }
