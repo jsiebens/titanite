@@ -26,4 +26,8 @@ public final class Views {
         return ViewRendererLoader.get().apply(view);
     }
 
+    public static BodyWriter render(String view, Object model) {
+        return ViewRendererLoader.get().apply(view, model);
+    }
+
 }

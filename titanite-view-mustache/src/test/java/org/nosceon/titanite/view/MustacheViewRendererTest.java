@@ -17,6 +17,9 @@ package org.nosceon.titanite.view;
 
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
@@ -25,10 +28,63 @@ import static org.junit.Assert.*;
  */
 public class MustacheViewRendererTest {
 
+    public static class HelloView extends View {
+
+        private String name;
+
+        public HelloView(String name) {
+            super("hello");
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+    }
+
+    @View.Template("hello.mustache")
+    public static class Hello {
+
+        private String name;
+
+        public Hello(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+    }
+
     @Test
     public void test() {
         ViewRenderer renderer = ViewRendererLoader.get();
         assertThat(renderer, instanceOf(MustacheViewRenderer.class));
+    }
+
+    @Test
+    public void testRenderViewByName() throws Exception {
+        assertThat(render("index"), equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit."));
+    }
+
+    @Test
+    public void testView() throws Exception {
+        assertThat(render(new HelloView("World")), equalTo("Hello World"));
+    }
+
+    @Test
+    public void testWithAnnotatedView() throws Exception {
+        assertThat(render(new Hello("World")), equalTo("Hello World"));
+    }
+
+    private String render(Object o) throws Exception {
+        MustacheViewRenderer renderer = new MustacheViewRenderer();
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            renderer.apply(o).writeTo(out);
+            return new String(out.toByteArray());
+        }
     }
 
 }

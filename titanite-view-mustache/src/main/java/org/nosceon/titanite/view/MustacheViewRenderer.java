@@ -28,27 +28,29 @@ import static org.nosceon.titanite.HttpServerException.call;
 /**
  * @author Johan Siebens
  */
-public final class MustacheViewRenderer implements ViewRenderer {
+public final class MustacheViewRenderer extends ViewRenderer {
 
     private static final String EXTENSION = ".mustache";
+
+    private static final Object[] EMPTY_MODEL = new Object[0];
 
     private final MustacheFactory mustacheFactory = defaultMustacheFactory();
 
     @Override
-    public BodyWriter apply(Object view) {
-        return call(() -> render(getMustache(view), view));
+    public BodyWriter apply(String template, Object view) {
+        return call(() -> render(getMustache(template), view));
     }
 
-    private BodyWriter render(Mustache mustache, Object view) throws IOException {
+    private BodyWriter render(Mustache mustache, Object model) throws IOException {
         return (out) -> {
             try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-                mustache.execute(writer, new Object[]{view});
+                mustache.execute(writer, model instanceof String ? EMPTY_MODEL : new Object[]{model});
             }
         };
     }
 
-    private Mustache getMustache(Object view) throws IOException {
-        return mustacheFactory.compile(sanitize(templateOf(view)));
+    private Mustache getMustache(String template) throws IOException {
+        return mustacheFactory.compile(sanitize(template));
     }
 
     private static String sanitize(String templateName) {

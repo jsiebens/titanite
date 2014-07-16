@@ -20,23 +20,32 @@ import org.nosceon.titanite.BodyWriter;
 /**
  * @author Johan Siebens
  */
-public interface ViewRenderer {
+public abstract class ViewRenderer {
 
-    BodyWriter apply(Object view);
+    public final BodyWriter apply(Object modelAndView) {
+        return apply(templateOf(modelAndView), modelAndView);
+    }
 
-    public default String templateOf(Object o) {
+    public abstract BodyWriter apply(String view, Object model);
+
+    private String templateOf(Object o) {
+        if (o instanceof String) {
+            return (String) o;
+        }
+
         if (o instanceof View) {
             return ((View) o).template;
         }
-        else {
-            View.Template template = o.getClass().getAnnotation(View.Template.class);
 
-            if (template != null) {
-                return template.value();
-            }
+        View.Template template = o.getClass().getAnnotation(View.Template.class);
 
-            throw new IllegalArgumentException(o.getClass() + " does not extend View or is not annotated with ViewTemplate");
+        if (template != null) {
+            return template.value();
         }
+
+        throw new IllegalArgumentException(
+            "instance of " + o.getClass() + " does not match [" + String.class.getName() + "] or [" + View.class.getName() + "], or is not annotated with [" + View.Template.class.getName() + "]"
+        );
     }
 
 }

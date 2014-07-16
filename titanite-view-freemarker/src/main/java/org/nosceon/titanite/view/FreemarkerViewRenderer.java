@@ -22,33 +22,34 @@ import org.nosceon.titanite.Titanite;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
 
 import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
  */
-public class FreemarkerViewRenderer implements ViewRenderer {
+public final class FreemarkerViewRenderer extends ViewRenderer {
 
     private static final String EXTENSION = ".ftl";
 
     private final Configuration configuration = defaultConfiguration();
 
     @Override
-    public BodyWriter apply(Object view) {
-        return call(() -> render(getTemplate(view), view));
+    public BodyWriter apply(String view, Object model) {
+        return call(() -> render(getTemplate(view), model));
     }
 
-    private BodyWriter render(Template template, Object view) throws IOException {
+    private BodyWriter render(Template template, Object model) throws IOException {
         return (out) -> {
             try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
-                template.process(view, writer);
+                template.process(model instanceof String ? Collections.EMPTY_MAP : model, writer);
             }
         };
     }
 
-    private Template getTemplate(Object view) throws IOException {
-        return configuration.getTemplate(sanitize(templateOf(view)));
+    private Template getTemplate(String template) throws IOException {
+        return configuration.getTemplate(sanitize(template));
     }
 
     private static String sanitize(String templateName) {
