@@ -49,6 +49,10 @@ abstract class ScopeFilter<S extends Scope> implements Filter {
 
     private final String secret;
 
+    public ScopeFilter(String attributeId, String cookieName) {
+        this(attributeId, cookieName, null);
+    }
+
     public ScopeFilter(String attributeId, String cookieName, String secret) {
         this.attributeId = attributeId;
         this.cookieName = cookieName;
@@ -80,22 +84,27 @@ abstract class ScopeFilter<S extends Scope> implements Filter {
                 .map(e -> urlencode(e.getKey(), e.getValue()))
                 .reduce("", (s, s2) -> s.length() == 0 ? s2 : s + '&' + s2);
 
-        String value = sign(secret, serialized) + '|' + serialized;
+        String value = secret == null ? serialized : (sign(secret, serialized) + '|' + serialized);
 
         return new Cookie(cookieName, value).httpOnly(true).path("/");
     }
 
     private Map<String, String> decode(String value) {
-        int i = value.indexOf('|');
+        if (secret != null) {
+            int i = value.indexOf('|');
 
-        if (i == -1) {
-            return Collections.emptyMap();
+            if (i == -1) {
+                return Collections.emptyMap();
+            }
+
+            String signature = value.substring(0, i);
+            String values = value.substring(i + 1);
+
+            return safeEquals(signature, sign(secret, values)) ? deserialize(values) : Collections.emptyMap();
         }
-
-        String signature = value.substring(0, i);
-        String values = value.substring(i + 1);
-
-        return safeEquals(signature, sign(secret, values)) ? deserialize(values) : Collections.emptyMap();
+        else {
+            return deserialize(value);
+        }
     }
 
     private Map<String, String> deserialize(String values) {
