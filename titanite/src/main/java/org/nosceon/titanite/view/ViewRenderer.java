@@ -22,11 +22,11 @@ import org.nosceon.titanite.BodyWriter;
  */
 public abstract class ViewRenderer {
 
-    public final BodyWriter apply(Object modelAndView) {
-        return apply(templateOf(modelAndView), modelAndView);
+    public final BodyWriter writer(Object modelAndView) {
+        return writer(templateOf(modelAndView), modelAndView);
     }
 
-    public abstract BodyWriter apply(String view, Object model);
+    public abstract BodyWriter writer(String view, Object model);
 
     private String templateOf(Object o) {
         if (o instanceof String) {

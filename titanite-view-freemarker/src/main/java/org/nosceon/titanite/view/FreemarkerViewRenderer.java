@@ -31,12 +31,26 @@ import static org.nosceon.titanite.HttpServerException.call;
  */
 public final class FreemarkerViewRenderer extends ViewRenderer {
 
+    private static FreemarkerViewRenderer INSTANCE = new FreemarkerViewRenderer(defaultConfiguration());
+
+    public static BodyWriter render(Object view) {
+        return INSTANCE.writer(view);
+    }
+
+    public static BodyWriter render(String view, Object model) {
+        return INSTANCE.writer(view, model);
+    }
+
     private static final String EXTENSION = ".ftl";
 
-    private final Configuration configuration = defaultConfiguration();
+    private final Configuration configuration;
+
+    public FreemarkerViewRenderer(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     @Override
-    public BodyWriter apply(String view, Object model) {
+    public BodyWriter writer(String view, Object model) {
         return call(() -> render(getTemplate(view), model));
     }
 

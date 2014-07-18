@@ -20,7 +20,6 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
 /**
@@ -59,12 +58,6 @@ public class MustacheViewRendererTest {
     }
 
     @Test
-    public void test() {
-        ViewRenderer renderer = ViewRendererLoader.get();
-        assertThat(renderer, instanceOf(MustacheViewRenderer.class));
-    }
-
-    @Test
     public void testRenderViewByName() throws Exception {
         assertThat(render("index"), equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit."));
     }
@@ -80,9 +73,8 @@ public class MustacheViewRendererTest {
     }
 
     private String render(Object o) throws Exception {
-        MustacheViewRenderer renderer = new MustacheViewRenderer();
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            renderer.apply(o).writeTo(out);
+            MustacheViewRenderer.render(o).writeTo(out);
             return new String(out.toByteArray());
         }
     }

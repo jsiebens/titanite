@@ -24,20 +24,25 @@ import java.io.*;
 /**
  * @author Johan Siebens
  */
-public final class GsonMapper implements JsonMapper {
+public final class GsonMapper {
+
+    private final static GsonMapper INSTANCE = new GsonMapper(new Gson());
+
+    public static <T> BodyReader<T> json(Class<T> type) {
+        return INSTANCE.reader(type);
+    }
+
+    public static BodyWriter json(Object value) {
+        return INSTANCE.writer(value);
+    }
 
     private final Gson gson;
-
-    public GsonMapper() {
-        this(defaultGson());
-    }
 
     public GsonMapper(Gson gson) {
         this.gson = gson;
     }
 
-    @Override
-    public <T> BodyReader<T> in(Class<T> type) {
+    public <T> BodyReader<T> reader(Class<T> type) {
         return (in) -> {
             try (Reader r = new InputStreamReader(in)) {
                 return gson.fromJson(r, type);
@@ -45,17 +50,12 @@ public final class GsonMapper implements JsonMapper {
         };
     }
 
-    @Override
-    public BodyWriter out(Object value) {
+    public BodyWriter writer(Object value) {
         return (out) -> {
             try (Writer w = new BufferedWriter(new OutputStreamWriter(out))) {
                 gson.toJson(value, w);
             }
         };
-    }
-
-    private static Gson defaultGson() {
-        return new Gson();
     }
 
 }

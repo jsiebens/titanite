@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
+import static org.nosceon.titanite.json.GsonMapper.json;
 
 /**
  * @author Johan Siebens
@@ -51,17 +52,9 @@ public class GsonMapperTest {
     }
 
     @Test
-    public void test() {
-        JsonMapper jsonMapper = JsonMapperLoader.get();
-        assertThat(jsonMapper, instanceOf(GsonMapper.class));
-    }
-
-    @Test
     public void testToJson() throws Exception {
-        JsonMapper mapper = new GsonMapper();
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        mapper.out(new Hello("world")).writeTo(out);
+        json(new Hello("world")).writeTo(out);
         String s = new String(out.toByteArray());
 
         assertThat(s, equalTo("{\"name\":\"world\"}"));
@@ -69,9 +62,8 @@ public class GsonMapperTest {
 
     @Test
     public void testFromJson() throws Exception {
-        JsonMapper mapper = new GsonMapper();
         String json = "{\"name\":\"world\"}";
-        Hello hello = mapper.in(Hello.class).readFrom(new ByteArrayInputStream(json.getBytes()));
+        Hello hello = json(Hello.class).readFrom(new ByteArrayInputStream(json.getBytes()));
         assertThat(hello.getName(), equalTo("world"));
     }
 

@@ -30,14 +30,28 @@ import static org.nosceon.titanite.HttpServerException.call;
  */
 public final class MustacheViewRenderer extends ViewRenderer {
 
+    private static final MustacheViewRenderer INSTANCE = new MustacheViewRenderer(new DefaultMustacheFactory("templates"));
+
+    public static BodyWriter render(Object view) {
+        return INSTANCE.writer(view);
+    }
+
+    public static BodyWriter render(String view, Object model) {
+        return INSTANCE.writer(view, model);
+    }
+
     private static final String EXTENSION = ".mustache";
 
     private static final Object[] EMPTY_MODEL = new Object[0];
 
-    private final MustacheFactory mustacheFactory = defaultMustacheFactory();
+    private final MustacheFactory mustacheFactory;
+
+    public MustacheViewRenderer(MustacheFactory mustacheFactory) {
+        this.mustacheFactory = mustacheFactory;
+    }
 
     @Override
-    public BodyWriter apply(String template, Object view) {
+    public BodyWriter writer(String template, Object view) {
         return call(() -> render(getMustache(template), view));
     }
 
@@ -55,10 +69,6 @@ public final class MustacheViewRenderer extends ViewRenderer {
 
     private static String sanitize(String templateName) {
         return templateName.endsWith(EXTENSION) ? templateName : templateName + EXTENSION;
-    }
-
-    private static MustacheFactory defaultMustacheFactory() {
-        return new DefaultMustacheFactory("templates");
     }
 
 }

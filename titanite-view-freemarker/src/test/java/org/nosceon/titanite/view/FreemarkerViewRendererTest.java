@@ -59,12 +59,6 @@ public class FreemarkerViewRendererTest {
     }
 
     @Test
-    public void test() {
-        ViewRenderer renderer = ViewRendererLoader.get();
-        assertThat(renderer, instanceOf(FreemarkerViewRenderer.class));
-    }
-
-    @Test
     public void testRenderViewByName() throws Exception {
         assertThat(render("index"), equalTo("Lorem ipsum dolor sit amet, consectetur adipiscing elit."));
     }
@@ -80,9 +74,8 @@ public class FreemarkerViewRendererTest {
     }
 
     private String render(Object o) throws Exception {
-        FreemarkerViewRenderer renderer = new FreemarkerViewRenderer();
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            renderer.apply(o).writeTo(out);
+            FreemarkerViewRenderer.render(o).writeTo(out);
             return new String(out.toByteArray());
         }
     }

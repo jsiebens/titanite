@@ -16,10 +16,8 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.nosceon.titanite.json.JsonMapperLoader;
 import org.nosceon.titanite.service.FileService;
 import org.nosceon.titanite.service.ResourceService;
-import org.nosceon.titanite.view.ViewRendererLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
