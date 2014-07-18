@@ -20,12 +20,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.CharBuffer;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static java.util.Optional.ofNullable;
+import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
  */
 public class Utils {
+
+    private static final String UTF_8 = "UTF-8";
 
     private static MimetypesFileTypeMap MIME_TYPES;
 
@@ -36,6 +46,17 @@ public class Utils {
         catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static String checkNotEmpty(String value, String errorMessage) {
+        if (isNotEmpty(value)) {
+            return value;
+        }
+        throw new IllegalArgumentException(errorMessage);
+    }
+
+    public static boolean isNotEmpty(String value) {
+        return (value != null && value.trim().length() > 0);
     }
 
     public static String trimLeading(char c, String value) {
@@ -131,6 +152,42 @@ public class Utils {
         }
 
         return url;
+    }
+
+    public static String serialize(Map<String, String> values) {
+        return
+            values.entrySet()
+                .stream()
+                .filter(e -> isNotEmpty(e.getValue()))
+                .map(e -> urlencode(e.getKey(), e.getValue()))
+                .reduce("", (s, s2) -> s.length() == 0 ? s2 : s + '&' + s2);
+    }
+
+    public static Map<String, String> deserialize(String values) {
+        return
+            ofNullable(values)
+                .filter(Utils::isNotEmpty)
+                .map(v -> {
+                    Map<String, String> result = new LinkedHashMap<>();
+                    String[] split = v.split("&");
+                    for (String s : split) {
+                        String[] keyValue = s.split("=");
+                        result.put(
+                            urldecode(keyValue[0]),
+                            urldecode(keyValue[1])
+                        );
+                    }
+                    return result;
+                })
+                .orElseGet(Collections::emptyMap);
+    }
+
+    private static String urlencode(String key, String value) {
+        return call(() -> URLEncoder.encode(key, UTF_8) + '=' + URLEncoder.encode(value, UTF_8));
+    }
+
+    private static String urldecode(String value) {
+        return call(() -> URLDecoder.decode(value, UTF_8));
     }
 
 }

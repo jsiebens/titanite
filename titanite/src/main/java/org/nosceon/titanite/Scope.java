@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.scopes;
+package org.nosceon.titanite;
 
 import org.nosceon.titanite.SingleParams;
-
-import java.util.Map;
 
 /**
  * @author Johan Siebens
  */
-abstract class Scope extends SingleParams {
+public abstract class Scope extends SingleParams {
 
     public abstract void set(String key, String value);
 
@@ -49,7 +47,5 @@ abstract class Scope extends SingleParams {
     public final void set(String key, boolean value) {
         set(key, String.valueOf(value));
     }
-
-    abstract Map<String, String> values();
 
 }

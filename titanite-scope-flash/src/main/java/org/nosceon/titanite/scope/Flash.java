@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.scopes;
+package org.nosceon.titanite.scope;
 
 import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
-import org.nosceon.titanite.scopes.exception.InvalidFlashParamException;
+import org.nosceon.titanite.Scope;
+import org.nosceon.titanite.exception.InvalidFlashParamException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,15 +31,15 @@ import static java.util.Optional.ofNullable;
  */
 public final class Flash extends Scope {
 
-    public static final String DEFAULT_FLASH_COOKIE_NAME = "TITANITE_FLASH";
+    public static final String DEFAULT_FLASH_COOKIE_NAME = "_flash";
 
-    static final String ATTRIBUTE_ID = Session.class.getName();
+    static final String ATTRIBUTE_ID = Flash.class.getName();
 
-    public static Flash flash(Request request) {
+    public static Scope flash(Request request) {
         Flash flash = request.attributes().get(ATTRIBUTE_ID);
         if (flash == null) {
             // TODO more specific exception?
-            throw new IllegalStateException("Flash Scope not available, a Flash.filter() should be registered to use the Flash Scope");
+            throw new IllegalStateException("Flash Scope not available, a a " + FlashFilter.class.getName() + " should be registered to use the Flash Scope");
         }
         return flash;
     }
@@ -78,7 +79,6 @@ public final class Flash extends Scope {
         return new InvalidFlashParamException(e, type, name, value);
     }
 
-    @Override
     Map<String, String> values() {
         return current;
     }

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.scopes;
+package org.nosceon.titanite.scope;
 
 import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
-import org.nosceon.titanite.scopes.exception.InvalidSessionParamException;
+import org.nosceon.titanite.Scope;
+import org.nosceon.titanite.exception.InvalidSessionParamException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,11 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class Session extends Scope {
 
-    public static final String DEFAULT_SESSION_COOKIE_NAME = "TITANITE_SESSION";
+    public static final String DEFAULT_SESSION_COOKIE_NAME = "_session";
 
     static final String ATTRIBUTE_ID = Session.class.getName();
 
-    public static Session session(Request request) {
+    public static Scope session(Request request) {
         Session session = request.attributes().get(ATTRIBUTE_ID);
         if (session == null) {
             // TODO more specific exception?
@@ -73,7 +74,6 @@ public final class Session extends Scope {
         return new InvalidSessionParamException(e, type, name, value);
     }
 
-    @Override
     Map<String, String> values() {
         return values;
     }

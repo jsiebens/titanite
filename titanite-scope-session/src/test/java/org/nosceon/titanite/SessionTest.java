@@ -16,14 +16,11 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
-import org.nosceon.titanite.scopes.Session;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.scopes.Session.DEFAULT_SESSION_COOKIE_NAME;
-import static org.nosceon.titanite.scopes.Session.enableSessions;
-import static org.nosceon.titanite.scopes.Session.session;
+import static org.nosceon.titanite.scope.Session.*;
 
 /**
  * @author Johan Siebens
