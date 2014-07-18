@@ -26,6 +26,7 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.HttpServerException.call;
@@ -46,6 +47,13 @@ public class Utils {
         catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static <T> T checkNotNull(T value, Supplier<RuntimeException> error) {
+        if (value != null) {
+            return value;
+        }
+        throw error.get();
     }
 
     public static String checkNotEmpty(String value, String errorMessage) {

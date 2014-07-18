@@ -23,6 +23,8 @@ import org.nosceon.titanite.exception.InvalidSessionParamException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.nosceon.titanite.Utils.checkNotNull;
+
 /**
  * @author Johan Siebens
  */
@@ -34,11 +36,7 @@ public final class Session extends Scope {
 
     public static Scope session(Request request) {
         Session session = request.attributes().get(ATTRIBUTE_ID);
-        if (session == null) {
-            // TODO more specific exception?
-            throw new IllegalStateException("Session Scope not available, a " + SessionFilter.class.getName() + " should be registered to use the Session Scope");
-        }
-        return session;
+        return checkNotNull(session, SessionNotAvailableException::new);
     }
 
     public static Filter enableSessions(String secret) {

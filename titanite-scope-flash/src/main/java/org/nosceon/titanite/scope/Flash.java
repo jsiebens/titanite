@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Optional.ofNullable;
+import static org.nosceon.titanite.Utils.checkNotNull;
 
 /**
  * @author Johan Siebens
@@ -36,12 +37,8 @@ public final class Flash extends Scope {
     static final String ATTRIBUTE_ID = Flash.class.getName();
 
     public static Scope flash(Request request) {
-        Flash flash = request.attributes().get(ATTRIBUTE_ID);
-        if (flash == null) {
-            // TODO more specific exception?
-            throw new IllegalStateException("Flash Scope not available, a a " + FlashFilter.class.getName() + " should be registered to use the Flash Scope");
-        }
-        return flash;
+        Flash flash = request.attributes().<Flash>get(ATTRIBUTE_ID);
+        return checkNotNull(flash, FlashNotAvailableException::new);
     }
 
     public static Filter enableFlash() {
