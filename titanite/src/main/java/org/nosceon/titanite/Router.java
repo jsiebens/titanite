@@ -15,6 +15,7 @@
  */
 package org.nosceon.titanite;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.LinkedList;
@@ -25,8 +26,7 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.nosceon.titanite.Titanite.Responses.methodNotAllowed;
-import static org.nosceon.titanite.Titanite.Responses.notFound;
+import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
  * @author Johan Siebens
@@ -66,11 +66,26 @@ final class Router {
                     .findFirst()
                     .map(route -> {
                         ParameterizedPattern.Matcher matcher = route.pattern().matcher(path);
-                        return new RoutingResult(matcher.parameters(), route.function());
+                        return
+                            Method.OPTIONS.equals(method) ?
+                                new RoutingResult(matcher.parameters(), allowedMethodsFilter(candidates).andThen(route.function())) :
+                                new RoutingResult(matcher.parameters(), route.function());
                     })
-                    .orElseGet(() -> METHOD_NOT_ALLOWED);
+                    .orElseGet(() ->
+                            Method.OPTIONS.equals(method) ?
+                                new RoutingResult(emptyMap(), allowedMethodsFilter(candidates).andThen(req -> ok().toFuture())) :
+                                METHOD_NOT_ALLOWED
+                    );
         }
 
+    }
+
+    private Filter allowedMethodsFilter(List<Route> candidates) {
+        return (req, h) -> h.apply(req).thenApply(resp -> resp.header(HttpHeaders.Names.ALLOW, allowedMethods(candidates)));
+    }
+
+    private String allowedMethods(List<Route> candidates) {
+        return candidates.stream().map(Route::method).distinct().map(Method::name).sorted().reduce("", (s, s2) -> s.length() == 0 ? s2 : s + ", " + s2);
     }
 
     private Route filteredRoute(Optional<Filter> filter, Route r) {

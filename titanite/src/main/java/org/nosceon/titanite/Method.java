@@ -33,6 +33,8 @@ public final class Method {
 
     public static final Method DELETE = new Method("DELETE");
 
+    public static final Method OPTIONS = new Method("OPTIONS");
+
     private static final Map<String, Method> METHODS = new HashMap<>();
 
     static {
@@ -41,6 +43,7 @@ public final class Method {
         METHODS.put(PUT.toString(), PUT);
         METHODS.put(PATCH.toString(), PATCH);
         METHODS.put(DELETE.toString(), DELETE);
+        METHODS.put(OPTIONS.toString(), OPTIONS);
     }
 
     private final String name;
