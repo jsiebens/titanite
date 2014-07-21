@@ -16,7 +16,7 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
-import org.nosceon.titanite.scope.SessionNotAvailableException;
+import org.nosceon.titanite.exception.SessionNotAvailableException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;

@@ -19,6 +19,7 @@ import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Scope;
 import org.nosceon.titanite.exception.InvalidSessionParamException;
+import org.nosceon.titanite.exception.SessionNotAvailableException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,11 +31,11 @@ import static org.nosceon.titanite.Utils.checkNotNull;
  */
 public final class Session extends Scope {
 
-    static final String ATTRIBUTE_ID = Session.class.getName();
+    public static final String ATTRIBUTE_ID = Session.class.getName();
 
     public static Scope session(Request request) {
         Session session = request.attributes().get(ATTRIBUTE_ID);
-        return checkNotNull(session, SessionNotAvailableException::new);
+        return checkNotNull(session, () -> new SessionNotAvailableException("Session not available, a " + SessionFilter.class.getName() + " should be registered to use a Session"));
     }
 
     public static Filter enableSessions(String secret) {

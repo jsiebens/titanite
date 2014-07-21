@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.scope;
+package org.nosceon.titanite.exception;
 
 /**
  * @author Johan Siebens
  */
-public final class SessionNotAvailableException extends RuntimeException {
+public final class FlashNotAvailableException extends RuntimeException {
 
-    public SessionNotAvailableException() {
-        super("Session not available, a " + SessionFilter.class.getName() + " should be registered to use a Session");
+    public FlashNotAvailableException() {
+        super("Flash not available");
+    }
+
+    public FlashNotAvailableException(String message) {
+        super(message);
     }
 
 }

@@ -15,8 +15,6 @@
  */
 package org.nosceon.titanite;
 
-import org.nosceon.titanite.SingleParams;
-
 /**
  * @author Johan Siebens
  */

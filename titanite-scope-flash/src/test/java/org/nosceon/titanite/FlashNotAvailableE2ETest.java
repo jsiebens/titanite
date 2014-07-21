@@ -16,7 +16,7 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
-import org.nosceon.titanite.scope.FlashNotAvailableException;
+import org.nosceon.titanite.exception.FlashNotAvailableException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;

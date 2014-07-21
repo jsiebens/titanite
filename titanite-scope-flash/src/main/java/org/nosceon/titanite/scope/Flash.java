@@ -18,6 +18,7 @@ package org.nosceon.titanite.scope;
 import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Scope;
+import org.nosceon.titanite.exception.FlashNotAvailableException;
 import org.nosceon.titanite.exception.InvalidFlashParamException;
 
 import java.util.HashMap;
@@ -32,11 +33,11 @@ import static org.nosceon.titanite.Utils.checkNotNull;
  */
 public final class Flash extends Scope {
 
-    static final String ATTRIBUTE_ID = Flash.class.getName();
+    public static final String ATTRIBUTE_ID = Flash.class.getName();
 
     public static Scope flash(Request request) {
         Flash flash = request.attributes().get(ATTRIBUTE_ID);
-        return checkNotNull(flash, FlashNotAvailableException::new);
+        return checkNotNull(flash, () -> new FlashNotAvailableException("Flash not available, a " + FlashFilter.class.getName() + " should be registered to use a Flash"));
     }
 
     public static Filter enableFlash() {
