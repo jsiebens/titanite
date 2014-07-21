@@ -29,7 +29,13 @@ import static org.nosceon.titanite.Utils.serialize;
  */
 public final class FlashFilter implements Filter {
 
+    public static final String DEFAULT_FLASH_COOKIE_NAME = "_flash";
+
     private final String cookieName;
+
+    public FlashFilter() {
+        this(DEFAULT_FLASH_COOKIE_NAME);
+    }
 
     public FlashFilter(String cookieName) {
         this.cookieName = checkNotEmpty(cookieName, "cookieName is required");

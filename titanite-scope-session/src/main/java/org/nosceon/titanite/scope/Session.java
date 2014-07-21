@@ -30,8 +30,6 @@ import static org.nosceon.titanite.Utils.checkNotNull;
  */
 public final class Session extends Scope {
 
-    public static final String DEFAULT_SESSION_COOKIE_NAME = "_session";
-
     static final String ATTRIBUTE_ID = Session.class.getName();
 
     public static Scope session(Request request) {
@@ -40,7 +38,7 @@ public final class Session extends Scope {
     }
 
     public static Filter enableSessions(String secret) {
-        return enableSessions(DEFAULT_SESSION_COOKIE_NAME, secret);
+        return new SessionFilter(secret);
     }
 
     public static Filter enableSessions(String cookieName, String secret) {

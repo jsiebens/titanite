@@ -32,17 +32,15 @@ import static org.nosceon.titanite.Utils.checkNotNull;
  */
 public final class Flash extends Scope {
 
-    public static final String DEFAULT_FLASH_COOKIE_NAME = "_flash";
-
     static final String ATTRIBUTE_ID = Flash.class.getName();
 
     public static Scope flash(Request request) {
-        Flash flash = request.attributes().<Flash>get(ATTRIBUTE_ID);
+        Flash flash = request.attributes().get(ATTRIBUTE_ID);
         return checkNotNull(flash, FlashNotAvailableException::new);
     }
 
     public static Filter enableFlash() {
-        return enableFlash(DEFAULT_FLASH_COOKIE_NAME);
+        return new FlashFilter();
     }
 
     public static Filter enableFlash(String cookieName) {

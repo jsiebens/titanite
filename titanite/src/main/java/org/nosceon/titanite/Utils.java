@@ -49,6 +49,10 @@ public class Utils {
         }
     }
 
+    public static <T> T checkNotNull(T value, String errorMessage) {
+        return checkNotNull(value, () -> new IllegalArgumentException(errorMessage));
+    }
+
     public static <T> T checkNotNull(T value, Supplier<RuntimeException> error) {
         if (value != null) {
             return value;

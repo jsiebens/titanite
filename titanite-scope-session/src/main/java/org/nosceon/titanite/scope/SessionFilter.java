@@ -35,6 +35,8 @@ import static org.nosceon.titanite.Utils.deserialize;
  */
 public final class SessionFilter implements Filter {
 
+    public static final String DEFAULT_SESSION_COOKIE_NAME = "_session";
+
     private static final String UTF_8 = "UTF-8";
 
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
@@ -42,6 +44,10 @@ public final class SessionFilter implements Filter {
     private final String cookieName;
 
     private final String secret;
+
+    public SessionFilter(String secret) {
+        this(DEFAULT_SESSION_COOKIE_NAME, secret);
+    }
 
     public SessionFilter(String cookieName, String secret) {
         this.cookieName = checkNotEmpty(cookieName, "cookieName is required");

@@ -20,12 +20,14 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.given;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.scope.Flash.*;
+import static org.nosceon.titanite.scope.Flash.enableFlash;
+import static org.nosceon.titanite.scope.Flash.flash;
+import static org.nosceon.titanite.scope.FlashFilter.DEFAULT_FLASH_COOKIE_NAME;
 
 /**
- * @author Johan Siebens
- */
-public class FlashTest extends AbstractE2ETest {
+* @author Johan Siebens
+*/
+public class FlashE2ETest extends AbstractE2ETest {
 
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) {
