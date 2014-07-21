@@ -43,7 +43,7 @@ public final class Response {
 
     private HttpHeaders headers = new DefaultHttpHeaders();
 
-    private Body body = new DefaultBody(Unpooled.EMPTY_BUFFER);
+    private Body body = new NoBody();
 
     Response(HttpResponseStatus status) {
         this.status = status;
@@ -149,6 +149,18 @@ public final class Response {
         }
     }
 
+    private class NoBody implements Body {
+
+        @Override
+        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, Unpooled.EMPTY_BUFFER);
+            response.headers().add(headers);
+            setKeepAlive(response, keepAlive);
+            writeFlushAndClose(ctx, response, false);
+        }
+
+    }
+
     private class DefaultBody implements Body {
 
         private ByteBuf content;
@@ -159,11 +171,13 @@ public final class Response {
 
         @Override
         public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
-            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, content);
+            boolean isHeadRequest = request.method().equals(Method.HEAD);
+
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, isHeadRequest ? Unpooled.EMPTY_BUFFER : content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
             setKeepAlive(response, keepAlive);
-            writeFlushAndClose(ctx, response, keepAlive);
+            writeFlushAndClose(ctx, response, false);
         }
 
     }
@@ -183,10 +197,16 @@ public final class Response {
             setTransferEncodingChunked(response);
 
             ctx.write(response);
-            ChunksChannel channel = new ChunksChannel(keepAlive, ctx);
-            ctx.pipeline().addLast(channel);
 
-            chunkedOutput.onReady(channel);
+            if (!request.method().equals(Method.HEAD)) {
+                ChunksChannel channel = new ChunksChannel(keepAlive, ctx);
+                ctx.pipeline().addLast(channel);
+
+                chunkedOutput.onReady(channel);
+            }
+            else {
+                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+            }
         }
 
     }
@@ -228,27 +248,7 @@ public final class Response {
 
     }
 
-    private abstract class AbstractStreamingBody implements Body {
-
-        protected void stream(boolean keepAlive, ChannelHandlerContext ctx, BodyWriter bodyWriter) {
-            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
-            response.headers().add(headers);
-            setTransferEncodingChunked(response);
-
-            ctx.write(response);
-
-            HttpServerException.run(() -> {
-                try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
-                    bodyWriter.writeTo(out);
-                }
-            });
-
-            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
-        }
-
-    }
-
-    private class StreamBody extends AbstractStreamingBody {
+    private class StreamBody implements Body {
 
         private BodyWriter consumer;
 
@@ -258,7 +258,21 @@ public final class Response {
 
         @Override
         public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
-            stream(keepAlive, ctx, consumer);
+            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
+            response.headers().add(headers);
+            setTransferEncodingChunked(response);
+
+            ctx.write(response);
+
+            if (!request.method().equals(Method.HEAD)) {
+                HttpServerException.run(() -> {
+                    try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
+                        consumer.writeTo(out);
+                    }
+                });
+            }
+
+            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
         }
 
     }
@@ -284,7 +298,11 @@ public final class Response {
                 setKeepAlive(response, keepAlive);
 
                 ctx.write(response);
-                ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+
+                if (!request.method().equals(Method.HEAD)) {
+                    ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+                }
+
                 writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
             }
             catch (IOException e) {

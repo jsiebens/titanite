@@ -71,10 +71,17 @@ final class Router {
                                 new RoutingResult(matcher.parameters(), allowedMethodsFilter(candidates).andThen(route.function())) :
                                 new RoutingResult(matcher.parameters(), route.function());
                     })
-                    .orElseGet(() ->
-                            Method.OPTIONS.equals(method) ?
-                                new RoutingResult(emptyMap(), allowedMethodsFilter(candidates).andThen(req -> ok().toFuture())) :
-                                METHOD_NOT_ALLOWED
+                    .orElseGet(() -> {
+                            if (Method.OPTIONS.equals(method)) {
+                                return new RoutingResult(emptyMap(), allowedMethodsFilter(candidates).andThen(req -> ok().toFuture()));
+                            }
+                            else if (Method.HEAD.equals(method)) {
+                                return find(HttpMethod.GET, path);
+                            }
+                            else {
+                                return METHOD_NOT_ALLOWED;
+                            }
+                        }
                     );
         }
 

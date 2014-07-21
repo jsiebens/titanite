@@ -23,6 +23,8 @@ import java.util.Map;
  */
 public final class Method {
 
+    public static final Method HEAD = new Method("HEAD");
+
     public static final Method GET = new Method("GET");
 
     public static final Method POST = new Method("POST");
@@ -38,6 +40,7 @@ public final class Method {
     private static final Map<String, Method> METHODS = new HashMap<>();
 
     static {
+        METHODS.put(HEAD.toString(), HEAD);
         METHODS.put(GET.toString(), GET);
         METHODS.put(POST.toString(), POST);
         METHODS.put(PUT.toString(), PUT);
