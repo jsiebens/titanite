@@ -1,5 +1,5 @@
 name: Titanite
 markdown: redcarpet
-pygments: true
+highlighter: pygments
 
 baseurl: /titanite
