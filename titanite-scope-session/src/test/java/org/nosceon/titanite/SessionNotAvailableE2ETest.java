@@ -22,7 +22,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.Titanite.errors;
+import static org.nosceon.titanite.Titanite.onException;
 import static org.nosceon.titanite.scope.Session.session;
 import static org.nosceon.titanite.scope.SessionFilter.DEFAULT_SESSION_COOKIE_NAME;
 
@@ -36,7 +36,7 @@ public class SessionNotAvailableE2ETest extends AbstractE2ETest {
         return
             server
                 .setFilter(
-                    errors().match(SessionNotAvailableException.class, () -> ok().text("Session not available!!"))
+                    onException().match(SessionNotAvailableException.class, () -> ok().text("Session not available!!"))
                 )
                 .register(GET, "/session", req -> ok().text(session(req).getString("name")).toFuture())
                 .start();

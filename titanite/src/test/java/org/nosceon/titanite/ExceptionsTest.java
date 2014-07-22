@@ -23,7 +23,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Titanite.Responses.ok;
-import static org.nosceon.titanite.Titanite.errors;
+import static org.nosceon.titanite.Titanite.onException;
 
 /**
  * @author Johan Siebens
@@ -47,7 +47,7 @@ public class ExceptionsTest extends AbstractE2ETest {
         return
             server
                 .setFilter(
-                    errors()
+                    onException()
                         .match(InternalException.class, (r, e) -> ok().text("Internal"))
                         .match(InternalSub1Exception.class, () -> ok().text("Internal Sub1"))
                 )

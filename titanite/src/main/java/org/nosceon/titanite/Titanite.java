@@ -56,8 +56,8 @@ public final class Titanite {
         return new HttpServer(config);
     }
 
-    public static ErrorFilter errors() {
-        return new ErrorFilter();
+    public static ExceptionsFilter onException() {
+        return new ExceptionsFilter();
     }
 
     public static Response serveFile(Request request, File file) {

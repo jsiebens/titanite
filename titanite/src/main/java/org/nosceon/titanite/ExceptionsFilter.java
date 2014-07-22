@@ -29,25 +29,25 @@ import static org.nosceon.titanite.Exceptions.internalServerError;
  * @author Johan Siebens
  */
 @SuppressWarnings("unchecked")
-public final class ErrorFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
+public final class ExceptionsFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
 
     private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
 
-    public ErrorFilter() {
+    public ExceptionsFilter() {
 
     }
 
-    private ErrorFilter(Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers) {
+    private ExceptionsFilter(Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers) {
         this.handlers = handlers;
     }
 
-    public <T extends Throwable> ErrorFilter match(Class<T> type, BiFunction<Request, T, Response> handler) {
+    public <T extends Throwable> ExceptionsFilter match(Class<T> type, BiFunction<Request, T, Response> handler) {
         Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> newHandlers = new LinkedHashMap<>(this.handlers);
         newHandlers.put(type, (BiFunction<Request, Throwable, Response>) handler);
-        return new ErrorFilter(newHandlers);
+        return new ExceptionsFilter(newHandlers);
     }
 
-    public <T extends Throwable> ErrorFilter match(Class<T> type, Supplier<Response> handler) {
+    public <T extends Throwable> ExceptionsFilter match(Class<T> type, Supplier<Response> handler) {
         return match(type, (req, t) -> handler.get());
     }
 
