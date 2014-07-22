@@ -20,8 +20,8 @@ import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyMap;
@@ -39,11 +39,8 @@ final class Router {
 
     private final List<Route> routes = new LinkedList<>();
 
-    private final String id;
-
-    Router(String id, Optional<Filter> filter, List<Route> routings) {
-        this.id = id;
-        this.routes.addAll(routings.stream().map(r -> filteredRoute(filter, r)).collect(toList()));
+    Router(List<Route> routings) {
+        this.routes.addAll(routings);
     }
 
     RoutingResult find(HttpMethod httpMethod, String path) {
@@ -68,12 +65,12 @@ final class Router {
                         ParameterizedPattern.Matcher matcher = route.pattern().matcher(path);
                         return
                             Method.OPTIONS.equals(method) ?
-                                new RoutingResult(matcher.parameters(), allowedMethodsFilter(candidates).andThen(route.function())) :
+                                new RoutingResult(matcher.parameters(), Utils.compose(allowedMethodsFilter(candidates), route.function())) :
                                 new RoutingResult(matcher.parameters(), route.function());
                     })
                     .orElseGet(() -> {
                             if (Method.OPTIONS.equals(method)) {
-                                return new RoutingResult(emptyMap(), allowedMethodsFilter(candidates).andThen(req -> ok().toFuture()));
+                                return new RoutingResult(emptyMap(), Utils.compose(allowedMethodsFilter(candidates), req -> ok().toFuture()));
                             }
                             else if (Method.HEAD.equals(method)) {
                                 return find(HttpMethod.GET, path);
@@ -87,21 +84,12 @@ final class Router {
 
     }
 
-    private Filter allowedMethodsFilter(List<Route> candidates) {
+    private BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> allowedMethodsFilter(List<Route> candidates) {
         return (req, h) -> h.apply(req).thenApply(resp -> resp.header(HttpHeaders.Names.ALLOW, allowedMethods(candidates)));
     }
 
     private String allowedMethods(List<Route> candidates) {
         return candidates.stream().map(Route::method).distinct().map(Method::name).sorted().reduce("", (s, s2) -> s.length() == 0 ? s2 : s + ", " + s2);
-    }
-
-    private Route filteredRoute(Optional<Filter> filter, Route r) {
-        Titanite.LOG.info(id + " route added: " + Utils.padEnd(r.method().toString(), 7, ' ') + r.pattern());
-        return new Route(r.method(), r.pattern(), createFunction(filter, r.function()));
-    }
-
-    private Function<Request, CompletionStage<Response>> createFunction(Optional<Filter> filter, Function<Request, CompletionStage<Response>> function) {
-        return filter.isPresent() ? filter.get().andThen(function) : function;
     }
 
     private Method map(HttpMethod method) {

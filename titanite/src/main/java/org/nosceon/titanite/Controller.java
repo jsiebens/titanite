@@ -25,10 +25,6 @@ import java.util.function.Function;
  */
 public abstract class Controller {
 
-    static Controller newController(List<Route> routes) {
-        return new InternalController(routes);
-    }
-
     private final List<Route> routings = new LinkedList<>();
 
     protected Controller() {
@@ -38,36 +34,28 @@ public abstract class Controller {
         this.routings.addAll(routes);
     }
 
-    protected final void get(String pattern, Function<Request, CompletionStage<Response>> function) {
-        routings.add(new Route(Method.GET, pattern, function));
+    protected final void get(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.GET, pattern, handler));
     }
 
-    protected final void post(String pattern, Function<Request, CompletionStage<Response>> function) {
-        routings.add(new Route(Method.POST, pattern, function));
+    protected final void post(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.POST, pattern, handler));
     }
 
-    protected final void put(String pattern, Function<Request, CompletionStage<Response>> function) {
-        routings.add(new Route(Method.PUT, pattern, function));
+    protected final void put(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.PUT, pattern, handler));
     }
 
-    protected final void patch(String pattern, Function<Request, CompletionStage<Response>> function) {
-        routings.add(new Route(Method.PATCH, pattern, function));
+    protected final void patch(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.PATCH, pattern, handler));
     }
 
-    protected final void delete(String pattern, Function<Request, CompletionStage<Response>> function) {
-        routings.add(new Route(Method.DELETE, pattern, function));
+    protected final void delete(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.DELETE, pattern, handler));
     }
 
-    final List<Route> get() {
+    final List<Route> routes() {
         return routings;
-    }
-
-    private static class InternalController extends Controller {
-
-        private InternalController(List<Route> routes) {
-            super(routes);
-        }
-
     }
 
 }

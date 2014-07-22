@@ -32,7 +32,7 @@ public class ResourceServiceTest extends AbstractE2ETest {
             server
                 .register(Method.GET, "/lorem.txt", req -> serveResource(req, "/public/hello.txt").toFuture())
                 .register(Method.GET, "/a/b/c/*mycustompath", publicResourceService(req -> req.pathParams().getString("mycustompath")))
-                .register(Method.GET, "/*path", publicResourceService(), webJarResourceService())
+                .register(Method.GET, "/*path", $(publicResourceService(), webJarResourceService()))
                 .start();
     }
 

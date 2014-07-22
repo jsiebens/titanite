@@ -18,6 +18,7 @@ package org.nosceon.titanite.scope;
 import org.nosceon.titanite.*;
 
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -27,7 +28,7 @@ import static org.nosceon.titanite.Utils.serialize;
 /**
  * @author Johan Siebens
  */
-public final class FlashFilter implements Filter {
+public final class FlashFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
 
     public static final String DEFAULT_FLASH_COOKIE_NAME = "_flash";
 

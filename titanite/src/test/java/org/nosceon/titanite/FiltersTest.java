@@ -17,6 +17,10 @@ package org.nosceon.titanite;
 
 import org.junit.Test;
 
+import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
@@ -27,7 +31,7 @@ import static org.nosceon.titanite.Titanite.Responses.ok;
  */
 public class FiltersTest extends AbstractE2ETest {
 
-    private static final Filter GLOBAL_FILTER = (r, f) -> {
+    private static final BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> GLOBAL_FILTER = (r, f) -> {
         if (r.queryParams().getBoolean("global", false)) {
             return ok().text("global").toFuture();
         }
@@ -36,7 +40,7 @@ public class FiltersTest extends AbstractE2ETest {
         }
     };
 
-    private static final Filter FILTER = (r, f) -> {
+    private static final BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> FILTER = (r, f) -> {
         if (r.queryParams().getBoolean("filtered", false)) {
             return ok().text("filtered").toFuture();
         }
@@ -58,8 +62,8 @@ public class FiltersTest extends AbstractE2ETest {
         return
             server
                 .setFilter(GLOBAL_FILTER)
-                .register(FILTER.andThen(new TextController()))
-                .register(POST, "/resource", FILTER.andThen(r -> ok().text("resource").toFuture()))
+                .register(FILTER, new TextController())
+                .register(POST, "/resource", FILTER, (r -> ok().text("resource").toFuture()))
                 .start();
     }
 

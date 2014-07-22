@@ -15,14 +15,17 @@
  */
 package org.nosceon.titanite.scope;
 
-import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
+import org.nosceon.titanite.Response;
 import org.nosceon.titanite.Scope;
 import org.nosceon.titanite.exception.InvalidSessionParamException;
 import org.nosceon.titanite.exception.SessionNotAvailableException;
 
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static org.nosceon.titanite.Utils.checkNotNull;
 
@@ -38,11 +41,11 @@ public final class Session extends Scope {
         return checkNotNull(session, () -> new SessionNotAvailableException("Session not available, a " + SessionFilter.class.getName() + " should be registered to use a Session"));
     }
 
-    public static Filter enableSessions(String secret) {
+    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> enableSessions(String secret) {
         return new SessionFilter(secret);
     }
 
-    public static Filter enableSessions(String cookieName, String secret) {
+    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> enableSessions(String cookieName, String secret) {
         return new SessionFilter(cookieName, secret);
     }
 

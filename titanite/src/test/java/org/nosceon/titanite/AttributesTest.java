@@ -20,6 +20,7 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Titanite.$;
 import static org.nosceon.titanite.Titanite.Responses.ok;
 
 /**
@@ -32,8 +33,10 @@ public class AttributesTest extends AbstractE2ETest {
         return
             server
                 .setFilter(
-                    (req, handler) -> handler.apply(req.withAttribute("number", "42")),
-                    (req, handler) -> handler.apply(req.withAttribute("lorem", "ipsum"))
+                    $(
+                        (req, handler) -> handler.apply(req.withAttribute("number", "42")),
+                        (req, handler) -> handler.apply(req.withAttribute("lorem", "ipsum"))
+                    )
                 )
                 .register(GET, "/a", (r) -> ok().text(r.attributes().get("number") + " " + r.attributes().get("lorem")).toFuture())
                 .start();

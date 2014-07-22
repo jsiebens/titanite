@@ -29,7 +29,7 @@ import static org.nosceon.titanite.Exceptions.internalServerError;
  * @author Johan Siebens
  */
 @SuppressWarnings("unchecked")
-public final class ErrorFilter implements Filter {
+public final class ErrorFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
 
     private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
 

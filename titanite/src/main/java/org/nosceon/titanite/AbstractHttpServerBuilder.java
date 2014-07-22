@@ -25,11 +25,11 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.stream.Collectors.toList;
 import static org.nosceon.titanite.HttpServerException.call;
 
 /**
@@ -39,7 +39,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
     private final List<Route> routings = new LinkedList<>();
 
-    private Optional<Filter> filter = Optional.empty();
+    private BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> globalFilter;
 
     protected final String id;
 
@@ -47,45 +47,43 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         this.id = id;
     }
 
-    public final R setFilter(Filter filter, Filter... additionalFilters) {
-        Filter f = filter;
-        if (additionalFilters != null) {
-            for (Filter additionalFilter : additionalFilters) {
-                f = f.andThen(additionalFilter);
-            }
-        }
-        this.filter = Optional.of(f);
+    public final R setFilter(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter) {
+        this.globalFilter = filter;
         return self();
     }
 
-    @SafeVarargs
-    public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
-        if (handlers != null && handlers.length > 0) {
-            Chain chain = new Chain(handler);
-            for (Function<Request, CompletionStage<Response>> f : handlers) {
-                chain = chain.fallbackTo(f);
-            }
-
-            this.routings.add(new Route(method, pattern, chain));
-        }
-        else {
-            this.routings.add(new Route(method, pattern, handler));
-        }
+    public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler) {
+        this.routings.add(new Route(method, pattern, handler));
         return self();
+    }
+
+    public final R register(Method method, String pattern, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Function<Request, CompletionStage<Response>> handler) {
+        return register(method, pattern, Utils.compose(filter, handler));
     }
 
     public final R register(Controller controller) {
-        this.routings.addAll(controller.get());
+        this.routings.addAll(controller.routes());
+        return self();
+    }
+
+    public final R register(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Controller controller) {
+        this.routings.addAll(controller.routes().stream().map(r -> new Route(r.method(), r.pattern(), Utils.compose(filter, r.function()))).collect(toList()));
         return self();
     }
 
     public final R register(Class<? extends Controller> c) {
-        Controller controller = call(c::newInstance);
-        return register(controller);
+        return register(call(c::newInstance));
+    }
+
+    public final R register(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Class<? extends Controller> c) {
+        return register(filter, call(c::newInstance));
     }
 
     protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
-        Router router = new Router(id, filter, routings);
+        List<Route> actualRoutes = applyGlobalFilter();
+        actualRoutes.forEach(r -> Titanite.LOG.info(id + " route added: " + Utils.padEnd(r.method().toString(), 7, ' ') + r.pattern()));
+
+        Router router = new Router(actualRoutes);
 
         new ServerBootstrap()
             .group(workers)
@@ -105,39 +103,18 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
             .syncUninterruptibly();
     }
 
-    protected abstract R self();
-
-    private static final class Chain implements Function<Request, CompletionStage<Response>> {
-
-        private Function<Request, CompletionStage<Response>> first;
-
-        private Function<Request, CompletionStage<Response>> second;
-
-        private Chain(Function<Request, CompletionStage<Response>> function) {
-            this((r) -> Titanite.Responses.notFound().toFuture(), function);
+    private List<Route> applyGlobalFilter() {
+        if (globalFilter != null) {
+            return routings.stream().map(r -> {
+                Function<Request, CompletionStage<Response>> handler = Utils.compose(globalFilter, r.function());
+                return new Route(r.method(), r.pattern(), handler);
+            }).collect(toList());
         }
-
-        private Chain(Function<Request, CompletionStage<Response>> first, Function<Request, CompletionStage<Response>> second) {
-            this.first = first;
-            this.second = second;
+        else {
+            return routings;
         }
-
-        @Override
-        public CompletionStage<Response> apply(Request request) {
-            return
-                first.apply(request)
-                    .thenCompose(resp -> {
-                        if (resp == null || resp.status() == 404) {
-                            return second.apply(request);
-                        }
-                        return completedFuture(resp);
-                    });
-        }
-
-        private Chain fallbackTo(Function<Request, CompletionStage<Response>> next) {
-            return new Chain(this, next);
-        }
-
     }
+
+    protected abstract R self();
 
 }

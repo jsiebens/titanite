@@ -18,9 +18,14 @@ package org.nosceon.titanite;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
 
+import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import static com.jayway.restassured.RestAssured.given;
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Titanite.$;
 import static org.nosceon.titanite.Titanite.Responses.ok;
 import static org.nosceon.titanite.Titanite.Responses.status;
 
@@ -29,7 +34,7 @@ import static org.nosceon.titanite.Titanite.Responses.status;
  */
 public class GlobalFiltersTest extends AbstractE2ETest {
 
-    private static final Filter SECURITY = (req, f) -> {
+    private static final BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> SECURITY = (req, f) -> {
         String s = ofNullable(req.headers().getString(HttpHeaders.Names.AUTHORIZATION)).orElse("");
         if ("admin".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-a", "lorem").toFuture());
@@ -39,7 +44,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
         }
     };
 
-    private static final Filter CONTENT_TYPE_JSON = (req, f) -> {
+    private static final BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> CONTENT_TYPE_JSON = (req, f) -> {
         String s = ofNullable(req.headers().getString(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
         if ("application/json".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").toFuture());
@@ -53,7 +58,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .setFilter(SECURITY, CONTENT_TYPE_JSON)
+                .setFilter($(SECURITY, CONTENT_TYPE_JSON))
                 .register(GET, "/resource", (r) -> ok().body("hello").toFuture())
                 .start();
     }

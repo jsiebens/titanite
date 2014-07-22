@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URI;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -32,6 +33,16 @@ import java.util.function.Function;
 public final class Titanite {
 
     static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
+
+    @SafeVarargs
+    public static Function<Request, CompletionStage<Response>> $(Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
+        return Utils.compose(handler, handlers);
+    }
+
+    @SafeVarargs
+    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> $(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>>... filters) {
+        return Utils.compose(filter, filters);
+    }
 
     public static HttpServerConfig.Default config() {
         return new HttpServerConfig.Default();

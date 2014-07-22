@@ -23,6 +23,7 @@ import java.security.Key;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -33,7 +34,7 @@ import static org.nosceon.titanite.Utils.deserialize;
 /**
  * @author Johan Siebens
  */
-public final class SessionFilter implements Filter {
+public final class SessionFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
 
     public static final String DEFAULT_SESSION_COOKIE_NAME = "_session";
 

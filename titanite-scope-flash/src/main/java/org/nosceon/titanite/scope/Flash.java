@@ -15,15 +15,18 @@
  */
 package org.nosceon.titanite.scope;
 
-import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
+import org.nosceon.titanite.Response;
 import org.nosceon.titanite.Scope;
 import org.nosceon.titanite.exception.FlashNotAvailableException;
 import org.nosceon.titanite.exception.InvalidFlashParamException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Utils.checkNotNull;
@@ -40,11 +43,11 @@ public final class Flash extends Scope {
         return checkNotNull(flash, () -> new FlashNotAvailableException("Flash not available, a " + FlashFilter.class.getName() + " should be registered to use a Flash"));
     }
 
-    public static Filter enableFlash() {
+    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> enableFlash() {
         return new FlashFilter();
     }
 
-    public static Filter enableFlash(String cookieName) {
+    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> enableFlash(String cookieName) {
         return new FlashFilter(cookieName);
     }
 
