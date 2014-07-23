@@ -41,6 +41,10 @@ public final class ExceptionsFilter implements BiFunction<Request, Function<Requ
         this.handlers = handlers;
     }
 
+    public static ExceptionsFilter onException() {
+        return new ExceptionsFilter();
+    }
+
     public <T extends Throwable> ExceptionsFilter match(Class<T> type, BiFunction<Request, T, Response> handler) {
         Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> newHandlers = new LinkedHashMap<>(this.handlers);
         newHandlers.put(type, (BiFunction<Request, Throwable, Response>) handler);

@@ -60,7 +60,7 @@ public abstract class AbstractE2ETest {
     }
 
     private HttpServer newServer(int port) {
-        return new HttpServer(new HttpServerConfig.Default().port(port).ioWorkerCount(2).maxRequestSize(maxRequestSize()));
+        return new HttpServer(new DefaultHttpServerConfig().port(port).ioWorkerCount(2).maxRequestSize(maxRequestSize()));
     }
 
     protected long maxRequestSize() {

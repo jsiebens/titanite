@@ -30,15 +30,15 @@ public class FormsParamsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(POST, "/a", (r) -> Titanite.Responses.ok().body(r.body().asForm().getString("p")).toFuture())
-                .register(POST, "/b", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getShort("p"))).toFuture())
-                .register(POST, "/c", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getInt("p"))).toFuture())
-                .register(POST, "/d", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getLong("p"))).toFuture())
-                .register(POST, "/e", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getFloat("p"))).toFuture())
-                .register(POST, "/f", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getDouble("p"))).toFuture())
-                .register(POST, "/g", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getBoolean("p"))).toFuture())
+                .register(POST, "/a", (r) -> Response.ok().body(r.body().asForm().getString("p")).toFuture())
+                .register(POST, "/b", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getShort("p"))).toFuture())
+                .register(POST, "/c", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getInt("p"))).toFuture())
+                .register(POST, "/d", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getLong("p"))).toFuture())
+                .register(POST, "/e", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getFloat("p"))).toFuture())
+                .register(POST, "/f", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getDouble("p"))).toFuture())
+                .register(POST, "/g", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getBoolean("p"))).toFuture())
 
-                .register(POST, "/ma", (r) -> Titanite.Responses.ok().body(String.valueOf(r.body().asForm().getStrings("p"))).toFuture())
+                .register(POST, "/ma", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getStrings("p"))).toFuture())
 
                 .start();
     }

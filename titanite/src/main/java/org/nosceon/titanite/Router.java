@@ -26,16 +26,15 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.nosceon.titanite.Titanite.Responses.*;
 
 /**
  * @author Johan Siebens
  */
 final class Router {
 
-    private static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(emptyMap(), (r) -> methodNotAllowed().toFuture());
+    private static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(emptyMap(), (r) -> Response.methodNotAllowed().toFuture());
 
-    private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), (r) -> notFound().toFuture());
+    private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), (r) -> Response.notFound().toFuture());
 
     private final List<Route> routes = new LinkedList<>();
 
@@ -70,7 +69,7 @@ final class Router {
                     })
                     .orElseGet(() -> {
                             if (Method.OPTIONS.equals(method)) {
-                                return new RoutingResult(emptyMap(), Utils.compose(allowedMethodsFilter(candidates), req -> ok().toFuture()));
+                                return new RoutingResult(emptyMap(), Utils.compose(allowedMethodsFilter(candidates), req -> Response.ok().toFuture()));
                             }
                             else if (Method.HEAD.equals(method)) {
                                 return find(HttpMethod.GET, path);

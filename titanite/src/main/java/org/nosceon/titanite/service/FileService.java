@@ -17,19 +17,15 @@ package org.nosceon.titanite.service;
 
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
-import org.nosceon.titanite.Titanite;
 
 import java.io.File;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.nosceon.titanite.Titanite.Responses.*;
 import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
 
 /**
@@ -37,9 +33,31 @@ import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
  */
 public final class FileService implements Function<Request, CompletionStage<Response>> {
 
-    private final File docRoot;
+    public static Function<Request, CompletionStage<Response>> fileService(String directory) {
+        return new FileService(new File(directory));
+    }
 
-    private final Executor executor;
+    public static Function<Request, CompletionStage<Response>> fileService(String directory, Function<Request, String> path) {
+        return new FileService(new File(directory), path);
+    }
+
+    public static Function<Request, CompletionStage<Response>> fileService(File directory) {
+        return new FileService(directory);
+    }
+
+    public static Function<Request, CompletionStage<Response>> fileService(File directory, Function<Request, String> path) {
+        return new FileService(directory, path);
+    }
+
+    public static Response serveFile(Request request, File file) {
+        return
+            ofNullable(file)
+                .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
+                .map((r) -> createResponse(request, r))
+                .orElseGet(Response::notFound);
+    }
+
+    private final File docRoot;
 
     private final Function<Request, String> pathExtractor;
 
@@ -48,36 +66,19 @@ public final class FileService implements Function<Request, CompletionStage<Resp
     }
 
     public FileService(File docRoot, Function<Request, String> pathExtractor) {
-        this(docRoot, pathExtractor, Runnable::run);
-    }
-
-    public FileService(File docRoot, Function<Request, String> pathExtractor, Executor executor) {
         this.docRoot = docRoot;
         this.pathExtractor = pathExtractor;
-        this.executor = executor;
     }
 
     @Override
     public CompletionStage<Response> apply(Request request) {
-        return supplyAsync(() -> internalApply(request), executor);
-    }
-
-    private Response internalApply(Request request) {
         String path = Optional.ofNullable(pathExtractor.apply(request)).get();
 
         if (path.contains("..")) {
-            return forbidden();
+            return Response.forbidden().toFuture();
         }
 
-        return serveFile(request, new File(docRoot, path));
-    }
-
-    public static Response serveFile(Request request, File file) {
-        return
-            ofNullable(file)
-                .filter((r) -> r.exists() && r.canRead() && !r.isHidden() && !r.isDirectory())
-                .map((r) -> createResponse(request, r))
-                .orElseGet(Titanite.Responses::notFound);
+        return serveFile(request, new File(docRoot, path)).toFuture();
     }
 
     private static Response createResponse(Request request, File file) {
@@ -86,7 +87,7 @@ public final class FileService implements Function<Request, CompletionStage<Resp
 
         if (lastModified <= 0) {
             return
-                ok()
+                Response.ok()
                     .type(getMediaTypeFromFileName(file.getName()))
                     .body(file);
         }
@@ -94,9 +95,9 @@ public final class FileService implements Function<Request, CompletionStage<Resp
             return
                 ifModifiedSince
                     .filter((d) -> lastModified <= d.getTime())
-                    .map((d) -> notModified())
+                    .map((d) -> Response.notModified())
                     .orElseGet(() ->
-                        ok()
+                        Response.ok()
                             .type(getMediaTypeFromFileName(file.getName()))
                             .lastModified(new Date(lastModified))
                             .body(file));

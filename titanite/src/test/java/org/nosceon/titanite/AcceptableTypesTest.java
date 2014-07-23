@@ -20,15 +20,14 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.MediaType.*;
 import static org.nosceon.titanite.Method.GET;
-import static org.nosceon.titanite.Titanite.Responses.notAcceptable;
-import static org.nosceon.titanite.Titanite.Responses.ok;
+import static org.nosceon.titanite.Response.notAcceptable;
+import static org.nosceon.titanite.Response.ok;
 
 /**
  * @author Johan Siebens

@@ -20,14 +20,14 @@ import com.google.common.io.Files;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.nosceon.titanite.service.FileService;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Titanite.fileService;
-import static org.nosceon.titanite.Titanite.serveFile;
+import static org.nosceon.titanite.service.FileService.serveFile;
 
 /**
  * @author Johan Siebens
@@ -55,8 +55,8 @@ public class FileServiceTest extends AbstractE2ETest {
         return
             server
                 .register(Method.GET, "/lorem.txt", req -> serveFile(req, txt).toFuture())
-                .register(Method.GET, "/a/b/c/*mycustompath", fileService(docRoot, req -> req.pathParams().getString("mycustompath")))
-                .register(Method.GET, "/*path", fileService(docRoot))
+                .register(Method.GET, "/a/b/c/*mycustompath", FileService.fileService(docRoot, req -> req.pathParams().getString("mycustompath")))
+                .register(Method.GET, "/*path", FileService.fileService(docRoot))
                 .start();
     }
 

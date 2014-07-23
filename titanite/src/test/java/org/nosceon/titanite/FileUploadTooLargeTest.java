@@ -42,7 +42,7 @@ public class FileUploadTooLargeTest extends AbstractE2ETest {
             server
                 .register(POST, "/post", (r) -> {
                     r.body().asForm();
-                    return Titanite.Responses.ok().toFuture();
+                    return Response.ok().toFuture();
                 })
                 .start();
     }

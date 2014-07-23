@@ -31,12 +31,20 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     private final HttpServerConfig config;
 
     public HttpServer() {
-        this(new HttpServerConfig.Default());
+        this(new DefaultHttpServerConfig());
     }
 
     public HttpServer(HttpServerConfig config) {
         super("Http Server [" + Utils.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0') + "]");
         this.config = config;
+    }
+
+    public static HttpServer httpServer() {
+        return new HttpServer();
+    }
+
+    public static HttpServer httpServer(HttpServerConfig config) {
+        return new HttpServer(config);
     }
 
     public Shutdownable start() {

@@ -27,7 +27,7 @@ public class HttpServerConfigTest {
 
     @Test
     public void testDefaultValues() {
-        HttpServerConfig config = new HttpServerConfig.Default();
+        HttpServerConfig config = new DefaultHttpServerConfig();
         assertThat(config.getPort(), equalTo(HttpServerConfig.DEFAULT_PORT));
         assertThat(config.getIoWorkerCount(), equalTo(HttpServerConfig.DEFAULT_IO_WORKER_COUNT));
         assertThat(config.getMaxRequestSize(), equalTo(HttpServerConfig.DEFAULT_MAX_REQUEST_SIZE));
@@ -39,7 +39,7 @@ public class HttpServerConfigTest {
         System.setProperty("titanite.io-worker-count", "5");
         System.setProperty("titanite.max-request-size", "7");
 
-        HttpServerConfig config = new HttpServerConfig.Default();
+        HttpServerConfig config = new DefaultHttpServerConfig();
         assertThat(config.getPort(), equalTo(3));
         assertThat(config.getIoWorkerCount(), equalTo(5));
         assertThat(config.getMaxRequestSize(), equalTo(7l));

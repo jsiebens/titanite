@@ -39,11 +39,95 @@ import static org.nosceon.titanite.Exceptions.internalServerError;
  */
 public final class Response {
 
+    public static Response status(int status) {
+        return new Response(HttpResponseStatus.valueOf(status));
+    }
+
+    public static Response ok() {
+        return new Response(HttpResponseStatus.OK);
+    }
+
+    public static Response created(String location) {
+        return new Response(HttpResponseStatus.CREATED).location(location);
+    }
+
+    public static Response created(URI location) {
+        return new Response(HttpResponseStatus.CREATED).location(location);
+    }
+
+    public static Response accepted() {
+        return new Response(HttpResponseStatus.ACCEPTED);
+    }
+
+    public static Response noContent() {
+        return new Response(HttpResponseStatus.NO_CONTENT);
+    }
+
+    public static Response seeOther(String location) {
+        return new Response(HttpResponseStatus.SEE_OTHER).location(location);
+    }
+
+    public static Response seeOther(URI location) {
+        return new Response(HttpResponseStatus.SEE_OTHER).location(location);
+    }
+
+    public static Response temporaryRedirect(String location) {
+        return new Response(HttpResponseStatus.TEMPORARY_REDIRECT).location(location);
+    }
+
+    public static Response temporaryRedirect(URI location) {
+        return new Response(HttpResponseStatus.TEMPORARY_REDIRECT).location(location);
+    }
+
+    public static Response notModified() {
+        return new Response(HttpResponseStatus.NOT_MODIFIED);
+    }
+
+    public static Response badRequest() {
+        return new Response(HttpResponseStatus.BAD_REQUEST);
+    }
+
+    public static Response unauthorized() {
+        return new Response(HttpResponseStatus.UNAUTHORIZED);
+    }
+
+    public static Response forbidden() {
+        return new Response(HttpResponseStatus.FORBIDDEN);
+    }
+
+    public static Response notFound() {
+        return new Response(HttpResponseStatus.NOT_FOUND);
+    }
+
+    public static Response notAcceptable() {
+        return new Response(HttpResponseStatus.NOT_ACCEPTABLE);
+    }
+
+    public static Response methodNotAllowed() {
+        return new Response(HttpResponseStatus.METHOD_NOT_ALLOWED);
+    }
+
+    public static Response conflict() {
+        return new Response(HttpResponseStatus.CONFLICT);
+    }
+
+    public static Response unsupportedMediaType() {
+        return new Response(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    public static Response notImplemented() {
+        return new Response(HttpResponseStatus.NOT_IMPLEMENTED);
+    }
+
     private HttpResponseStatus status;
 
     private HttpHeaders headers = new DefaultHttpHeaders();
 
     private Body body = new NoBody();
+
+    public Response(int status) {
+        this(HttpResponseStatus.valueOf(status));
+    }
 
     Response(HttpResponseStatus status) {
         this.status = status;

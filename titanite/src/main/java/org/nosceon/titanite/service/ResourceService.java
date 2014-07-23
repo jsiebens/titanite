@@ -26,15 +26,12 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.nosceon.titanite.HttpServerException.call;
-import static org.nosceon.titanite.Titanite.Responses.*;
 import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
 import static org.nosceon.titanite.Utils.getResource;
 
@@ -43,45 +40,28 @@ import static org.nosceon.titanite.Utils.getResource;
  */
 public final class ResourceService implements Function<Request, CompletionStage<Response>> {
 
-    private static final char SLASH = '/';
-
-    public static final String WEBJAR_RESOURCES = "/META-INF/resources/webjars";
-
-    public static final String PUBLIC_RESOURCES = "/public";
-
-    private final String baseResource;
-
-    private final Executor executor;
-
-    private final Function<Request, String> pathExtractor;
-
-    public ResourceService(String baseResource) {
-        this(baseResource, Request::path);
+    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource) {
+        return new ResourceService(baseResource);
     }
 
-    public ResourceService(String baseResource, Function<Request, String> pathExtractor) {
-        this(baseResource, pathExtractor, Runnable::run);
+    public static Function<Request, CompletionStage<Response>> resourceService(String baseResource, Function<Request, String> path) {
+        return new ResourceService(baseResource, path);
     }
 
-    public ResourceService(String baseResource, Function<Request, String> pathExtractor, Executor executor) {
-        this.baseResource = Utils.trimTrailing(SLASH, baseResource);
-        this.pathExtractor = pathExtractor;
-        this.executor = executor;
+    public static Function<Request, CompletionStage<Response>> publicResourceService() {
+        return new ResourceService(PUBLIC_RESOURCES);
     }
 
-    @Override
-    public final CompletionStage<Response> apply(Request request) {
-        return supplyAsync(() -> internalApply(request), executor);
+    public static Function<Request, CompletionStage<Response>> publicResourceService(Function<Request, String> path) {
+        return new ResourceService(PUBLIC_RESOURCES, path);
     }
 
-    private Response internalApply(Request request) {
-        String path = Optional.ofNullable(pathExtractor.apply(request)).get();
+    public static Function<Request, CompletionStage<Response>> webJarResourceService() {
+        return new ResourceService(WEBJAR_RESOURCES);
+    }
 
-        if (path.contains("..")) {
-            return forbidden();
-        }
-
-        return serveResource(request, baseResource + SLASH + Utils.trimLeading(SLASH, path));
+    public static Function<Request, CompletionStage<Response>> webJarResourceService(Function<Request, String> path) {
+        return new ResourceService(WEBJAR_RESOURCES, path);
     }
 
     public static Response serveResource(Request request, String path) {
@@ -104,7 +84,37 @@ public final class ResourceService implements Function<Request, CompletionStage<
             }
         }
 
-        return notFound();
+        return Response.notFound();
+    }
+
+    private static final char SLASH = '/';
+
+    public static final String WEBJAR_RESOURCES = "/META-INF/resources/webjars";
+
+    public static final String PUBLIC_RESOURCES = "/public";
+
+    private final String baseResource;
+
+    private final Function<Request, String> pathExtractor;
+
+    public ResourceService(String baseResource) {
+        this(baseResource, Request::path);
+    }
+
+    public ResourceService(String baseResource, Function<Request, String> pathExtractor) {
+        this.baseResource = Utils.trimTrailing(SLASH, baseResource);
+        this.pathExtractor = pathExtractor;
+    }
+
+    @Override
+    public final CompletionStage<Response> apply(Request request) {
+        String path = Optional.ofNullable(pathExtractor.apply(request)).get();
+
+        if (path.contains("..")) {
+            return Response.forbidden().toFuture();
+        }
+
+        return serveResource(request, baseResource + SLASH + Utils.trimLeading(SLASH, path)).toFuture();
     }
 
     private static Response createResponseFromJarResource(Request request, URL resource) {
@@ -113,7 +123,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
 
         if (lastModified <= 0) {
             return
-                ok()
+                Response.ok()
                     .type(getMediaTypeFromFileName(resource.toString()))
                     .body(call(resource::openStream));
         }
@@ -121,9 +131,9 @@ public final class ResourceService implements Function<Request, CompletionStage<
             return
                 ifModifiedSince
                     .filter((d) -> lastModified <= d.getTime())
-                    .map((d) -> notModified())
+                    .map((d) -> Response.notModified())
                     .orElseGet(() ->
-                        ok()
+                        Response.ok()
                             .type(getMediaTypeFromFileName(resource.toString()))
                             .lastModified(new Date(lastModified))
                             .body(call(resource::openStream)));

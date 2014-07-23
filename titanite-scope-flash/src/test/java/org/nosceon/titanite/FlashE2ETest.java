@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.nosceon.titanite.Method.GET;
-import static org.nosceon.titanite.Titanite.Responses.ok;
+import static org.nosceon.titanite.Response.ok;
 import static org.nosceon.titanite.scope.Flash.enableFlash;
 import static org.nosceon.titanite.scope.Flash.flash;
 import static org.nosceon.titanite.scope.FlashFilter.DEFAULT_FLASH_COOKIE_NAME;

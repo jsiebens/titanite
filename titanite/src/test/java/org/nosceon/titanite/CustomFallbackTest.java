@@ -23,10 +23,9 @@ import java.util.function.Function;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
-import static org.nosceon.titanite.Method.POST;
 import static org.nosceon.titanite.Titanite.$;
-import static org.nosceon.titanite.Titanite.Responses.notFound;
-import static org.nosceon.titanite.Titanite.Responses.ok;
+import static org.nosceon.titanite.Response.notFound;
+import static org.nosceon.titanite.Response.ok;
 
 /**
  * @author Johan Siebens
