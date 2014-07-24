@@ -26,13 +26,9 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.nosceon.titanite.HttpServerException.call;
 
 /**
@@ -206,46 +202,4 @@ public class Utils {
         return call(() -> URLDecoder.decode(value, UTF_8));
     }
 
-    static Function<Request, CompletionStage<Response>> compose(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Function<Request, CompletionStage<Response>> handler) {
-        return request -> filter.apply(request, handler);
-    }
-
-    @SafeVarargs
-    static Function<Request, CompletionStage<Response>> compose(Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... additionalHandlers) {
-        Function<Request, CompletionStage<Response>> h = handler;
-        if (additionalHandlers != null) {
-            for (Function<Request, CompletionStage<Response>> additionalHandler : additionalHandlers) {
-                h = compose(h, additionalHandler);
-            }
-        }
-        return h;
-    }
-
-    @SafeVarargs
-    static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> compose(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>>... additionalFilters) {
-        BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> f = filter;
-        if (additionalFilters != null) {
-            for (BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> additionalFilter : additionalFilters) {
-                f = compose(f, additionalFilter);
-            }
-        }
-        return f;
-    }
-
-    private static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> compose(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> first, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> second) {
-        return (request, next) -> first.apply(request, (r) -> second.apply(r, next));
-    }
-
-    private static Function<Request, CompletionStage<Response>> compose(Function<Request, CompletionStage<Response>> first, Function<Request, CompletionStage<Response>> second) {
-        return (request) ->
-            first.apply(request)
-                .thenCompose(resp -> {
-                    if (resp == null || resp.status() == 404) {
-                        return second.apply(request);
-                    }
-                    return completedFuture(resp);
-                });
-
-    }
-    
 }

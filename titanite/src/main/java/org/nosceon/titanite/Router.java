@@ -64,12 +64,12 @@ final class Router {
                         ParameterizedPattern.Matcher matcher = route.pattern().matcher(path);
                         return
                             Method.OPTIONS.equals(method) ?
-                                new RoutingResult(matcher.parameters(), Utils.compose(allowedMethodsFilter(candidates), route.function())) :
+                                new RoutingResult(matcher.parameters(), new CompositeHandler(allowedMethodsFilter(candidates), route.function())) :
                                 new RoutingResult(matcher.parameters(), route.function());
                     })
                     .orElseGet(() -> {
                             if (Method.OPTIONS.equals(method)) {
-                                return new RoutingResult(emptyMap(), Utils.compose(allowedMethodsFilter(candidates), req -> Response.ok().toFuture()));
+                                return new RoutingResult(emptyMap(), new CompositeHandler(allowedMethodsFilter(candidates), req -> Response.ok().toFuture()));
                             }
                             else if (Method.HEAD.equals(method)) {
                                 return find(HttpMethod.GET, path);

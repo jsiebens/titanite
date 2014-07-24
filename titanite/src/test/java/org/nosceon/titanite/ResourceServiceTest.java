@@ -20,7 +20,7 @@ import org.nosceon.titanite.service.ResourceService;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.nosceon.titanite.Titanite.$;
+import static org.nosceon.titanite.CompositeHandler.h;
 import static org.nosceon.titanite.service.ResourceService.serveResource;
 
 /**
@@ -34,7 +34,7 @@ public class ResourceServiceTest extends AbstractE2ETest {
             server
                 .register(Method.GET, "/lorem.txt", req -> serveResource(req, "/public/hello.txt").toFuture())
                 .register(Method.GET, "/a/b/c/*mycustompath", ResourceService.publicResourceService(req -> req.pathParams().getString("mycustompath")))
-                .register(Method.GET, "/*path", $(ResourceService.publicResourceService(), ResourceService.webJarResourceService()))
+                .register(Method.GET, "/*path", h(ResourceService.publicResourceService(), ResourceService.webJarResourceService()))
                 .start();
     }
 

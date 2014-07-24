@@ -58,7 +58,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Method method, String pattern, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Function<Request, CompletionStage<Response>> handler) {
-        return register(method, pattern, Utils.compose(filter, handler));
+        return register(method, pattern, new CompositeHandler(filter, handler));
     }
 
     public final R register(Controller controller) {
@@ -67,7 +67,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Controller controller) {
-        this.routings.addAll(controller.routes().stream().map(r -> new Route(r.method(), r.pattern(), Utils.compose(filter, r.function()))).collect(toList()));
+        this.routings.addAll(controller.routes().stream().map(r -> new Route(r.method(), r.pattern(), new CompositeHandler(filter, r.function()))).collect(toList()));
         return self();
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     private List<Route> applyGlobalFilter() {
         if (globalFilter != null) {
             return routings.stream().map(r -> {
-                Function<Request, CompletionStage<Response>> handler = Utils.compose(globalFilter, r.function());
+                Function<Request, CompletionStage<Response>> handler = new CompositeHandler(globalFilter, r.function());
                 return new Route(r.method(), r.pattern(), handler);
             }).collect(toList());
         }

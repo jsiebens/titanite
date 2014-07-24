@@ -25,18 +25,8 @@ import java.util.function.Function;
 /**
  * @author Johan Siebens
  */
-public final class Titanite {
+final class Titanite {
 
     static final Logger LOG = LoggerFactory.getLogger(Titanite.class);
-
-    @SafeVarargs
-    public static Function<Request, CompletionStage<Response>> $(Function<Request, CompletionStage<Response>> handler, Function<Request, CompletionStage<Response>>... handlers) {
-        return Utils.compose(handler, handlers);
-    }
-
-    @SafeVarargs
-    public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> $(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>>... filters) {
-        return Utils.compose(filter, filters);
-    }
 
 }

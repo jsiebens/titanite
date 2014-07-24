@@ -18,7 +18,6 @@ package org.nosceon.titanite.view;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.nosceon.titanite.BodyWriter;
-import org.nosceon.titanite.Titanite;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -72,7 +71,7 @@ public final class FreemarkerViewRenderer extends ViewRenderer {
 
     private static Configuration defaultConfiguration() {
         Configuration configuration = new Configuration();
-        configuration.setClassForTemplateLoading(Titanite.class, "/templates");
+        configuration.setClassForTemplateLoading(FreemarkerViewRenderer.class, "/templates");
         return configuration;
     }
 

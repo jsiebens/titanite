@@ -24,8 +24,8 @@ import java.util.function.Function;
 
 import static com.jayway.restassured.RestAssured.given;
 import static java.util.Optional.ofNullable;
+import static org.nosceon.titanite.CompositeFilter.f;
 import static org.nosceon.titanite.Method.GET;
-import static org.nosceon.titanite.Titanite.$;
 import static org.nosceon.titanite.Response.ok;
 import static org.nosceon.titanite.Response.status;
 
@@ -58,7 +58,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .setFilter($(SECURITY, CONTENT_TYPE_JSON))
+                .setFilter(f(SECURITY, CONTENT_TYPE_JSON))
                 .register(GET, "/resource", (r) -> ok().body("hello").toFuture())
                 .start();
     }
