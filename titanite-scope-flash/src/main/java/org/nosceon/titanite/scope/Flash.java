@@ -19,7 +19,7 @@ import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
 import org.nosceon.titanite.Scope;
 import org.nosceon.titanite.exception.FlashNotAvailableException;
-import org.nosceon.titanite.exception.InvalidFlashParamException;
+import org.nosceon.titanite.scope.exception.InvalidFlashParamException;
 
 import java.util.HashMap;
 import java.util.Map;

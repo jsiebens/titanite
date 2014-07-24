@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.exception;
+package org.nosceon.titanite.scope.exception;
 
 import org.nosceon.titanite.exception.AbstractInvalidParameterException;
 
 /**
  * @author Johan Siebens
  */
-public final class InvalidSessionParamException extends AbstractInvalidParameterException {
+public final class InvalidFlashParamException extends AbstractInvalidParameterException {
 
-    public InvalidSessionParamException(Throwable cause, String type, String name, String value) {
-        super(cause, "session", type, name, value);
+    public InvalidFlashParamException(Throwable cause, String type, String name, String value) {
+        super(cause, "flash", type, name, value);
     }
 
 }

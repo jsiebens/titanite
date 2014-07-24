@@ -18,8 +18,8 @@ package org.nosceon.titanite.scope;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
 import org.nosceon.titanite.Scope;
-import org.nosceon.titanite.exception.InvalidSessionParamException;
 import org.nosceon.titanite.exception.SessionNotAvailableException;
+import org.nosceon.titanite.scope.exception.InvalidSessionParamException;
 
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
