@@ -22,15 +22,15 @@ import java.util.function.Function;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.CompositeHandler.h;
 import static org.nosceon.titanite.Method.GET;
-import static org.nosceon.titanite.Titanite.$;
 import static org.nosceon.titanite.Response.notFound;
 import static org.nosceon.titanite.Response.ok;
 
 /**
  * @author Johan Siebens
  */
-public class CustomFallbackTest extends AbstractE2ETest {
+public class CompositeHandlerTest extends AbstractE2ETest {
 
     public static class Handler implements Function<Request, CompletionStage<Response>> {
 
@@ -56,7 +56,7 @@ public class CustomFallbackTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) {
         return
             server
-                .register(GET, "/a", $(new Handler("A"), new Handler("B"), new Handler("C")))
+                .register(GET, "/a", h(new Handler("A"), new Handler("B"), new Handler("C")))
                 .start();
     }
 
