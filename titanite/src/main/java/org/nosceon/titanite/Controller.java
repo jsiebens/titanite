@@ -34,6 +34,10 @@ public abstract class Controller {
         this.routings.addAll(routes);
     }
 
+    protected final void head(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.HEAD, pattern, handler));
+    }
+
     protected final void get(String pattern, Function<Request, CompletionStage<Response>> handler) {
         routings.add(new Route(Method.GET, pattern, handler));
     }
@@ -52,6 +56,10 @@ public abstract class Controller {
 
     protected final void delete(String pattern, Function<Request, CompletionStage<Response>> handler) {
         routings.add(new Route(Method.DELETE, pattern, handler));
+    }
+
+    protected final void options(String pattern, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.OPTIONS, pattern, handler));
     }
 
     final List<Route> routes() {
