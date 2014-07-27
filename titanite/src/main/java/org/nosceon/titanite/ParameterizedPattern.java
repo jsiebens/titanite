@@ -19,6 +19,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * @author Johan Siebens
  */
@@ -93,14 +95,12 @@ final class ParameterizedPattern {
         while (segments.hasNext()) {
             String n = segments.next();
 
-            sb.append("/");
-
             if (n.startsWith(":")) {
                 String g = validateName(n.substring(1));
                 if (!groups.add(g)) {
                     throw new IllegalArgumentException("Cannot use identifier '" + g + "' more than once in pattern string");
                 }
-                sb.append("(?<").append(g).append(">[^\\/]+)");
+                sb.append('/').append("(?<").append(g).append(">[^\\/]+)");
             }
             else if (n.startsWith("*")) {
                 if (segments.hasNext()) {
@@ -110,10 +110,20 @@ final class ParameterizedPattern {
                 if (!groups.add(g)) {
                     throw new IllegalArgumentException("Cannot use identifier '" + g + "' more than once in pattern string");
                 }
-                sb.append("(?<").append(g).append(">.+)");
+                sb.append("(\\/(?<").append(g).append(">.*))?");
+            }
+            else if (n.startsWith("+")) {
+                if (segments.hasNext()) {
+                    throw new IllegalArgumentException("Dynamic part over more than one segment should be placed at the end");
+                }
+                String g = validateName(n.substring(1));
+                if (!groups.add(g)) {
+                    throw new IllegalArgumentException("Cannot use identifier '" + g + "' more than once in pattern string");
+                }
+                sb.append('/').append("(?<").append(g).append(">.+)");
             }
             else {
-                sb.append(n);
+                sb.append('/').append(n);
             }
         }
 
@@ -158,7 +168,7 @@ final class ParameterizedPattern {
             this.matches = matcher.matches();
             if (this.matches()) {
                 for (String name : parameters) {
-                    this.parameters.put(name, matcher.group(name));
+                    this.parameters.put(name, ofNullable(matcher.group(name)).orElse(""));
                 }
             }
         }

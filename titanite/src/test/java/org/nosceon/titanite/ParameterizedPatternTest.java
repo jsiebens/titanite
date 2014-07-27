@@ -60,6 +60,36 @@ public class ParameterizedPatternTest {
         assertThat(pattern.matcher("/lorem/ipsum").matches(), is(false));
     }
 
+    @Test
+    public void testEmptyDynamicPart() {
+        ParameterizedPattern pattern = new ParameterizedPattern("/hello/*path");
+        ParameterizedPattern.Matcher matcher = pattern.matcher("/hello/world/id/123/567/89");
+        assertThat(matcher.matches(), is(true));
+        assertThat(matcher.parameters().get("path"), equalTo("world/id/123/567/89"));
+
+        ParameterizedPattern.Matcher matchB = pattern.matcher("/hello");
+        assertThat(matchB.matches(), is(true));
+        assertThat(matchB.parameters().get("path"), equalTo(""));
+
+        ParameterizedPattern.Matcher matchC = pattern.matcher("/hello/");
+        assertThat(matchC.matches(), is(true));
+        assertThat(matchC.parameters().get("path"), equalTo(""));
+    }
+
+    @Test
+    public void testRequiredDynamicPart() {
+        ParameterizedPattern pattern = new ParameterizedPattern("/hello/+path");
+        ParameterizedPattern.Matcher matcher = pattern.matcher("/hello/world/id/123/567/89");
+        assertThat(matcher.matches(), is(true));
+        assertThat(matcher.parameters().get("path"), equalTo("world/id/123/567/89"));
+
+        ParameterizedPattern.Matcher matchB = pattern.matcher("/hello");
+        assertThat(matchB.matches(), is(false));
+
+        ParameterizedPattern.Matcher matchC = pattern.matcher("/hello/");
+        assertThat(matchC.matches(), is(false));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testMultSegmentCanOnlyBeSetOnEnd() {
         new ParameterizedPattern("/hello/*name/id/*path");
