@@ -26,10 +26,10 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.call;
 
 /**
  * @author Johan Siebens
@@ -195,11 +195,41 @@ public class Utils {
     }
 
     private static String urlencode(String key, String value) {
-        return call(() -> URLEncoder.encode(key, UTF_8) + '=' + URLEncoder.encode(value, UTF_8));
+        return callUnchecked(() -> URLEncoder.encode(key, UTF_8) + '=' + URLEncoder.encode(value, UTF_8));
     }
 
     private static String urldecode(String value) {
-        return call(() -> URLDecoder.decode(value, UTF_8));
+        return callUnchecked(() -> URLDecoder.decode(value, UTF_8));
     }
 
+    public static <T> T callUnchecked(Callable<T> callable) {
+        try {
+            return callable.call();
+        }
+        catch (InternalRuntimeException e1) {
+            throw e1;
+        }
+        catch (Exception e11) {
+            throw new InternalRuntimeException(e11);
+        }
+    }
+
+    public static void runUnchecked(Action runnable) {
+        try {
+            runnable.run();
+        }
+        catch (InternalRuntimeException e1) {
+            throw e1;
+        }
+        catch (Exception e11) {
+            throw new InternalRuntimeException(e11);
+        }
+    }
+
+    @FunctionalInterface
+    public static interface Action {
+
+        void run() throws Exception;
+
+    }
 }

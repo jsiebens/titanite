@@ -23,7 +23,7 @@ import org.nosceon.titanite.BodyWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -52,7 +52,7 @@ public final class MustacheViewRenderer extends ViewRenderer {
 
     @Override
     public BodyWriter writer(String template, Object view) {
-        return call(() -> render(getMustache(template), view));
+        return callUnchecked(() -> render(getMustache(template), view));
     }
 
     private BodyWriter render(Mustache mustache, Object model) throws IOException {

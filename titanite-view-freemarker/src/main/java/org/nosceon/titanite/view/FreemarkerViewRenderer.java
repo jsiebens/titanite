@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collections;
 
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -50,7 +50,7 @@ public final class FreemarkerViewRenderer extends ViewRenderer {
 
     @Override
     public BodyWriter writer(String view, Object model) {
-        return call(() -> render(getTemplate(view), model));
+        return callUnchecked(() -> render(getTemplate(view), model));
     }
 
     private BodyWriter render(Template template, Object model) throws IOException {

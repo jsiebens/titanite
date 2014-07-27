@@ -30,7 +30,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -72,11 +72,11 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Class<? extends Controller> c) {
-        return register(call(c::newInstance));
+        return register(callUnchecked(c::newInstance));
     }
 
     public final R register(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Class<? extends Controller> c) {
-        return register(filter, call(c::newInstance));
+        return register(filter, callUnchecked(c::newInstance));
     }
 
     protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {

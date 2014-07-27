@@ -18,26 +18,10 @@ package org.nosceon.titanite;
 /**
  * @author Johan Siebens
  */
-public class HttpServerException extends RuntimeException {
+final class InternalRuntimeException extends RuntimeException {
 
-    private final Response response;
-
-    public HttpServerException(Response response) {
-        this(String.valueOf(response.status()), response);
-    }
-
-    public HttpServerException(String message, Response response) {
-        super(message);
-        this.response = response;
-    }
-
-    public HttpServerException(Throwable cause, Response response) {
-        super(String.valueOf(response.status()), cause);
-        this.response = response;
-    }
-
-    public final Response getResponse() {
-        return response;
+    InternalRuntimeException(Throwable cause) {
+        super(cause);
     }
 
 }

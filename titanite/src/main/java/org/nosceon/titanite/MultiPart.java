@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -37,7 +37,7 @@ public final class MultiPart {
 
     public InputStream content() {
         return
-            call(() -> {
+            callUnchecked(() -> {
                 if (fileUpload.isInMemory()) {
                     return new ByteBufInputStream(fileUpload.content());
                 }
@@ -61,7 +61,7 @@ public final class MultiPart {
     }
 
     public boolean renameTo(File dest) {
-        return call(() -> fileUpload.renameTo(dest));
+        return callUnchecked(() -> fileUpload.renameTo(dest));
     }
 
 }

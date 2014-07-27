@@ -31,7 +31,7 @@ import java.util.jar.JarEntry;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
 import static org.nosceon.titanite.Utils.getResource;
 
@@ -125,7 +125,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
             return
                 Response.ok()
                     .type(getMediaTypeFromFileName(resource.toString()))
-                    .body(call(resource::openStream));
+                    .body(callUnchecked(resource::openStream));
         }
         else {
             return
@@ -136,7 +136,7 @@ public final class ResourceService implements Function<Request, CompletionStage<
                         Response.ok()
                             .type(getMediaTypeFromFileName(resource.toString()))
                             .lastModified(new Date(lastModified))
-                            .body(call(resource::openStream)));
+                            .body(callUnchecked(resource::openStream)));
         }
     }
 

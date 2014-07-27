@@ -17,8 +17,8 @@ package org.nosceon.titanite;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -69,15 +69,18 @@ public final class ExceptionsFilter implements BiFunction<Request, Function<Requ
         Throwable e = t;
 
         if (e instanceof CompletionException) {
-            e = lookupCause((CompletionException) e);
+            e = lookupCause(e);
+        }
+
+        if (e instanceof InternalRuntimeException) {
+            e = lookupCause(e);
         }
 
         BiFunction<Request, Throwable, Response> function = find(e.getClass());
 
         if (function != null) {
-            return function.apply(request, t);
+            return function.apply(request, e);
         }
-
 
         if (e instanceof HttpServerException) {
             Response response = ((HttpServerException) e).getResponse();
@@ -95,7 +98,7 @@ public final class ExceptionsFilter implements BiFunction<Request, Function<Requ
 
     }
 
-    private Throwable lookupCause(CompletionException e) {
+    private Throwable lookupCause(Throwable e) {
         Throwable cause = e.getCause();
         if (cause != null) {
             return cause;

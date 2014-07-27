@@ -349,7 +349,7 @@ public final class Response {
             ctx.write(response);
 
             if (!request.method().equals(Method.HEAD)) {
-                HttpServerException.run(() -> {
+                Utils.runUnchecked(() -> {
                     try (OutputStream out = new ChunkOutputStream(ctx, 1024)) {
                         consumer.writeTo(out);
                     }

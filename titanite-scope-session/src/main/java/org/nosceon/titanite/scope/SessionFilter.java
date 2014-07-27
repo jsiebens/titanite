@@ -27,7 +27,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 import static org.nosceon.titanite.Utils.checkNotEmpty;
 import static org.nosceon.titanite.Utils.deserialize;
 
@@ -89,7 +89,7 @@ public final class SessionFilter implements BiFunction<Request, Function<Request
 
     private static String sign(String secret, String message) {
         return
-            call(() -> {
+            callUnchecked(() -> {
                 Key secretKey = new SecretKeySpec(secret.getBytes(UTF_8), HMAC_SHA1_ALGORITHM);
                 Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
                 mac.init(secretKey);

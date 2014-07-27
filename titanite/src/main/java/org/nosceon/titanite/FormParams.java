@@ -20,13 +20,12 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.nosceon.titanite.exception.InvalidFormParamException;
-import org.nosceon.titanite.exception.InvalidQueryParamException;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -67,7 +66,7 @@ public final class FormParams extends MultiParams {
     }
 
     private String toString(InterfaceHttpData p) {
-        return call(() -> {
+        return callUnchecked(() -> {
             if (p != null) {
                 if (p instanceof FileUpload) {
                     return FileUpload.class.cast(p).getFilename();

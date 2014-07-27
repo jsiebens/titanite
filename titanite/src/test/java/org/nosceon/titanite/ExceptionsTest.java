@@ -21,9 +21,10 @@ import java.util.concurrent.CompletionException;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.nosceon.titanite.ExceptionsFilter.onException;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Response.ok;
-import static org.nosceon.titanite.ExceptionsFilter.onException;
+import static org.nosceon.titanite.Utils.runUnchecked;
 
 /**
  * @author Johan Siebens
@@ -66,6 +67,14 @@ public class ExceptionsTest extends AbstractE2ETest {
                 .register(GET, "/e", (r) -> {
                     throw new InternalSub2Exception();
                 })
+
+                .register(GET, "/f", (r) -> {
+                    runUnchecked(() -> {
+                        throw new InternalSub1Exception();
+                    });
+                    return ok().toFuture();
+                })
+
                 .start();
     }
 
@@ -77,6 +86,11 @@ public class ExceptionsTest extends AbstractE2ETest {
 
         given().expect().statusCode(200).body(equalTo("Internal Sub1")).when().get(uri("/d"));
         given().expect().statusCode(200).body(equalTo("Internal")).when().get(uri("/e"));
+    }
+
+    @Test
+    public void testInternalServerException() {
+        given().expect().statusCode(200).body(equalTo("Internal Sub1")).when().get(uri("/f"));
     }
 
 }

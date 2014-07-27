@@ -38,7 +38,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.Exceptions.internalServerError;
 import static org.nosceon.titanite.Exceptions.requestEntityTooLarge;
-import static org.nosceon.titanite.HttpServerException.call;
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -122,7 +122,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         Response response = r;
                         if (e != null) {
                             if (e instanceof CompletionException) {
-                                e = lookupCause((CompletionException) e);
+                                e = lookupCause(e);
+                            }
+
+                            if (e instanceof InternalRuntimeException) {
+                                e = lookupCause(e);
                             }
 
                             if (e instanceof HttpServerException) {
@@ -145,7 +149,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     }
 
-    private Throwable lookupCause(CompletionException e) {
+    private Throwable lookupCause(Throwable e) {
         Throwable cause = e.getCause();
         if (cause != null) {
             return cause;
@@ -287,13 +291,13 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
         @Override
         public String asText() {
-            return call(() -> Utils.toString(new InputStreamReader(asStream())));
+            return callUnchecked(() -> Utils.toString(new InputStreamReader(asStream())));
         }
 
         @Override
         public <T> T as(BodyReader<T> si) {
             if (content.readableBytes() > 0) {
-                return call(() -> si.readFrom(asStream()));
+                return callUnchecked(() -> si.readFrom(asStream()));
             }
             else {
                 return null;
