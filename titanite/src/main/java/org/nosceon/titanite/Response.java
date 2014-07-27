@@ -280,7 +280,7 @@ public final class Response {
             response.headers().add(headers);
             setTransferEncodingChunked(response);
 
-            ctx.write(response);
+            ctx.writeAndFlush(response);
 
             if (!request.method().equals(Method.HEAD)) {
                 ChunksChannel channel = new ChunksChannel(keepAlive, ctx);
