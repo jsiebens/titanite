@@ -52,6 +52,14 @@ public class FileServiceTest extends AbstractE2ETest {
         File txt = new File(docRoot, "temporary.txt");
         Files.write(TEXT, txt, Charsets.UTF_8);
 
+        File subDirA = new File(docRoot, "subA");
+        subDirA.mkdir();
+
+        File subDirB = new File(docRoot, "subB");
+        subDirB.mkdir();
+
+        Files.write(TEXT, new File(subDirB, "index.html"), Charsets.UTF_8);
+
         return
             server
                 .register(Method.GET, "/lorem.txt", req -> serveFile(req, txt).toFuture())
@@ -66,6 +74,9 @@ public class FileServiceTest extends AbstractE2ETest {
         given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/temporary.txt"));
         given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/a/b/c/temporary.txt"));
         given().expect().statusCode(403).when().get(uri("/../forbidden.txt"));
+
+        given().expect().statusCode(404).when().get(uri("/subA"));
+        given().expect().statusCode(200).body(equalTo(TEXT)).when().get(uri("/subB"));
     }
 
 }

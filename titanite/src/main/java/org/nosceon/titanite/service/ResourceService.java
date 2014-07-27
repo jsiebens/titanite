@@ -31,9 +31,8 @@ import java.util.jar.JarEntry;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static java.util.Optional.ofNullable;
-import static org.nosceon.titanite.Utils.callUnchecked;
-import static org.nosceon.titanite.Utils.getMediaTypeFromFileName;
-import static org.nosceon.titanite.Utils.getResource;
+import static org.nosceon.titanite.Utils.*;
+import static org.nosceon.titanite.service.FileService.serveFile;
 
 /**
  * @author Johan Siebens
@@ -72,13 +71,11 @@ public final class ResourceService implements Function<Request, CompletionStage<
             String protocol = url.getProtocol();
             switch (protocol) {
                 case "file":
-                    return FileService.serveFile(request, new File(url.getFile()));
+                    File file = new File(url.getFile());
+                    return file.isDirectory() ? serveFile(request, new File(file, "index.html")) : serveFile(request, file);
                 case "jar":
                     // http://stackoverflow.com/a/20107785
-                    if (getResource(trimmedPath + '/') == null) {
-                        return createResponseFromJarResource(request, url);
-                    }
-                    break;
+                    return getResource(trimmedPath + '/') != null ? serveResource(request, trimmedPath + "/index.html") : createResponseFromJarResource(request, url);
                 default:
                     throw new IllegalArgumentException("Unsupported protocol " + url.getProtocol() + " for resource " + url);
             }

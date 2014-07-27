@@ -209,6 +209,7 @@
             <exclude>src/test/resources/**/*.txt</exclude>
             <exclude>src/test/resources/**/*.mustache</exclude>
             <exclude>src/test/resources/**/*.ftl</exclude>
+            <exclude>src/test/resources/**/*.html</exclude>
           </excludes>
         </configuration>
       </plugin>

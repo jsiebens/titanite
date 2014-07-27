@@ -78,7 +78,9 @@ public final class FileService implements Function<Request, CompletionStage<Resp
             return Response.forbidden().toFuture();
         }
 
-        return serveFile(request, new File(docRoot, path)).toFuture();
+        File file = new File(docRoot, path);
+
+        return file.isDirectory() ? serveFile(request, new File(file, "index.html")).toFuture() : serveFile(request, file).toFuture();
     }
 
     private static Response createResponse(Request request, File file) {

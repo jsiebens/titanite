@@ -81,7 +81,7 @@ public class Utils {
     public static String trimTrailing(char c, String value) {
         int end = value.length() - 1;
         if (value.charAt(end) == c) {
-            return value.substring(0, end - 1);
+            return value.substring(0, end);
         }
         return value;
     }

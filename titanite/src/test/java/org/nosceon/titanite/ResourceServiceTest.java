@@ -21,7 +21,9 @@ import org.nosceon.titanite.service.ResourceService;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.CompositeHandler.h;
+import static org.nosceon.titanite.service.ResourceService.publicResourceService;
 import static org.nosceon.titanite.service.ResourceService.serveResource;
+import static org.nosceon.titanite.service.ResourceService.webJarResourceService;
 
 /**
  * @author Johan Siebens
@@ -33,8 +35,8 @@ public class ResourceServiceTest extends AbstractE2ETest {
         return
             server
                 .register(Method.GET, "/lorem.txt", req -> serveResource(req, "/public/hello.txt").toFuture())
-                .register(Method.GET, "/a/b/c/*mycustompath", ResourceService.publicResourceService(req -> req.pathParams().getString("mycustompath")))
-                .register(Method.GET, "/*path", h(ResourceService.publicResourceService(), ResourceService.webJarResourceService()))
+                .register(Method.GET, "/a/b/c/*mycustompath", publicResourceService(req -> req.pathParams().getString("mycustompath")))
+                .register(Method.GET, "/*path", h(publicResourceService(), webJarResourceService()))
                 .start();
     }
 
@@ -45,6 +47,9 @@ public class ResourceServiceTest extends AbstractE2ETest {
         given().expect().statusCode(200).body(equalTo("hello 2 from webjars")).when().get(uri("/hello2.txt"));
         given().expect().statusCode(404).when().get(uri("/hello3.txt"));
         given().expect().statusCode(200).body(equalTo("hello 1 from public")).when().get(uri("/hello1.txt"));
+
+        given().expect().statusCode(404).when().get(uri("/a"));
+        given().expect().statusCode(200).body(equalTo("hello 1 from public/b")).when().get(uri("/b"));
     }
 
     @Test
