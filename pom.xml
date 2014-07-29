@@ -68,7 +68,9 @@
     <module>titanite-json-gson</module>
     <module>titanite-view-mustache</module>
     <module>titanite-view-freemarker</module>
+
     <module>titanite-examples/helloworld</module>
+    <module>titanite-examples/tweetmap</module>
   </modules>
 
   <dependencyManagement>
@@ -225,6 +227,15 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
