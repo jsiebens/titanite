@@ -1,0 +1,39 @@
+{{> header}}
+
+<div class="jumbotron">
+<form action="/hello" method="POST" class="form-horizontal" role="form">
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-5">
+            <h1>Hello World</h1>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name" class="col-sm-2 control-label">name</label>
+        <div class="col-sm-5">
+            <input type="text" class="form-control" id="name" name="name" placeholder="name">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="color" class="col-sm-2 control-label">color</label>
+        <div class="col-sm-5">
+            <select id="color" name="color" class="form-control">
+                <option value="black">black</option>
+                <option value="blue">blue</option>
+                <option value="green">green</option>
+                <option value="red">red</option>
+                <option value="yellow">yellow</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-5">
+            <button type="submit" class="btn btn-default">Submit</button>
+        </div>
+    </div>
+</form>
+</div>
+
+{{> footer}}
