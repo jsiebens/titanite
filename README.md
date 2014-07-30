@@ -9,6 +9,6 @@ Releases of titanite are available in the maven central repository.
 <dependency>
     <groupId>org.nosceon.titanite</groupId>
     <artifactId>titanite</artifactId>
-    <version>1.0.0.Alpha1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
