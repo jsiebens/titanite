@@ -27,7 +27,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>tweetmap</artifactId>
+  <artifactId>titanite-example-tweetmap</artifactId>
 
   <name>Titanite - Examples - TweetMap</name>
 

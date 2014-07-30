@@ -27,7 +27,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>helloworld</artifactId>
+  <artifactId>titanite-example-helloworld</artifactId>
 
   <name>Titanite - Examples - HelloWorld</name>
 
