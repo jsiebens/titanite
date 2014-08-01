@@ -22,11 +22,13 @@ import org.nosceon.titanite.exception.SessionNotAvailableException;
 import org.nosceon.titanite.scope.exception.InvalidSessionParamException;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static java.util.Collections.unmodifiableSet;
 import static org.nosceon.titanite.Utils.checkNotNull;
 
 /**
@@ -67,6 +69,11 @@ public final class Session extends Scope {
     @Override
     public String getString(String name) {
         return values.get(name);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return unmodifiableSet(values.keySet());
     }
 
     @Override

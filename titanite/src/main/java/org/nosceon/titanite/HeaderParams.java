@@ -23,6 +23,9 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * @author Johan Siebens
@@ -55,6 +58,11 @@ public final class HeaderParams extends MultiParams {
                     return Optional.empty();
                 }
             }).orElse(null);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return unmodifiableSet(message.headers().names());
     }
 
     @Override

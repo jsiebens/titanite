@@ -20,6 +20,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.*;
@@ -70,6 +71,11 @@ public class MultiParamsTest {
             @Override
             public String getString(String name) {
                 throw new UnsupportedOperationException("Not implemented");
+            }
+
+            @Override
+            public Set<String> keys() {
+                return Collections.singleton(key);
             }
 
             @Override

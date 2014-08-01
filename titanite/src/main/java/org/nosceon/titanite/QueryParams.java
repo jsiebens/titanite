@@ -19,6 +19,8 @@ import org.nosceon.titanite.exception.InvalidQueryParamException;
 
 import java.util.*;
 
+import static java.util.Collections.unmodifiableSet;
+
 /**
  * @author Johan Siebens
  */
@@ -43,6 +45,11 @@ public final class QueryParams extends MultiParams {
     @Override
     public List<String> getStrings(String name) {
         return Optional.ofNullable(values.get(name)).orElse(Collections.<String>emptyList());
+    }
+
+    @Override
+    public Set<String> keys() {
+        return unmodifiableSet(values.keySet());
     }
 
     @Override

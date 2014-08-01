@@ -15,6 +15,7 @@
  */
 package org.nosceon.titanite;
 
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -37,6 +38,8 @@ public abstract class SingleParams {
     protected static final Function<String, Boolean> BOOLEAN = s -> s.equals("1") || s.equals("t") || s.equals("true") || s.equals("on");
 
     public abstract String getString(String name);
+
+    public abstract Set<String> keys();
 
     protected abstract IllegalArgumentException translate(Exception e, String type, String name, String value);
 

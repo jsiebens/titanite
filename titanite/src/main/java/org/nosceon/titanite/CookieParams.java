@@ -20,6 +20,9 @@ import org.nosceon.titanite.exception.InvalidCookieParamException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * @author Johan Siebens
@@ -43,6 +46,11 @@ public final class CookieParams extends SingleParams {
     @Override
     public String getString(String name) {
         return Optional.ofNullable(cookies.get(name)).map(CookieParam::value).orElse(null);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return unmodifiableSet(cookies.keySet());
     }
 
     @Override

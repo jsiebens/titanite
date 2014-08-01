@@ -22,12 +22,15 @@ import org.nosceon.titanite.exception.FlashNotAvailableException;
 import org.nosceon.titanite.scope.exception.InvalidFlashParamException;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Optional.ofNullable;
 import static org.nosceon.titanite.Utils.checkNotNull;
 
@@ -71,6 +74,14 @@ public final class Flash extends Scope {
     @Override
     public String getString(String name) {
         return ofNullable(previous.get(name)).orElseGet(() -> current.get(name));
+    }
+
+    @Override
+    public Set<String> keys() {
+        Set<String> keys = new HashSet<>();
+        keys.addAll(previous.keySet());
+        keys.addAll(current.keySet());
+        return unmodifiableSet(keys);
     }
 
     @Override

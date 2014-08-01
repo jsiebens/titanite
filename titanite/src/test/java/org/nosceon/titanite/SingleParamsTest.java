@@ -17,6 +17,9 @@ package org.nosceon.titanite;
 
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.Set;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -78,10 +81,14 @@ public class SingleParamsTest {
             }
 
             @Override
+            public Set<String> keys() {
+                return Collections.singleton(key);
+            }
+
+            @Override
             protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
                 return new IllegalArgumentException();
             }
-
         };
     }
 

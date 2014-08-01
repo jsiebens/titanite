@@ -18,6 +18,9 @@ package org.nosceon.titanite;
 import org.nosceon.titanite.exception.InvalidPathParamException;
 
 import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * @author Johan Siebens
@@ -33,6 +36,11 @@ public final class PathParams extends SingleParams {
     @Override
     public String getString(String name) {
         return values.get(name);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return unmodifiableSet(values.keySet());
     }
 
     @Override

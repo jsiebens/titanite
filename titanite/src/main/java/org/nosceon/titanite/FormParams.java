@@ -21,10 +21,14 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.nosceon.titanite.exception.InvalidFormParamException;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
 import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
@@ -58,6 +62,16 @@ public final class FormParams extends MultiParams {
                 .stream()
                 .map(this::toString)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Set<String> keys() {
+        return
+            unmodifiableSet(decoder
+                .getBodyHttpDatas()
+                .stream()
+                .map(InterfaceHttpData::getName)
+                .collect(toSet()));
     }
 
     @Override
