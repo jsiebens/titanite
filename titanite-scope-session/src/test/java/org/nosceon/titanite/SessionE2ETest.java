@@ -46,6 +46,13 @@ public class SessionE2ETest extends AbstractE2ETest {
                         return ok().text(String.valueOf(count)).toFuture();
                     }
                 )
+                .register(GET, "/c",
+                    req -> {
+                        String name = session(req).getString("lorem");
+                        session(req).clear();
+                        return ok().text(name).toFuture();
+                    }
+                )
                 .start();
     }
 
@@ -66,6 +73,13 @@ public class SessionE2ETest extends AbstractE2ETest {
         given()
             .cookie(DEFAULT_SESSION_COOKIE_NAME, "\"c1daaa1d944a6e97e79d7935bf72f0e265a26a07|lorem=ipsum\"")
             .expect().statusCode(200).cookie(DEFAULT_SESSION_COOKIE_NAME, "\"cb66ceedf8f49912d34468e38c99ee2b06b0337a|count=1&lorem=ipsum\"").when().get(uri("/b"));
+    }
+
+    @Test
+    public void testClear() {
+        given()
+            .cookie(DEFAULT_SESSION_COOKIE_NAME, "\"c1daaa1d944a6e97e79d7935bf72f0e265a26a07|lorem=ipsum\"")
+            .expect().statusCode(200).cookie(DEFAULT_SESSION_COOKIE_NAME, "de14c37f1eb6ebc2b79e58b83468368869eb9405|").when().get(uri("/c"));
     }
 
     @Test

@@ -22,6 +22,8 @@ public abstract class Scope extends SingleParams {
 
     public abstract void set(String key, String value);
 
+    public abstract void clear();
+
     public final void set(String key, short value) {
         set(key, String.valueOf(value));
     }

@@ -85,6 +85,12 @@ public final class Flash extends Scope {
     }
 
     @Override
+    public void clear() {
+        this.previous.clear();
+        this.current.clear();
+    }
+
+    @Override
     protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
         return new InvalidFlashParamException(e, type, name, value);
     }

@@ -77,6 +77,11 @@ public final class Session extends Scope {
     }
 
     @Override
+    public void clear() {
+        this.values.clear();
+    }
+
+    @Override
     protected IllegalArgumentException translate(Exception e, String type, String name, String value) {
         return new InvalidSessionParamException(e, type, name, value);
     }
