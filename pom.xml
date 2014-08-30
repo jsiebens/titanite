@@ -68,6 +68,7 @@
     <module>titanite-json-gson</module>
     <module>titanite-view-mustache</module>
     <module>titanite-view-freemarker</module>
+    <module>titanite-auth</module>
 
     <module>titanite-examples/helloworld</module>
     <module>titanite-examples/tweetmap</module>
