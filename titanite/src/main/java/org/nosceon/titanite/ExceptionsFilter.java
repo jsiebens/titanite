@@ -29,26 +29,17 @@ import static org.nosceon.titanite.Exceptions.internalServerError;
  * @author Johan Siebens
  */
 @SuppressWarnings("unchecked")
-public final class ExceptionsFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
+public final class ExceptionsFilter implements Filter {
 
-    private Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
-
-    public ExceptionsFilter() {
-
-    }
-
-    private ExceptionsFilter(Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers) {
-        this.handlers = handlers;
-    }
+    private final Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> handlers = new LinkedHashMap<>();
 
     public static ExceptionsFilter onException() {
         return new ExceptionsFilter();
     }
 
     public <T extends Throwable> ExceptionsFilter match(Class<T> type, BiFunction<Request, T, Response> handler) {
-        Map<Class<? extends Throwable>, BiFunction<Request, Throwable, Response>> newHandlers = new LinkedHashMap<>(this.handlers);
-        newHandlers.put(type, (BiFunction<Request, Throwable, Response>) handler);
-        return new ExceptionsFilter(newHandlers);
+        this.handlers.put(type, (BiFunction<Request, Throwable, Response>) handler);
+        return this;
     }
 
     public <T extends Throwable> ExceptionsFilter match(Class<T> type, Supplier<Response> handler) {

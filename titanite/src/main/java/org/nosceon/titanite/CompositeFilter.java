@@ -24,14 +24,14 @@ import static org.nosceon.titanite.Utils.checkNotNull;
 /**
  * @author Johan Siebens
  */
-public final class CompositeFilter implements BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> {
+public final class CompositeFilter implements Filter {
 
     @SafeVarargs
     public static BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> f(
         BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> first,
         BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> second,
         BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>>... next) {
-        return filters(first, second, next);
+        return new CompositeFilter(first, second, next);
     }
 
     @SafeVarargs
