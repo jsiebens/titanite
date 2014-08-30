@@ -119,6 +119,10 @@ public final class Response {
         return new Response(HttpResponseStatus.NOT_IMPLEMENTED);
     }
 
+    public static CompletionStage<Response> webSocket(WebSocket ws) {
+        return ok().body(new WebSocketBody(ws)).toFuture();
+    }
+
     private HttpResponseStatus status;
 
     private HttpHeaders headers = new DefaultHttpHeaders();
@@ -212,17 +216,22 @@ public final class Response {
         return this;
     }
 
+    private Response body(Body body) {
+        this.body = body;
+        return this;
+    }
+
     public CompletionStage<Response> toFuture() {
         return completedFuture(this);
     }
 
-    void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
-        body.apply(keepAlive, request, ctx);
+    void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        body.apply(rawRequest, websocketHandler, request, ctx);
     }
 
     private static interface Body {
 
-        void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx);
+        void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx);
 
     }
 
@@ -236,10 +245,10 @@ public final class Response {
     private class NoBody implements Body {
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, Unpooled.EMPTY_BUFFER);
             response.headers().add(headers);
-            setKeepAlive(response, keepAlive);
+            setKeepAlive(response, isKeepAlive(rawRequest));
             writeFlushAndClose(ctx, response, false);
         }
 
@@ -254,14 +263,29 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
             boolean isHeadRequest = request.method().equals(Method.HEAD);
 
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, isHeadRequest ? Unpooled.EMPTY_BUFFER : content);
             response.headers().add(headers);
             setContentLength(response, content.readableBytes());
-            setKeepAlive(response, keepAlive);
+            setKeepAlive(response, isKeepAlive(rawRequest));
             writeFlushAndClose(ctx, response, false);
+        }
+
+    }
+
+    private static class WebSocketBody implements Body {
+
+        private final WebSocket webSocket;
+
+        private WebSocketBody(WebSocket webSocket) {
+            this.webSocket = webSocket;
+        }
+
+        @Override
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
+            websocketHandler.handshake(rawRequest, request, ctx, webSocket);
         }
 
     }
@@ -275,7 +299,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -283,13 +307,13 @@ public final class Response {
             ctx.writeAndFlush(response);
 
             if (!request.method().equals(Method.HEAD)) {
-                ChunksChannel channel = new ChunksChannel(keepAlive, ctx);
+                ChunksChannel channel = new ChunksChannel(isKeepAlive(rawRequest), ctx);
                 ctx.pipeline().addLast(channel);
 
                 chunkedOutput.onReady(channel);
             }
             else {
-                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, isKeepAlive(rawRequest));
             }
         }
 
@@ -341,7 +365,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
             setTransferEncodingChunked(response);
@@ -356,7 +380,7 @@ public final class Response {
                 });
             }
 
-            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+            writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, isKeepAlive(rawRequest));
         }
 
     }
@@ -370,7 +394,7 @@ public final class Response {
         }
 
         @Override
-        public void apply(boolean keepAlive, Request request, ChannelHandlerContext ctx) {
+        public void apply(HttpRequest rawRequest, WebsocketHandler websocketHandler, Request request, ChannelHandlerContext ctx) {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
             response.headers().add(headers);
 
@@ -379,7 +403,7 @@ public final class Response {
                 long length = raf.length();
 
                 setContentLength(response, length);
-                setKeepAlive(response, keepAlive);
+                setKeepAlive(response, isKeepAlive(rawRequest));
 
                 ctx.write(response);
 
@@ -387,11 +411,11 @@ public final class Response {
                     ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
                 }
 
-                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, keepAlive);
+                writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, isKeepAlive(rawRequest));
             }
             catch (IOException e) {
                 Titanite.LOG.error("error writing file to response", e);
-                internalServerError().apply(keepAlive, request, ctx);
+                internalServerError().apply(rawRequest, websocketHandler, isKeepAlive(rawRequest), request, ctx);
             }
         }
 

@@ -23,6 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -57,6 +58,8 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private long currentRequestSize;
 
+    private final WebsocketHandler websocketHandler = new WebsocketHandler();
+
     public HttpServerHandler(long maxRequestSize, Router router) {
         this.maxRequestSize = maxRequestSize;
         this.router = router;
@@ -64,6 +67,11 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof WebSocketFrame) {
+            websocketHandler.handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+            return;
+        }
+
         if (msg instanceof HttpRequest) {
             this.request = (HttpRequest) msg;
             this.aggregator = newAggregator(request, ctx);
@@ -141,7 +149,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                                 response = internalServerError();
                             }
                         }
-                        response.apply(isKeepAlive(request), req, ctx);
+                        response.apply(request, websocketHandler, isKeepAlive(request), req, ctx);
                     });
 
             }

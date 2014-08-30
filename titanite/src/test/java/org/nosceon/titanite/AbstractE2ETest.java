@@ -46,6 +46,10 @@ public abstract class AbstractE2ETest {
         return "http://localhost:" + port + path;
     }
 
+    protected String ws(String path) {
+        return "ws://localhost:" + port + path;
+    }
+
     private int findFreePort() {
         int port;
         try {
