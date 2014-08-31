@@ -15,14 +15,15 @@
  */
 package org.nosceon.titanite;
 
-import org.eclipse.jetty.websocket.WebSocketClient;
-import org.eclipse.jetty.websocket.WebSocketClientFactory;
+import org.eclipse.jetty.websocket.*;
+import org.eclipse.jetty.websocket.WebSocket;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -42,7 +43,13 @@ public class WebSocketsTest extends AbstractE2ETest {
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return server
-            .register(Method.GET, "/socket", req -> webSocket(channel -> channel.onMessage(s -> channel.write(s.toUpperCase()))))
+            .register(Method.GET, "/socket", req -> webSocket(channel -> {
+                channel.onTextMessage(s -> channel.write(s.toUpperCase()));
+                channel.onBinaryMessage(b -> {
+                    String s = new String(b);
+                    channel.write(s.toLowerCase().getBytes());
+                });
+            }))
             .start();
     }
 
@@ -58,7 +65,7 @@ public class WebSocketsTest extends AbstractE2ETest {
     }
 
     @Test(timeout = 2000)
-    public void test() throws Exception {
+    public void testText() throws Exception {
         CompletableFuture<String> expectedMessage = new CompletableFuture<>();
 
         Future<org.eclipse.jetty.websocket.WebSocket.Connection> open = client.open(URI.create(ws("/socket")), new org.eclipse.jetty.websocket.WebSocket.OnTextMessage() {
@@ -89,6 +96,44 @@ public class WebSocketsTest extends AbstractE2ETest {
 
         assertThat(connection, is(notNullValue()));
         assertThat(expectedMessage.get(), equalTo("HELLO WORLD"));
+
+        connection.close();
+    }
+
+    @Test(timeout = 2000)
+    public void testBinary() throws Exception {
+        CompletableFuture<byte[]> expectedMessage = new CompletableFuture<>();
+
+        Future<org.eclipse.jetty.websocket.WebSocket.Connection> open = client.open(URI.create(ws("/socket")), new WebSocket.OnBinaryMessage() {
+
+            @Override
+            public void onOpen(Connection connection) {
+                try {
+                    byte[] data = "HELLO WORLD".getBytes();
+                    connection.sendMessage(data, 0, data.length);
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onMessage(byte[] data, int offset, int length) {
+                byte[] bytes = Arrays.copyOfRange(data, offset, offset + length);
+                expectedMessage.complete(bytes);
+            }
+
+            @Override
+            public void onClose(int closeCode, String message) {
+
+            }
+
+        });
+
+        org.eclipse.jetty.websocket.WebSocket.Connection connection = open.get();
+
+        assertThat(connection, is(notNullValue()));
+        assertThat(expectedMessage.get(), equalTo("hello world".getBytes()));
 
         connection.close();
     }

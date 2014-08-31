@@ -24,11 +24,17 @@ public interface WebSocket {
 
     interface Channel {
 
+        void onTextMessage(Consumer<String> consumer);
+
+        void onBinaryMessage(Consumer<byte[]> consumer);
+
+        void onClose(Runnable action);
+
         void write(String message);
 
-        void onMessage(Consumer<String> consumer);
+        void write(byte[] message);
 
-        void onDisconnect(Runnable action);
+        void close();
 
     }
 

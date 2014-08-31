@@ -75,8 +75,8 @@ public class ChatBroadcast {
         public void onReady(Channel channel) {
             this.channel = channel;
             subscribe(this);
-            channel.onMessage(s -> publishNewMessage(nickName, s));
-            channel.onDisconnect(() -> unsubscribe(this));
+            channel.onTextMessage(s -> publishNewMessage(nickName, s));
+            channel.onClose(() -> unsubscribe(this));
         }
 
         private void sendAddUser(String nickName) {

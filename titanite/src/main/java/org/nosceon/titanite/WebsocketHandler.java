@@ -15,6 +15,8 @@
  */
 package org.nosceon.titanite;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
@@ -28,47 +30,50 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import static io.netty.buffer.Unpooled.copiedBuffer;
+
 /**
  * @author Johan Siebens
  */
 public class WebsocketHandler {
 
-    private WebSocketServerHandshaker handshaker;
+    private WebSocketServerHandshaker wsHandshaker;
 
-    private WChannel channel;
+    private WChannel wsChannel;
 
     public void handshake(HttpRequest rawRequest, Request request, ChannelHandlerContext ctx, WebSocket webSocket) {
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(request), null, false);
-        handshaker = wsFactory.newHandshaker(rawRequest);
-        if (handshaker == null) {
+        wsHandshaker = wsFactory.newHandshaker(rawRequest);
+        if (wsHandshaker == null) {
             WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
         }
         else {
-            this.channel = new WChannel(ctx);
-            this.handshaker.handshake(ctx.channel(), toFullHttpRequest(rawRequest)).addListener(cf -> {
-                ctx.pipeline().addLast(channel);
-                webSocket.onReady(channel);
+            this.wsChannel = new WChannel(ctx.channel());
+            this.wsHandshaker.handshake(ctx.channel(), toFullHttpRequest(rawRequest)).addListener(cf -> {
+                ctx.pipeline().addLast(wsChannel);
+                webSocket.onReady(wsChannel);
             });
         }
     }
 
     public void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
-
-        // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
-            handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-            return;
-        }
-        if (frame instanceof PingWebSocketFrame) {
-            ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
-            return;
-        }
-        if (!(frame instanceof TextWebSocketFrame)) {
-            throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass()
-                .getName()));
+            wsHandshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
         }
 
-        this.channel.publish(((TextWebSocketFrame) frame).text());
+        else if (frame instanceof PingWebSocketFrame) {
+            ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
+        }
+
+        else if (frame instanceof BinaryWebSocketFrame) {
+            this.wsChannel.publish(toByteArray(frame.content()));
+        }
+
+        else if (frame instanceof TextWebSocketFrame) {
+            this.wsChannel.publish(((TextWebSocketFrame) frame).text());
+        }
+
+        throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass().getName()));
     }
 
     private static String getWebSocketLocation(Request req) {
@@ -82,16 +87,24 @@ public class WebsocketHandler {
         return fullRequest;
     }
 
-    private static class WChannel extends ChannelInboundHandlerAdapter implements WebSocket.Channel {
+    private static byte[] toByteArray(ByteBuf buf) {
+        byte[] bytes = new byte[buf.readableBytes()];
+        buf.readBytes(bytes);
+        return bytes;
+    }
 
-        private List<Consumer<String>> listeners = new CopyOnWriteArrayList<>();
+    private class WChannel extends ChannelInboundHandlerAdapter implements WebSocket.Channel {
+
+        private List<Consumer<String>> textListeners = new CopyOnWriteArrayList<>();
+
+        private List<Consumer<byte[]>> binaryListeners = new CopyOnWriteArrayList<>();
 
         private final CompletableFuture<Void> disconnect = new CompletableFuture<>();
 
-        private ChannelHandlerContext ctx;
+        private Channel channel;
 
-        private WChannel(ChannelHandlerContext ctx) {
-            this.ctx = ctx;
+        private WChannel(Channel channel) {
+            this.channel = channel;
         }
 
         @Override
@@ -101,26 +114,40 @@ public class WebsocketHandler {
 
         @Override
         public void write(String message) {
-            ctx.writeAndFlush(new TextWebSocketFrame(message));
+            channel.writeAndFlush(new TextWebSocketFrame(message));
         }
 
         @Override
-        public void onMessage(Consumer<String> consumer) {
-            listeners.add(consumer);
+        public void write(byte[] message) {
+            channel.writeAndFlush(new BinaryWebSocketFrame(copiedBuffer(message)));
         }
 
         @Override
-        public void onDisconnect(Runnable listener) {
+        public void onTextMessage(Consumer<String> consumer) {
+            textListeners.add(consumer);
+        }
+
+        @Override
+        public void onBinaryMessage(Consumer<byte[]> consumer) {
+            binaryListeners.add(consumer);
+        }
+
+        @Override
+        public void onClose(Runnable listener) {
             disconnect.whenComplete((v, t) -> listener.run());
         }
 
-        private void publish(String message) {
-            listeners.forEach(c -> c.accept(message));
+        @Override
+        public void close() {
+            wsHandshaker.close(channel, new CloseWebSocketFrame());
         }
 
-        private void close() {
-            ctx.pipeline().remove(this);
-            disconnect.complete(null);
+        private void publish(String message) {
+            textListeners.forEach(c -> c.accept(message));
+        }
+
+        private void publish(byte[] message) {
+            binaryListeners.forEach(c -> c.accept(message));
         }
 
     }
