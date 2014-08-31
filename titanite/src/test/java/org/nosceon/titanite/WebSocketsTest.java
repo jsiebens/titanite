@@ -70,10 +70,13 @@ public class WebSocketsTest extends AbstractE2ETest {
 
         Future<org.eclipse.jetty.websocket.WebSocket.Connection> open = client.open(URI.create(ws("/socket")), new org.eclipse.jetty.websocket.WebSocket.OnTextMessage() {
 
+            private int count = 0;
+
             @Override
             public void onOpen(Connection connection) {
                 try {
-                    connection.sendMessage("hello world");
+                    connection.sendMessage("hello world 1");
+                    connection.sendMessage("hello world 2");
                 }
                 catch (IOException e) {
                     e.printStackTrace();
@@ -82,7 +85,10 @@ public class WebSocketsTest extends AbstractE2ETest {
 
             @Override
             public void onMessage(String data) {
-                expectedMessage.complete(data);
+                count++;
+                if (count == 2) {
+                    expectedMessage.complete(data);
+                }
             }
 
             @Override
@@ -95,7 +101,7 @@ public class WebSocketsTest extends AbstractE2ETest {
         org.eclipse.jetty.websocket.WebSocket.Connection connection = open.get();
 
         assertThat(connection, is(notNullValue()));
-        assertThat(expectedMessage.get(), equalTo("HELLO WORLD"));
+        assertThat(expectedMessage.get(), equalTo("HELLO WORLD 2"));
 
         connection.close();
     }

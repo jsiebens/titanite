@@ -73,7 +73,9 @@ public class WebsocketHandler {
             this.wsChannel.publish(((TextWebSocketFrame) frame).text());
         }
 
-        throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass().getName()));
+        else {
+            throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass().getName()));
+        }
     }
 
     private static String getWebSocketLocation(Request req) {
