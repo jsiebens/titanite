@@ -15,10 +15,13 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.body.BodyParser;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
@@ -35,31 +38,43 @@ public abstract class Controller {
     }
 
     protected final void head(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.HEAD, pattern, handler));
+        routings.add(new Route(Method.HEAD, pattern, null, handler));
     }
 
     protected final void get(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.GET, pattern, handler));
+        routings.add(new Route(Method.GET, pattern, null, handler));
     }
 
     protected final void post(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.POST, pattern, handler));
+        routings.add(new Route(Method.POST, pattern, null, handler));
+    }
+
+    protected final void post(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.POST, pattern, bodyParser, handler));
     }
 
     protected final void put(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.PUT, pattern, handler));
+        routings.add(new Route(Method.PUT, pattern, null, handler));
+    }
+
+    protected final void put(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.PUT, pattern, bodyParser, handler));
     }
 
     protected final void patch(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.PATCH, pattern, handler));
+        routings.add(new Route(Method.PATCH, pattern, null, handler));
+    }
+
+    protected final void patch(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        routings.add(new Route(Method.PATCH, pattern, bodyParser, handler));
     }
 
     protected final void delete(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.DELETE, pattern, handler));
+        routings.add(new Route(Method.DELETE, pattern, null, handler));
     }
 
     protected final void options(String pattern, Function<Request, CompletionStage<Response>> handler) {
-        routings.add(new Route(Method.OPTIONS, pattern, handler));
+        routings.add(new Route(Method.OPTIONS, pattern, null, handler));
     }
 
     final List<Route> routes() {

@@ -23,7 +23,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Johan Siebens
  */
-abstract class MultiParams extends SingleParams {
+public abstract class MultiParams extends SingleParams {
 
     public abstract List<String> getStrings(String name);
 

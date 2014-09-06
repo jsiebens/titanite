@@ -88,6 +88,11 @@
         <artifactId>titanite-view-mustache</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.nosceon.titanite</groupId>
+        <artifactId>titanite-json-jackson</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>io.netty</groupId>

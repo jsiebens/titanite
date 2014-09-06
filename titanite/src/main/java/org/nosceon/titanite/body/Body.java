@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
+package org.nosceon.titanite.body;
 
-import org.nosceon.titanite.body.FormParams;
+import org.nosceon.titanite.BodyReader;
 
 import java.io.InputStream;
 
 /**
  * @author Johan Siebens
  */
-public interface RequestBody {
+public interface Body {
 
-    default boolean maxRequestSizeExceeded() {
-        return false;
-    }
+    <T> T as(Class<T> type);
+
+    <T> T as(BodyReader<T> reader);
+
+    FormParams asForm();
 
     InputStream asStream();
 
     String asText();
-
-    <T> T as(BodyReader<T> si);
-
-    FormParams asForm();
 
 }

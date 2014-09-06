@@ -15,18 +15,16 @@
  */
 package org.nosceon.titanite;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.nosceon.titanite.body.BodyParser;
+import org.nosceon.titanite.body.EmptyBodyParser;
+import org.nosceon.titanite.body.FormParamsBodyParser;
+import org.nosceon.titanite.body.RawBodyParser;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +37,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toMap;
 import static org.nosceon.titanite.Exceptions.internalServerError;
 import static org.nosceon.titanite.Exceptions.requestEntityTooLarge;
-import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
@@ -52,17 +49,19 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private HttpRequest request;
 
-    private Aggregator aggregator;
+    private QueryStringDecoder qsd;
+
+    private RoutingResult routing;
+
+    private BodyParser bodyParser;
 
     private final long maxRequestSize;
-
-    private long currentRequestSize;
 
     private final WebsocketHandler websocketHandler = new WebsocketHandler();
 
     public HttpServerHandler(long maxRequestSize, Router router) {
-        this.maxRequestSize = maxRequestSize;
         this.router = router;
+        this.maxRequestSize = maxRequestSize;
     }
 
     @Override
@@ -73,43 +72,37 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         if (msg instanceof HttpRequest) {
-            this.request = (HttpRequest) msg;
-            this.aggregator = newAggregator(request, ctx);
-            this.currentRequestSize = 0;
-
-            if (is100ContinueExpected(request)) {
+            if (is100ContinueExpected((HttpRequest) msg)) {
                 ctx.writeAndFlush(CONTINUE).addListener(future -> {
                     if (!future.isSuccess()) {
                         ctx.fireExceptionCaught(future.cause());
                     }
                 });
+                return;
             }
+
+            this.request = (HttpRequest) msg;
+            this.qsd = new QueryStringDecoder(request.getUri());
+            this.routing = router.find(request.getMethod(), qsd.path());
+            this.bodyParser = newBodyParser(routing, request);
+            this.bodyParser.initialize(ctx, request);
         }
 
         if (msg instanceof HttpContent) {
             HttpContent chunk = (HttpContent) msg;
-            int chunkSize = chunk.content().readableBytes();
 
-            if (currentRequestSize > maxRequestSize - chunkSize) {
-                releaseAggregator();
+            if (bodyParser != null) {
+                bodyParser.offer(chunk);
             }
-
-            if (aggregator != null) {
-                aggregator.offer(chunk);
-            }
-
-            currentRequestSize += chunkSize;
 
             if (chunk instanceof LastHttpContent) {
-                QueryStringDecoder qsd = new QueryStringDecoder(request.getUri());
-                RoutingResult routing = router.find(request.getMethod(), qsd.path());
 
                 Map<String, CookieParam> cookies = Optional.ofNullable(request.headers().get(COOKIE))
                     .map(CookieDecoder::decode)
                     .map(s -> s.stream().collect(toMap(io.netty.handler.codec.http.Cookie::getName, CookieParam::new)))
                     .orElseGet(Collections::emptyMap);
 
-                request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, currentRequestSize);
+                request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, bodyParser.size());
 
                 Request req =
                     new Request(
@@ -117,40 +110,44 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         qsd.path(),
                         new HeaderParams(request),
                         new CookieParams(cookies),
-                        new PathParams(routing.pathParams),
+                        new PathParams(routing.pathParams()),
                         new QueryParams(qsd.parameters()),
-                        aggregator == null ? new ExceededSizeRequestBody() : aggregator.newRequestBody()
+                        bodyParser.body()
                     );
 
+                if (bodyParser.isMaximumExceeded()) {
+                    requestEntityTooLarge().apply(request, websocketHandler, isKeepAlive(request), req, ctx);
+                }
+                else {
+                    completedFuture(req)
+                        .thenCompose(r -> routing.handler().apply(r))
+                        .whenComplete((resp, ex) -> {
+                            releaseBodyParser();
+                            Response response = resp;
+                            if (ex != null) {
+                                if (ex instanceof CompletionException) {
+                                    ex = lookupCause(ex);
+                                }
 
-                completedFuture(req)
-                    .<Response>thenCompose(routing.function::apply)
-                    .whenComplete((r, e) -> {
-                        releaseAggregator();
-                        Response response = r;
-                        if (e != null) {
-                            if (e instanceof CompletionException) {
-                                e = lookupCause(e);
-                            }
+                                if (ex instanceof InternalRuntimeException) {
+                                    ex = lookupCause(ex);
+                                }
 
-                            if (e instanceof InternalRuntimeException) {
-                                e = lookupCause(e);
-                            }
+                                if (ex instanceof HttpServerException) {
+                                    response = ((HttpServerException) ex).getResponse();
 
-                            if (e instanceof HttpServerException) {
-                                response = ((HttpServerException) e).getResponse();
-
-                                if (response.status() >= 500) {
-                                    Titanite.LOG.error("error processing request", e);
+                                    if (response.status() >= 500) {
+                                        Titanite.LOG.error("error processing request", ex);
+                                    }
+                                }
+                                else {
+                                    Titanite.LOG.error("error processing request", ex);
+                                    response = internalServerError();
                                 }
                             }
-                            else {
-                                Titanite.LOG.error("error processing request", e);
-                                response = internalServerError();
-                            }
-                        }
-                        response.apply(request, websocketHandler, isKeepAlive(request), req, ctx);
-                    });
+                            response.apply(request, websocketHandler, isKeepAlive(request), req, ctx);
+                        });
+                }
 
             }
         }
@@ -168,26 +165,34 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        releaseAggregator();
+        releaseBodyParser();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Titanite.LOG.warn("error handling request", cause);
-        releaseAggregator();
+        releaseBodyParser();
         ctx.channel().close();
     }
 
-    private void releaseAggregator() {
-        if (aggregator != null) {
-            aggregator.release();
-            aggregator = null;
+    private void releaseBodyParser() {
+        if (bodyParser != null) {
+            bodyParser.release();
+            bodyParser = null;
         }
     }
 
-    private Aggregator newAggregator(HttpRequest request, ChannelHandlerContext ctx) {
+    private BodyParser newBodyParser(RoutingResult routing, HttpRequest request) {
         HttpMethod method = request.getMethod();
         if (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT) || method.equals(HttpMethod.PATCH)) {
+
+            if (routing.bodyParser() != null) {
+                BodyParser bp = routing.bodyParser().get();
+                if (bp != null) {
+                    return bp;
+                }
+            }
+
             String contentType = request.headers().get(HttpHeaders.Names.CONTENT_TYPE);
             if (contentType != null) {
                 String lowerCaseContentType = contentType.toLowerCase();
@@ -195,191 +200,15 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
 
                 if (isURLEncoded || isMultiPart) {
-                    return new FormAggregator(new HttpPostRequestDecoder(request));
+                    return new FormParamsBodyParser(maxRequestSize);
                 }
             }
-            return new DefaultAggregator(ctx.alloc().compositeBuffer());
+
+            return new RawBodyParser(maxRequestSize);
         }
         else {
-            return new NoOpAggregator();
+            return new EmptyBodyParser();
         }
-    }
-
-    private static interface Aggregator {
-
-        void offer(HttpContent chunk);
-
-        void release();
-
-        RequestBody newRequestBody();
-
-    }
-
-    private class DefaultAggregator implements Aggregator {
-
-        private CompositeByteBuf content;
-
-        private DefaultAggregator(CompositeByteBuf content) {
-            this.content = content;
-        }
-
-        @Override
-        public void offer(HttpContent chunk) {
-            chunk.retain();
-            content.addComponent(chunk.content());
-            content.writerIndex(content.writerIndex() + chunk.content().readableBytes());
-        }
-
-        @Override
-        public void release() {
-            content.release();
-        }
-
-        @Override
-        public RequestBody newRequestBody() {
-            return new DefaultRequestBody(content);
-        }
-
-    }
-
-    private class FormAggregator implements Aggregator {
-
-        private HttpPostRequestDecoder decoder;
-
-        private FormAggregator(HttpPostRequestDecoder decoder) {
-            this.decoder = decoder;
-        }
-
-        @Override
-        public void offer(HttpContent chunk) {
-            decoder.offer(chunk);
-        }
-
-        @Override
-        public void release() {
-            decoder.destroy();
-        }
-
-        @Override
-        public RequestBody newRequestBody() {
-            return new FormRequestBody(decoder);
-        }
-
-    }
-
-    private class NoOpAggregator implements Aggregator {
-
-        @Override
-        public void offer(HttpContent chunk) {
-        }
-
-        @Override
-        public void release() {
-        }
-
-        @Override
-        public RequestBody newRequestBody() {
-            return new DefaultRequestBody(Unpooled.EMPTY_BUFFER);
-        }
-
-    }
-
-    private class DefaultRequestBody implements RequestBody {
-
-        private ByteBuf content;
-
-        private DefaultRequestBody(ByteBuf content) {
-            this.content = content;
-        }
-
-        @Override
-        public InputStream asStream() {
-            return new ByteBufInputStream(content);
-        }
-
-        @Override
-        public String asText() {
-            return callUnchecked(() -> Utils.toString(new InputStreamReader(asStream())));
-        }
-
-        @Override
-        public <T> T as(BodyReader<T> si) {
-            if (content.readableBytes() > 0) {
-                return callUnchecked(() -> si.readFrom(asStream()));
-            }
-            else {
-                return null;
-            }
-        }
-
-        @Override
-        public FormParams asForm() {
-            throw new UnsupportedOperationException("asForm not supported");
-        }
-
-    }
-
-    private class FormRequestBody implements RequestBody {
-
-        private FormParams form;
-
-        private FormRequestBody(HttpPostRequestDecoder decoder) {
-            this.form = new FormParams(decoder);
-        }
-
-        @Override
-        public InputStream asStream() {
-            throw new UnsupportedOperationException("asStream not supported");
-        }
-
-        @Override
-        public String asText() {
-            throw new UnsupportedOperationException("asText not supported");
-        }
-
-        @Override
-        public <T> T as(BodyReader<T> si) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public FormParams asForm() {
-            return form;
-        }
-
-    }
-
-    private class ExceededSizeRequestBody implements RequestBody {
-
-        @Override
-        public boolean maxRequestSizeExceeded() {
-            return true;
-        }
-
-        @Override
-        public InputStream asStream() {
-            throw requestEntityTooLargeException();
-        }
-
-        @Override
-        public String asText() {
-            throw requestEntityTooLargeException();
-        }
-
-        @Override
-        public <T> T as(BodyReader<T> si) {
-            throw requestEntityTooLargeException();
-        }
-
-        @Override
-        public FormParams asForm() {
-            throw requestEntityTooLargeException();
-        }
-
-        private HttpServerException requestEntityTooLargeException() {
-            return new HttpServerException("Request Entity Too Large", requestEntityTooLarge());
-        }
-
     }
 
 }

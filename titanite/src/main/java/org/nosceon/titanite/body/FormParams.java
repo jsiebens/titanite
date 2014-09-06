@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
+package org.nosceon.titanite.body;
 
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import org.nosceon.titanite.MultiParams;
+import org.nosceon.titanite.MultiPart;
 import org.nosceon.titanite.exception.InvalidFormParamException;
 
 import java.util.Collections;

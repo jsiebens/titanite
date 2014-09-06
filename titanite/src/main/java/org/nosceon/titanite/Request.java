@@ -16,6 +16,7 @@
 package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import org.nosceon.titanite.body.Body;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,11 +44,11 @@ public final class Request {
 
     private final PathParams pathParams;
 
-    private final RequestBody body;
+    private final Body body;
 
     private final Attributes attributes;
 
-    Request(Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, RequestBody body) {
+    Request(Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, Body body) {
         this.method = method;
         this.path = path;
         this.headers = headers;
@@ -82,7 +83,7 @@ public final class Request {
         return pathParams;
     }
 
-    public RequestBody body() {
+    public Body body() {
         return body;
     }
 

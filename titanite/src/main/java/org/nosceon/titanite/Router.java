@@ -17,6 +17,7 @@ package org.nosceon.titanite;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.nosceon.titanite.body.EmptyBodyParser;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,9 +33,9 @@ import static java.util.stream.Collectors.toList;
  */
 final class Router {
 
-    private static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(emptyMap(), (r) -> Response.methodNotAllowed().toFuture());
+    private static final RoutingResult METHOD_NOT_ALLOWED = new RoutingResult(emptyMap(), EmptyBodyParser::new, (r) -> Response.methodNotAllowed().toFuture());
 
-    private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), (r) -> Response.notFound().toFuture());
+    private static final RoutingResult NOT_FOUND = new RoutingResult(emptyMap(), EmptyBodyParser::new, (r) -> Response.notFound().toFuture());
 
     private final List<Route> routes = new LinkedList<>();
 
@@ -64,12 +65,12 @@ final class Router {
                         ParameterizedPattern.Matcher matcher = route.pattern().matcher(path);
                         return
                             Method.OPTIONS.equals(method) ?
-                                new RoutingResult(matcher.parameters(), new CompositeHandler(allowedMethodsFilter(candidates), route.function())) :
-                                new RoutingResult(matcher.parameters(), route.function());
+                                new RoutingResult(matcher.parameters(), route.bodyParser(), new CompositeHandler(allowedMethodsFilter(candidates), route.handler())) :
+                                new RoutingResult(matcher.parameters(), route.bodyParser(), route.handler());
                     })
                     .orElseGet(() -> {
                             if (Method.OPTIONS.equals(method)) {
-                                return new RoutingResult(emptyMap(), new CompositeHandler(allowedMethodsFilter(candidates), req -> Response.ok().toFuture()));
+                                return new RoutingResult(emptyMap(), EmptyBodyParser::new, new CompositeHandler(allowedMethodsFilter(candidates), req -> Response.ok().toFuture()));
                             }
                             else if (Method.HEAD.equals(method)) {
                                 return find(HttpMethod.GET, path);

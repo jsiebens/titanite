@@ -15,8 +15,11 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.body.BodyParser;
+
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
@@ -27,16 +30,19 @@ final class Route {
 
     private final ParameterizedPattern pattern;
 
-    private final Function<Request, CompletionStage<Response>> function;
+    private final Supplier<BodyParser> bodyParser;
 
-    Route(Method method, String pattern, Function<Request, CompletionStage<Response>> function) {
-        this(method, new ParameterizedPattern(pattern), function);
+    private final Function<Request, CompletionStage<Response>> handler;
+
+    Route(Method method, String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        this(method, new ParameterizedPattern(pattern), bodyParser, handler);
     }
 
-    Route(Method method, ParameterizedPattern pattern, Function<Request, CompletionStage<Response>> function) {
+    Route(Method method, ParameterizedPattern pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
         this.method = method;
         this.pattern = pattern;
-        this.function = function;
+        this.bodyParser = bodyParser;
+        this.handler = handler;
     }
 
     public Method method() {
@@ -47,8 +53,12 @@ final class Route {
         return pattern;
     }
 
-    public Function<Request, CompletionStage<Response>> function() {
-        return function;
+    public Supplier<BodyParser> bodyParser() {
+        return bodyParser;
+    }
+
+    public Function<Request, CompletionStage<Response>> handler() {
+        return handler;
     }
 
     public boolean hasMethod(Method method) {

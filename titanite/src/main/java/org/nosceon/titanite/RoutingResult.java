@@ -15,22 +15,40 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.body.BodyParser;
+
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
  */
 final class RoutingResult {
 
-    public final Map<String, String> pathParams;
+    private final Map<String, String> pathParams;
 
-    public final Function<Request, CompletionStage<Response>> function;
+    private final Function<Request, CompletionStage<Response>> handler;
 
-    public RoutingResult(Map<String, String> pathParams, Function<Request, CompletionStage<Response>> function) {
+    private final Supplier<BodyParser> bodyParser;
+
+    public RoutingResult(Map<String, String> pathParams, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
         this.pathParams = pathParams;
-        this.function = function;
+        this.bodyParser = bodyParser;
+        this.handler = handler;
+    }
+
+    public Map<String, String> pathParams() {
+        return pathParams;
+    }
+
+    public Function<Request, CompletionStage<Response>> handler() {
+        return handler;
+    }
+
+    public Supplier<BodyParser> bodyParser() {
+        return bodyParser;
     }
 
 }

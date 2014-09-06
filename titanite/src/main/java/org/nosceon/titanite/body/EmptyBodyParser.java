@@ -13,27 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
+package org.nosceon.titanite.body;
 
-import org.nosceon.titanite.body.FormParams;
-
-import java.io.InputStream;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
 
 /**
  * @author Johan Siebens
  */
-public interface RequestBody {
+public final class EmptyBodyParser extends AbstractBodyParser {
 
-    default boolean maxRequestSizeExceeded() {
-        return false;
+    public EmptyBodyParser() {
+        super(-1);
     }
 
-    InputStream asStream();
+    @Override
+    public void initialize(ChannelHandlerContext ctx, HttpRequest request) {
 
-    String asText();
+    }
 
-    <T> T as(BodyReader<T> si);
+    @Override
+    protected void doOffer(HttpContent chunk) {
 
-    FormParams asForm();
+    }
+
+    @Override
+    public void release() {
+
+    }
+
+    @Override
+    protected Object apply(Class<?> aClass) {
+        return null;
+    }
 
 }

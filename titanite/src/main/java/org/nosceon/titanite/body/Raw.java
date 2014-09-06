@@ -13,27 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite;
+package org.nosceon.titanite.body;
 
-import org.nosceon.titanite.body.FormParams;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import org.nosceon.titanite.BodyReader;
 
-import java.io.InputStream;
+import java.util.concurrent.Callable;
+
+import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
  * @author Johan Siebens
  */
-public interface RequestBody {
+public final class Raw {
 
-    default boolean maxRequestSizeExceeded() {
-        return false;
+    private ByteBuf content;
+
+    Raw(ByteBuf content) {
+        this.content = content;
     }
 
-    InputStream asStream();
-
-    String asText();
-
-    <T> T as(BodyReader<T> si);
-
-    FormParams asForm();
+    public <T> T map(BodyReader<T> reader) {
+        if (content.readableBytes() > 0) {
+            Callable<T> callable = () -> reader.readFrom(new ByteBufInputStream(content));
+            return callUnchecked(callable);
+        }
+        else {
+            return null;
+        }
+    }
 
 }

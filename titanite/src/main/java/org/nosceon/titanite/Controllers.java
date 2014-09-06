@@ -15,8 +15,11 @@
  */
 package org.nosceon.titanite;
 
+import org.nosceon.titanite.body.BodyParser;
+
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Johan Siebens
@@ -41,15 +44,33 @@ public final class Controllers {
         }};
     }
 
+    public static Controller POST(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        return new Controller() {{
+            post(pattern, bodyParser, handler);
+        }};
+    }
+
     public static Controller PUT(String pattern, Function<Request, CompletionStage<Response>> handler) {
         return new Controller() {{
             put(pattern, handler);
         }};
     }
 
+    public static Controller PUT(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        return new Controller() {{
+            put(pattern, bodyParser, handler);
+        }};
+    }
+
     public static Controller PATCH(String pattern, Function<Request, CompletionStage<Response>> handler) {
         return new Controller() {{
             patch(pattern, handler);
+        }};
+    }
+
+    public static Controller PATCH(String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        return new Controller() {{
+            patch(pattern, bodyParser, handler);
         }};
     }
 

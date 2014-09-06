@@ -22,12 +22,14 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import org.nosceon.titanite.body.BodyParser;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 import static org.nosceon.titanite.Utils.callUnchecked;
@@ -53,12 +55,21 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(Method method, String pattern, Function<Request, CompletionStage<Response>> handler) {
-        this.routings.add(new Route(method, pattern, handler));
+        this.routings.add(new Route(method, pattern, null, handler));
+        return self();
+    }
+
+    public final R register(Method method, String pattern, Supplier<BodyParser> bodyParser, Function<Request, CompletionStage<Response>> handler) {
+        this.routings.add(new Route(method, pattern, bodyParser, handler));
         return self();
     }
 
     public final R register(Method method, String pattern, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Function<Request, CompletionStage<Response>> handler) {
         return register(method, pattern, new CompositeHandler(filter, handler));
+    }
+
+    public final R register(Method method, String pattern, Supplier<BodyParser> bodyParser, BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Function<Request, CompletionStage<Response>> handler) {
+        return register(method, pattern, bodyParser, new CompositeHandler(filter, handler));
     }
 
     public final R register(Controller controller) {
@@ -67,7 +78,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     }
 
     public final R register(BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> filter, Controller controller) {
-        this.routings.addAll(controller.routes().stream().map(r -> new Route(r.method(), r.pattern(), new CompositeHandler(filter, r.function()))).collect(toList()));
+        this.routings.addAll(controller.routes().stream().map(r -> new Route(r.method(), r.pattern(), null, new CompositeHandler(filter, r.handler()))).collect(toList()));
         return self();
     }
 
@@ -106,8 +117,8 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
     private List<Route> applyGlobalFilter() {
         if (globalFilter != null) {
             return routings.stream().map(r -> {
-                Function<Request, CompletionStage<Response>> handler = new CompositeHandler(globalFilter, r.function());
-                return new Route(r.method(), r.pattern(), handler);
+                Function<Request, CompletionStage<Response>> handler = new CompositeHandler(globalFilter, r.handler());
+                return new Route(r.method(), r.pattern(), r.bodyParser(), handler);
             }).collect(toList());
         }
         else {
