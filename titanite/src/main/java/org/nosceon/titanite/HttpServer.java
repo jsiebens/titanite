@@ -51,7 +51,7 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
         Titanite.LOG.info(id + " starting");
 
         NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(config.getIoWorkerCount(), new NamedThreadFactory("Titanite " + id + " - "));
-        start(eventLoopGroup, config.getPort(), config.getMaxRequestSize());
+        start(eventLoopGroup, config);
 
         Titanite.LOG.info(id + " started, listening on port " + config.getPort());
 

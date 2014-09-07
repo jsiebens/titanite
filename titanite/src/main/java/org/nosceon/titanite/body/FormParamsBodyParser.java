@@ -20,10 +20,16 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 
+import java.util.function.Supplier;
+
 /**
  * @author Johan Siebens
  */
 public final class FormParamsBodyParser extends AbstractBodyParser {
+
+    public static Supplier<BodyParser> formParamsBodyParser(long maxRequestSize) {
+        return () -> new FormParamsBodyParser(maxRequestSize);
+    }
 
     private HttpPostRequestDecoder decoder;
 

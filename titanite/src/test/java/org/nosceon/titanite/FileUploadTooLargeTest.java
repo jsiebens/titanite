@@ -25,6 +25,7 @@ import java.io.File;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.nosceon.titanite.Method.POST;
+import static org.nosceon.titanite.body.FormParamsBodyParser.formParamsBodyParser;
 
 /**
  * @author Johan Siebens
@@ -40,16 +41,11 @@ public class FileUploadTooLargeTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(POST, "/post", (r) -> {
+                .register(POST, "/post", formParamsBodyParser(5), (r) -> {
                     r.body().asForm();
                     return Response.ok().toFuture();
                 })
                 .start();
-    }
-
-    @Override
-    protected long maxRequestSize() {
-        return 5;
     }
 
     @Test

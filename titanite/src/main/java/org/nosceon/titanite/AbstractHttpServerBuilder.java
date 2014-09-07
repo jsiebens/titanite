@@ -90,7 +90,7 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return register(filter, callUnchecked(c::newInstance));
     }
 
-    protected final void start(NioEventLoopGroup workers, int port, long maxRequestSize) {
+    protected final void start(NioEventLoopGroup workers, HttpServerConfig config) {
         List<Route> actualRoutes = applyGlobalFilter();
         actualRoutes.forEach(r -> Titanite.LOG.info(id + " route added: " + Utils.padEnd(r.method().toString(), 7, ' ') + r.pattern()));
 
@@ -106,11 +106,11 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
                     ch.pipeline()
                         .addLast(new HttpRequestDecoder())
                         .addLast(new HttpResponseEncoder())
-                        .addLast(new HttpServerHandler(maxRequestSize, router));
+                        .addLast(new HttpServerHandler(config.getMaxRequestSize(), config.getMaxMultipartRequestSize(), router));
                 }
 
             })
-            .bind(port)
+            .bind(config.getPort())
             .syncUninterruptibly();
     }
 

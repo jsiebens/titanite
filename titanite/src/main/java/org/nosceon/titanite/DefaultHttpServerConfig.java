@@ -30,6 +30,8 @@ public final class DefaultHttpServerConfig implements HttpServerConfig {
 
     private Long maxRequestSize;
 
+    private Long maxMultipartRequestSize;
+
     public DefaultHttpServerConfig port(int port) {
         this.port = port;
         return this;
@@ -42,6 +44,11 @@ public final class DefaultHttpServerConfig implements HttpServerConfig {
 
     public DefaultHttpServerConfig maxRequestSize(long maxRequestSize) {
         this.maxRequestSize = maxRequestSize;
+        return this;
+    }
+
+    public DefaultHttpServerConfig maxMultipartRequestSize(Long maxMultipartRequestSize) {
+        this.maxMultipartRequestSize = maxMultipartRequestSize;
         return this;
     }
 
@@ -79,6 +86,18 @@ public final class DefaultHttpServerConfig implements HttpServerConfig {
             return DEFAULT_MAX_REQUEST_SIZE;
         }
         return maxRequestSize;
+    }
+
+    @Override
+    public long getMaxMultipartRequestSize() {
+        if (maxMultipartRequestSize == null) {
+            String property = System.getProperty("titanite.max-multipart-request-size");
+            if (property != null) {
+                return Long.valueOf(property);
+            }
+            return DEFAULT_MAX_MULTI_PART_REQUEST_SIZE;
+        }
+        return maxMultipartRequestSize;
     }
 
 }

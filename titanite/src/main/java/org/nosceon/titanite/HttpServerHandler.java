@@ -57,11 +57,14 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final long maxRequestSize;
 
+    private final long maxMultipartRequestSize;
+
     private final WebsocketHandler websocketHandler = new WebsocketHandler();
 
-    public HttpServerHandler(long maxRequestSize, Router router) {
+    public HttpServerHandler(long maxRequestSize, long maxMultipartRequestSize, Router router) {
         this.router = router;
         this.maxRequestSize = maxRequestSize;
+        this.maxMultipartRequestSize = maxMultipartRequestSize;
     }
 
     @Override
@@ -194,12 +197,17 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             }
 
             String contentType = request.headers().get(HttpHeaders.Names.CONTENT_TYPE);
+
             if (contentType != null) {
                 String lowerCaseContentType = contentType.toLowerCase();
                 boolean isURLEncoded = lowerCaseContentType.startsWith(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED);
                 boolean isMultiPart = lowerCaseContentType.startsWith(HttpHeaders.Values.MULTIPART_FORM_DATA);
 
-                if (isURLEncoded || isMultiPart) {
+                if (isMultiPart) {
+                    return new FormParamsBodyParser(maxMultipartRequestSize);
+                }
+
+                if (isURLEncoded) {
                     return new FormParamsBodyParser(maxRequestSize);
                 }
             }
