@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nosceon.titanite.auth;
+package org.nosceon.titanite.auth.basic;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.nosceon.titanite.Filter;
 import org.nosceon.titanite.Request;
 import org.nosceon.titanite.Response;
+import org.nosceon.titanite.auth.Auth;
 
 import java.util.Base64;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.nosceon.titanite.Response.forbidden;
 import static org.nosceon.titanite.Response.unauthorized;
@@ -31,7 +31,7 @@ import static org.nosceon.titanite.Response.unauthorized;
 /**
  * @author Johan Siebens
  */
-public final class BasicAuthenticationFilter implements Filter {
+public final class BasicAuthentication implements Filter {
 
     private static final String PREFIX = "Basic";
 
@@ -39,21 +39,21 @@ public final class BasicAuthenticationFilter implements Filter {
 
     private final String challenge;
 
-    private final Supplier<Response> accessDeniedHandler;
+    private final Function<Request, CompletionStage<Response>> accessDeniedHandler;
 
-    public BasicAuthenticationFilter(BasicAuthenticator<?> authenticator) {
+    public BasicAuthentication(BasicAuthenticator<?> authenticator) {
         this("Titanite", authenticator);
     }
 
-    public BasicAuthenticationFilter(BasicAuthenticator<?> authenticator, Supplier<Response> accessDeniedHandler) {
+    public BasicAuthentication(BasicAuthenticator<?> authenticator, Function<Request, CompletionStage<Response>> accessDeniedHandler) {
         this("Titanite", authenticator, accessDeniedHandler);
     }
 
-    public BasicAuthenticationFilter(String realm, BasicAuthenticator<?> authenticator) {
-        this(realm, authenticator, () -> forbidden().text("Access Denied\n"));
+    public BasicAuthentication(String realm, BasicAuthenticator<?> authenticator) {
+        this(realm, authenticator, request -> forbidden().text("Access Denied\n").toFuture());
     }
 
-    public BasicAuthenticationFilter(String realm, BasicAuthenticator<?> authenticator, Supplier<Response> accessDeniedHandler) {
+    public BasicAuthentication(String realm, BasicAuthenticator<?> authenticator, Function<Request, CompletionStage<Response>> accessDeniedHandler) {
         this.authenticator = authenticator;
         this.challenge = String.format(PREFIX + " realm=\"%s\"", realm);
         this.accessDeniedHandler = accessDeniedHandler;
@@ -65,8 +65,8 @@ public final class BasicAuthenticationFilter implements Filter {
 
         Request req =
             request
-                .withAttribute(Auth.UNAUTHORIZED, unauthorizedSupplier())
-                .withAttribute(Auth.ACCESS_DENIED, accessDeniedSupplier());
+                .withAttribute(Auth.UNAUTHORIZED_ATTRIBUTE_ID, unauthorizedHandler())
+                .withAttribute(Auth.ACCESS_DENIED_ATTRIBUTE_ID, accessDeniedHandler());
 
         if (header != null) {
             final int space = header.indexOf(' ');
@@ -95,11 +95,11 @@ public final class BasicAuthenticationFilter implements Filter {
         return handler.apply(req);
     }
 
-    private Supplier<Response> unauthorizedSupplier() {
-        return () -> unauthorized().header(HttpHeaders.Names.WWW_AUTHENTICATE, challenge);
+    private Function<Request, CompletionStage<Response>> unauthorizedHandler() {
+        return request -> unauthorized().header(HttpHeaders.Names.WWW_AUTHENTICATE, challenge).toFuture();
     }
 
-    private Supplier<Response> accessDeniedSupplier() {
+    private Function<Request, CompletionStage<Response>> accessDeniedHandler() {
         return accessDeniedHandler;
     }
 

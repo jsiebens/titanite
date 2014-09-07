@@ -23,18 +23,19 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * @author Johan Siebens
  */
-public class Auth {
+public final class Auth {
 
     public static final String ATTRIBUTE_ID = Auth.class.getName();
 
-    static final String UNAUTHORIZED = ATTRIBUTE_ID + "_unauthorized";
+    public static final String UNAUTHORIZED_ATTRIBUTE_ID = ATTRIBUTE_ID + "_unauthorized";
 
-    static final String ACCESS_DENIED = ATTRIBUTE_ID + "_forbidden";
+    public static final String ACCESS_DENIED_ATTRIBUTE_ID = ATTRIBUTE_ID + "_forbidden";
 
     public static <T> T authentication(Request request) {
         return request.attributes().get(ATTRIBUTE_ID);
@@ -46,7 +47,7 @@ public class Auth {
                 return handler.apply(request);
             }
             else {
-                return unauthorizedResponseSupplier(request).get().toFuture();
+                return unauthorizedHandler(request).apply(request);
             }
         };
     }
@@ -55,13 +56,13 @@ public class Auth {
         return (request, handler) -> {
             Object authentication = authentication(request);
             if (authentication == null) {
-                return unauthorizedResponseSupplier(request).get().toFuture();
+                return unauthorizedHandler(request).apply(request);
             }
             else if (authentication instanceof HasRoles && ((HasRoles) authentication).getRoles().contains(role)) {
                 return handler.apply(request);
             }
             else {
-                return accessDeniedResponseSupplier(request).get().toFuture();
+                return accessDeniedHandler(request).apply(request);
             }
         };
     }
@@ -75,7 +76,7 @@ public class Auth {
             return (request, handler) -> {
                 Object authentication = authentication(request);
                 if (authentication == null) {
-                    return unauthorizedResponseSupplier(request).get().toFuture();
+                    return unauthorizedHandler(request).apply(request);
                 }
                 else if (authentication instanceof HasRoles) {
                     List<String> actualRoles = ((HasRoles) authentication).getRoles();
@@ -83,7 +84,7 @@ public class Auth {
                         return handler.apply(request);
                     }
                 }
-                return accessDeniedResponseSupplier(request).get().toFuture();
+                return accessDeniedHandler(request).apply(request);
             };
         }
     }
@@ -97,14 +98,12 @@ public class Auth {
         return roles;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Supplier<Response> unauthorizedResponseSupplier(Request request) {
-        return (Supplier<Response>) request.attributes().get(UNAUTHORIZED);
+    private static Function<Request, CompletionStage<Response>> unauthorizedHandler(Request request) {
+        return request.attributes().get(UNAUTHORIZED_ATTRIBUTE_ID);
     }
 
-    @SuppressWarnings("unchecked")
-    private static Supplier<Response> accessDeniedResponseSupplier(Request request) {
-        return (Supplier<Response>) request.attributes().get(ACCESS_DENIED);
+    private static Function<Request, CompletionStage<Response>> accessDeniedHandler(Request request) {
+        return request.attributes().get(ACCESS_DENIED_ATTRIBUTE_ID);
     }
 
 }

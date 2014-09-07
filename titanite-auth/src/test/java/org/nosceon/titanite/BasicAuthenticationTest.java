@@ -16,8 +16,8 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
-import org.nosceon.titanite.auth.BasicAuthenticationFilter;
-import org.nosceon.titanite.auth.BasicAuthenticator;
+import org.nosceon.titanite.auth.basic.BasicAuthentication;
+import org.nosceon.titanite.auth.basic.BasicAuthenticator;
 import org.nosceon.titanite.auth.HasRoles;
 
 import java.util.Collections;
@@ -27,7 +27,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Response.ok;
 import static org.nosceon.titanite.auth.Auth.*;
@@ -74,7 +73,7 @@ public class BasicAuthenticationTest extends AbstractE2ETest {
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
 
-        BasicAuthenticationFilter basicAuth = new BasicAuthenticationFilter(new UserAuthenticator());
+        BasicAuthentication basicAuth = new BasicAuthentication(new UserAuthenticator());
 
         return
             server
