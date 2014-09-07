@@ -18,7 +18,7 @@ package org.nosceon.titanite.examples;
 import org.nosceon.titanite.HttpServer;
 
 import static org.nosceon.titanite.CompositeHandler.h;
-import static org.nosceon.titanite.Controllers.GET;
+import static org.nosceon.titanite.Method.GET;
 import static org.nosceon.titanite.Response.webSocket;
 import static org.nosceon.titanite.service.ResourceService.publicResourceService;
 import static org.nosceon.titanite.service.ResourceService.webJarResourceService;
@@ -33,8 +33,8 @@ public class Chat {
         ChatBroadcast chat = new ChatBroadcast();
 
         new HttpServer()
-            .register(GET("/chat", req -> webSocket(chat.newSubscriber(req.queryParams().getString("nick")))))
-            .register(GET("/*path", h(publicResourceService(), webJarResourceService())))
+            .register(GET, "/chat", req -> webSocket(chat.newSubscriber(req.queryParams().getString("nick"))))
+            .register(GET, "/*path", h(publicResourceService(), webJarResourceService()))
             .start();
 
     }

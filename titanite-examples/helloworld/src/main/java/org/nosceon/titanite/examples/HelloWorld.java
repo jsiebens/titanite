@@ -17,8 +17,8 @@ package org.nosceon.titanite.examples;
 
 import org.nosceon.titanite.HttpServer;
 
-import static org.nosceon.titanite.Controllers.GET;
-import static org.nosceon.titanite.Controllers.POST;
+import static org.nosceon.titanite.Method.GET;
+import static org.nosceon.titanite.Method.POST;
 import static org.nosceon.titanite.Response.ok;
 import static org.nosceon.titanite.service.ResourceService.webJarResourceService;
 import static org.nosceon.titanite.view.MustacheViewRenderer.render;
@@ -31,17 +31,17 @@ public class HelloWorld {
     public static void main(String[] args) {
 
         new HttpServer()
-            .register(GET("/",
+            .register(GET, "/",
                 req -> ok().body(render("index")).toFuture()
-            ))
-            .register(POST("/hello",
+            )
+            .register(POST, "/hello",
                 req -> {
                     String name = req.body().asForm().getString("name", "Stranger");
                     String color = req.body().asForm().getString("color", "black");
                     return ok().body(render(new HelloView(name, color))).toFuture();
                 }
-            ))
-            .register(GET("/*path", webJarResourceService()))
+            )
+            .register(GET, "/*path", webJarResourceService())
             .start();
 
     }
