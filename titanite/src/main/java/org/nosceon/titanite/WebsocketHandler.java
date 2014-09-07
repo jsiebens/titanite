@@ -35,7 +35,7 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
 /**
  * @author Johan Siebens
  */
-public class WebsocketHandler {
+class WebsocketHandler {
 
     private WebSocketServerHandshaker wsHandshaker;
 
