@@ -28,7 +28,7 @@ import static org.nosceon.titanite.Response.ok;
 /**
  * @author Johan Siebens
  */
-public class RequestBodyTest extends AbstractE2ETest {
+public class RawBodyTest extends AbstractE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
@@ -36,18 +36,36 @@ public class RequestBodyTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(POST, "/post", (r) -> ok().body(convertStreamToString(r.body().asStream())).toFuture())
+                .register(POST, "/text", req -> ok().body(req.body().asText()).toFuture())
+                .register(POST, "/stream", req -> ok().body(convertStreamToString(req.body().asStream())).toFuture())
+                .register(POST, "/reader", req -> ok().body(req.body().as(new StringBodyReader())).toFuture())
+                .register(POST, "/unsupported", req -> {
+                    req.body().as(RawBodyTest.class);
+                    return ok().body("ok").toFuture();
+                })
                 .start();
     }
 
     @Test
     public void test() {
-        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri("/post"));
+        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri("/text"));
+        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri("/stream"));
+        given().body(TEXT).expect().statusCode(200).body(equalTo(TEXT)).when().post(uri("/reader"));
+        given().body(TEXT).expect().statusCode(500).when().post(uri("/unsupported"));
     }
 
     private static String convertStreamToString(InputStream is) {
         Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    private static class StringBodyReader implements BodyReader<String> {
+
+        @Override
+        public String readFrom(InputStream in) throws Exception {
+            return convertStreamToString(in);
+        }
+
     }
 
 }

@@ -16,6 +16,7 @@
 package org.nosceon.titanite;
 
 import org.junit.Test;
+import org.nosceon.titanite.body.FormParams;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -38,7 +39,9 @@ public class FormsParamsTest extends AbstractE2ETest {
                 .register(POST, "/f", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getDouble("p"))).toFuture())
                 .register(POST, "/g", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getBoolean("p"))).toFuture())
 
-                .register(POST, "/ma", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getStrings("p"))).toFuture())
+                .register(POST, "/ma", (r) -> Response.ok().body(String.valueOf(r.body().as(MultiParams.class).getStrings("p"))).toFuture())
+
+                .register(POST, "/unsupported", (r) -> Response.ok().body(r.body().as(String.class)).toFuture())
 
                 .start();
     }
@@ -54,6 +57,8 @@ public class FormsParamsTest extends AbstractE2ETest {
         given().formParam("p", "true").expect().statusCode(200).body(equalTo("true")).when().post(uri("/g"));
 
         given().formParam("p", "apple").formParam("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().post(uri("/ma"));
+
+        given().formParam("p", "true").expect().statusCode(500).when().post(uri("/unsupported"));
     }
 
 }
