@@ -1,0 +1,94 @@
+---
+layout: default
+title: Examples
+version: 1.2.1
+---
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>Examples</h1>
+    </div>
+</div>
+
+<h3>Hello World</h3>
+<p>Basic example application that demonstrates:</p>
+<ul>
+<li>Registering routes</li>
+<li>Using Form parameters</li>
+<li>Using Mustache Templates</li>
+<li>Using <a href="http://www.webjars.org/">WebJar</a> resources</li>
+</ul>
+{% highlight java %}public class HelloWorld {
+
+    public static void main(String[] args) {
+
+        new HttpServer()
+            .register(GET, "/",
+                req -> ok().body(render("index")).toFuture()
+            )
+            .register(POST, "/hello",
+                req -> {
+                    String name = req.body().asForm().getString("name", "Stranger");
+                    String color = req.body().asForm().getString("color", "black");
+                    return ok().body(render(new HelloView(name, color))).toFuture();
+                }
+            )
+            .register(GET, "/*path", webJarResourceService())
+            .start();
+
+    }
+
+}{% endhighlight %}
+<p>
+<a target="_blank" href="https://github.com/nosceon/titanite/tree/{{ page.version }}/titanite-examples/helloworld">complete source</a> | 
+<a href="https://oss.sonatype.org/service/local/repositories/releases/content/org/nosceon/titanite/titanite-example-helloworld/{{ page.version }}/titanite-example-helloworld-{{ page.version }}-standalone.jar">download</a>
+</p>
+
+<hr/>
+
+<h3>Tweet Map</h3>
+<p>This a very simple demonstrationg pushing Tweet event from the server to the browser using Server-Sent-Events.</p>
+{% highlight java %}public class TweetMap {
+
+    public static void main(String[] args) throws Exception {
+        new TwitterFactory().getInstance().verifyCredentials();
+
+        TweetEventSource eventSource = new TweetEventSource();
+
+        new HttpServer()
+            .register(GET, "/data", req -> eventSource.newSubscription())
+            .register(GET, "/*path", publicResourceService())
+            .start();
+    }
+
+}{% endhighlight %}
+<p>
+<a target="_blank" href="https://github.com/nosceon/titanite/tree/{{ page.version }}/titanite-examples/tweetmap">complete source</a> | 
+<a href="https://oss.sonatype.org/service/local/repositories/releases/content/org/nosceon/titanite/titanite-example-tweetmap/{{ page.version }}/titanite-example-tweetmap-{{ page.version }}-standalone.jar">download</a> | 
+<a target="_blank" href="http://titanite-tweetmap.herokuapp.com/">live demo</a>
+</p>
+
+<hr/>
+
+<h3>Chat</h3>
+<p>A simple Chat application using WebSockets</p>
+{% highlight java %}public class Chat {
+
+    public static void main(String[] args) {
+
+        ChatBroadcast chat = new ChatBroadcast();
+
+        new HttpServer()
+            .register(GET, "/chat", req -> webSocket(chat.newSubscriber(req.queryParams().getString("nick"))))
+            .register(GET, "/*path", h(publicResourceService(), webJarResourceService()))
+            .start();
+
+    }
+
+}{% endhighlight %}
+<p>
+<a target="_blank" href="https://github.com/nosceon/titanite/tree/{{ page.version }}/titanite-examples/chat">complete source</a> | 
+<a href="https://oss.sonatype.org/service/local/repositories/releases/content/org/nosceon/titanite/titanite-example-chat/{{ page.version }}/titanite-example-chat-{{ page.version }}-standalone.jar">download</a>
+</p>
+
+<hr/>
