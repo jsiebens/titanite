@@ -81,7 +81,6 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                         ctx.fireExceptionCaught(future.cause());
                     }
                 });
-                return;
             }
 
             this.request = (HttpRequest) msg;
