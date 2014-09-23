@@ -60,10 +60,9 @@ public final class FormParams extends MultiParams {
     @Override
     public List<String> getStrings(String name) {
         return
-            decoder.getBodyHttpDatas(name)
-                .stream()
-                .map(this::toString)
-                .collect(Collectors.toList());
+            ofNullable(decoder.getBodyHttpDatas(name))
+                .map(l -> l.stream().map(this::toString).collect(Collectors.toList()))
+                .orElseGet(Collections::emptyList);
     }
 
     @Override

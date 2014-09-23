@@ -18,9 +18,12 @@ package org.nosceon.titanite;
 import org.junit.Test;
 import org.nosceon.titanite.body.FormParams;
 
+import java.util.List;
+
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.nosceon.titanite.Method.POST;
+import static org.nosceon.titanite.Response.ok;
 
 /**
  * @author Johan Siebens
@@ -31,17 +34,23 @@ public class FormsParamsTest extends AbstractE2ETest {
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {
         return
             server
-                .register(POST, "/a", (r) -> Response.ok().body(r.body().asForm().getString("p")).toFuture())
-                .register(POST, "/b", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getShort("p"))).toFuture())
-                .register(POST, "/c", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getInt("p"))).toFuture())
-                .register(POST, "/d", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getLong("p"))).toFuture())
-                .register(POST, "/e", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getFloat("p"))).toFuture())
-                .register(POST, "/f", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getDouble("p"))).toFuture())
-                .register(POST, "/g", (r) -> Response.ok().body(String.valueOf(r.body().asForm().getBoolean("p"))).toFuture())
+                .register(POST, "/a", req -> ok().body(req.body().asForm().getString("p")).toFuture())
+                .register(POST, "/b", req -> ok().body(String.valueOf(req.body().asForm().getShort("p"))).toFuture())
+                .register(POST, "/c", req -> ok().body(String.valueOf(req.body().asForm().getInt("p"))).toFuture())
+                .register(POST, "/d", req -> ok().body(String.valueOf(req.body().asForm().getLong("p"))).toFuture())
+                .register(POST, "/e", req -> ok().body(String.valueOf(req.body().asForm().getFloat("p"))).toFuture())
+                .register(POST, "/f", req -> ok().body(String.valueOf(req.body().asForm().getDouble("p"))).toFuture())
+                .register(POST, "/g", req -> ok().body(String.valueOf(req.body().asForm().getBoolean("p"))).toFuture())
 
-                .register(POST, "/ma", (r) -> Response.ok().body(String.valueOf(r.body().as(MultiParams.class).getStrings("p"))).toFuture())
+                .register(POST, "/ma", req -> ok().body(String.valueOf(req.body().as(MultiParams.class).getStrings("p"))).toFuture())
+                .register(POST, "/mb", req -> {
+                    FormParams form = req.body().asForm();
+                    List<String> p = form.getStrings("p");
+                    return ok().text(String.valueOf(p.size())).toFuture();
+                })
 
-                .register(POST, "/unsupported", (r) -> Response.ok().body(r.body().as(String.class)).toFuture())
+                .register(POST, "/unsupported", req -> ok().body(req.body().as(String.class)).toFuture())
+
 
                 .start();
     }
@@ -57,6 +66,8 @@ public class FormsParamsTest extends AbstractE2ETest {
         given().formParam("p", "true").expect().statusCode(200).body(equalTo("true")).when().post(uri("/g"));
 
         given().formParam("p", "apple").formParam("p", "orange").expect().statusCode(200).body(equalTo("[apple, orange]")).when().post(uri("/ma"));
+        given().formParam("p", "apple").formParam("p", "orange").expect().statusCode(200).body(equalTo("2")).when().post(uri("/mb"));
+        given().formParam("a", "b").expect().statusCode(200).body(equalTo("0")).when().post(uri("/mb"));
 
         given().formParam("p", "true").expect().statusCode(500).when().post(uri("/unsupported"));
     }
