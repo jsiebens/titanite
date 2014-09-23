@@ -40,11 +40,11 @@ public final class JacksonMapper {
         this.mapper = mapper;
     }
 
-    private <T> BodyReader<T> reader(Class<T> type) {
+    public <T> BodyReader<T> reader(Class<T> type) {
         return in -> mapper.readValue(in, type);
     }
 
-    private BodyWriter writer(Object value) {
+    public BodyWriter writer(Object value) {
         return (out) -> mapper.writeValue(out, value);
     }
 
