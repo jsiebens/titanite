@@ -45,7 +45,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
     };
 
     private static final BiFunction<Request, Function<Request, CompletionStage<Response>>, CompletionStage<Response>> CONTENT_TYPE_JSON = (req, f) -> {
-        String s = ofNullable(req.headers().getString(HttpHeaders.Names.CONTENT_TYPE)).orElse("");
+        String s = ofNullable(req.headers().getString(HttpHeaders.Names.ACCEPT)).orElse("");
         if ("application/json".equals(s)) {
             return f.apply(req).thenCompose(resp -> resp.header("x-titanite-b", "ipsum").toFuture());
         }
@@ -77,7 +77,7 @@ public class GlobalFiltersTest extends AbstractE2ETest {
 
         given()
             .header(HttpHeaders.Names.AUTHORIZATION, "admin")
-            .header(HttpHeaders.Names.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.Names.ACCEPT, "application/json")
             .expect()
             .header("x-titanite-a", "lorem")
             .header("x-titanite-b", "ipsum")
