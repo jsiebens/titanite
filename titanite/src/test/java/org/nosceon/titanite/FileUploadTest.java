@@ -36,9 +36,13 @@ import static org.nosceon.titanite.Response.ok;
 /**
  * @author Johan Siebens
  */
-public class FileUploadTest extends AbstractE2ETest {
+public class FileUploadTest extends AbstractMultiE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+
+    public FileUploadTest(boolean secure) {
+        super(secure);
+    }
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();

@@ -15,13 +15,13 @@
  */
 package org.nosceon.titanite;
 
+import java.io.File;
+import java.util.List;
+
 /**
  * @author Johan Siebens
  */
-@Deprecated
-public interface HttpServerConfig {
-
-    int DEFAULT_PORT = 8080;
+public interface Settings {
 
     int DEFAULT_IO_WORKER_COUNT = Runtime.getRuntime().availableProcessors() * 2;
 
@@ -29,12 +29,32 @@ public interface HttpServerConfig {
 
     long DEFAULT_MAX_MULTI_PART_REQUEST_SIZE = -1; // unbounded
 
-    int getPort();
+    enum ConnectorType {
+        HTTP, HTTPS
+    }
 
-    int getIoWorkerCount();
+    interface Connector {
 
-    long getMaxRequestSize();
+        ConnectorType type();
 
-    long getMaxMultipartRequestSize();
+        String address();
+
+        int port();
+
+        File certificatePath();
+
+        File keyPath();
+
+        String keyPassword();
+
+    }
+
+    int ioWorkerCount();
+
+    long maxRequestSize();
+
+    long maxMultipartRequestSize();
+
+    List<Connector> connectors();
 
 }

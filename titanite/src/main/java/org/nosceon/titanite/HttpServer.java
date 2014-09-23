@@ -21,6 +21,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.nosceon.titanite.ImmutableSettings.newSettings;
+
 /**
  * @author Johan Siebens
  */
@@ -28,15 +30,27 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    private final HttpServerConfig config;
+    private final Settings config;
 
     public HttpServer() {
         this(new DefaultHttpServerConfig());
     }
 
+    @Deprecated
     public HttpServer(HttpServerConfig config) {
+        this(
+            newSettings()
+                .setIoWorkerCount(config.getIoWorkerCount())
+                .setMaxRequestSize(config.getMaxRequestSize())
+                .setMaxMultipartRequestSize(config.getMaxMultipartRequestSize())
+                .addHttpConnector(config.getPort())
+                .build()
+        );
+    }
+
+    public HttpServer(Settings settings) {
         super("Http Server [" + Utils.padStart(String.valueOf(COUNTER.incrementAndGet()), 3, '0') + "]");
-        this.config = config;
+        this.config = settings;
     }
 
     public static HttpServer httpServer() {
@@ -48,13 +62,8 @@ public final class HttpServer extends AbstractHttpServerBuilder<HttpServer> {
     }
 
     public Shutdownable start() {
-        Titanite.LOG.info(id + " starting");
-
-        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(config.getIoWorkerCount(), new NamedThreadFactory("Titanite " + id + " - "));
+        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(config.ioWorkerCount(), new NamedThreadFactory("Titanite " + id + " - "));
         start(eventLoopGroup, config);
-
-        Titanite.LOG.info(id + " started, listening on port " + config.getPort());
-
         return eventLoopGroup::shutdownGracefully;
     }
 

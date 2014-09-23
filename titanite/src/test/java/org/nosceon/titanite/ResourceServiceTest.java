@@ -28,7 +28,11 @@ import static org.nosceon.titanite.service.ResourceService.webJarResourceService
 /**
  * @author Johan Siebens
  */
-public class ResourceServiceTest extends AbstractE2ETest {
+public class ResourceServiceTest extends AbstractMultiE2ETest {
+
+    public ResourceServiceTest(boolean secure) {
+        super(secure);
+    }
 
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {

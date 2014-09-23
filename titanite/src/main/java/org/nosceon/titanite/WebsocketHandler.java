@@ -80,7 +80,7 @@ class WebsocketHandler {
 
     private static String getWebSocketLocation(Request req) {
         String location = req.headers().getString(HttpHeaders.Names.HOST) + req.path();
-        return "ws://" + location;
+        return (req.isSecure() ? "wss://" : "ws://") + location;
     }
 
     private static FullHttpRequest toFullHttpRequest(HttpRequest request) {

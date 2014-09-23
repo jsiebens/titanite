@@ -61,7 +61,10 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final WebsocketHandler websocketHandler = new WebsocketHandler();
 
-    public HttpServerHandler(long maxRequestSize, long maxMultipartRequestSize, Router router) {
+    private final boolean secure;
+
+    public HttpServerHandler(boolean secure, long maxRequestSize, long maxMultipartRequestSize, Router router) {
+        this.secure = secure;
         this.router = router;
         this.maxRequestSize = maxRequestSize;
         this.maxMultipartRequestSize = maxMultipartRequestSize;
@@ -108,6 +111,7 @@ final class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
                 Request req =
                     new Request(
+                        secure,
                         Method.valueOf(request.getMethod().name()),
                         qsd.path(),
                         new HeaderParams(request),

@@ -48,7 +48,10 @@ public final class Request {
 
     private final Attributes attributes;
 
-    Request(Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, Body body) {
+    private final boolean secure;
+
+    Request(boolean secure, Method method, String path, HeaderParams headers, CookieParams cookies, PathParams pathParams, QueryParams queryParams, Body body) {
+        this.secure = secure;
         this.method = method;
         this.path = path;
         this.headers = headers;
@@ -120,12 +123,20 @@ public final class Request {
     }
 
     public String baseUri() {
-        return "http://" + headers.getString(HttpHeaders.Names.HOST);
+        return protocol() + "://" + headers.getString(HttpHeaders.Names.HOST);
+    }
+
+    public String protocol() {
+        return secure ? "https" : "http";
     }
 
     public Request withAttribute(String key, Object value) {
         this.attributes.set(key, value);
         return this;
+    }
+
+    boolean isSecure() {
+        return secure;
     }
 
 }

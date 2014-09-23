@@ -32,9 +32,13 @@ import static org.nosceon.titanite.service.FileService.serveFile;
 /**
  * @author Johan Siebens
  */
-public class FileServiceTest extends AbstractE2ETest {
+public class FileServiceTest extends AbstractMultiE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+
+    public FileServiceTest(boolean secure) {
+        super(secure);
+    }
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();

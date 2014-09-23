@@ -28,7 +28,11 @@ import static org.nosceon.titanite.Response.ok;
 /**
  * @author Johan Siebens
  */
-public class FormsParamsTest extends AbstractE2ETest {
+public class FormsParamsTest extends AbstractMultiE2ETest {
+
+    public FormsParamsTest(boolean secure) {
+        super(secure);
+    }
 
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception {

@@ -16,22 +16,30 @@
 package org.nosceon.titanite;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.nosceon.titanite.body.BodyParser;
 
+import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
+import static org.nosceon.titanite.ImmutableSettings.newSettings;
 import static org.nosceon.titanite.Utils.callUnchecked;
 
 /**
@@ -90,28 +98,54 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         return register(filter, callUnchecked(c::newInstance));
     }
 
-    protected final void start(NioEventLoopGroup workers, HttpServerConfig config) {
+    protected final void start(NioEventLoopGroup workers, Settings settings) {
         List<Route> actualRoutes = applyGlobalFilter();
         actualRoutes.forEach(r -> Titanite.LOG.info(id + " route added: " + Utils.padEnd(r.method().toString(), 7, ' ') + r.pattern()));
 
         Router router = new Router(actualRoutes);
 
-        new ServerBootstrap()
-            .group(workers)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(new ChannelInitializer<SocketChannel>() {
+        settings.connectors().forEach(c -> {
+            if (c.type().equals(Settings.ConnectorType.HTTP)) {
+                Channel channel = bootstrap(workers, null, settings, c, router);
 
-                @Override
-                protected void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline()
-                        .addLast(new HttpRequestDecoder())
-                        .addLast(new HttpResponseEncoder())
-                        .addLast(new HttpServerHandler(config.getMaxRequestSize(), config.getMaxMultipartRequestSize(), router));
-                }
+                Titanite.LOG.info(id + " listening for " + Utils.padEnd(c.type().name(), 6, ' ') + " on " + channel.localAddress());
+            }
+            else if (c.type().equals(Settings.ConnectorType.HTTPS)) {
+                SslContext sslContext = sslContext(c);
+                Channel channel = bootstrap(workers, sslContext, settings, c, router);
 
-            })
-            .bind(config.getPort())
-            .syncUninterruptibly();
+                Titanite.LOG.info(id + " listening for " + Utils.padEnd(c.type().name(), 6, ' ') + " on " + channel.localAddress());
+            }
+        });
+
+    }
+
+    private Channel bootstrap(NioEventLoopGroup workers, SslContext sslContext, Settings settings, Settings.Connector c, Router router) {
+        return
+            new ServerBootstrap()
+                .group(workers)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new HttpServerChannelInitializer(sslContext, settings, router))
+                .bind(inetAddress(c))
+                .syncUninterruptibly()
+                .channel();
+    }
+
+    private InetSocketAddress inetAddress(Settings.Connector c) {
+        return Optional.ofNullable(c.address()).map(a -> new InetSocketAddress(c.address(), c.port())).orElseGet(() -> new InetSocketAddress(c.port()));
+    }
+
+    @Deprecated
+    protected final void start(NioEventLoopGroup workers, HttpServerConfig config) {
+        this.start(
+            workers,
+            newSettings()
+                .setIoWorkerCount(config.getIoWorkerCount())
+                .setMaxRequestSize(config.getMaxRequestSize())
+                .setMaxMultipartRequestSize(config.getMaxMultipartRequestSize())
+                .addHttpConnector(config.getPort())
+                .build()
+        );
     }
 
     private List<Route> applyGlobalFilter() {
@@ -126,6 +160,51 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
         }
     }
 
+    private SslContext sslContext(Settings.Connector connector) {
+        return callUnchecked(() -> {
+            if (connector.certificatePath() == null || connector.keyPath() == null) {
+
+                Titanite.LOG.warn(id + " ssl certificate path or key path is missing, using self-signed certificate");
+
+                SelfSignedCertificate ssc = new SelfSignedCertificate();
+                return SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+            }
+            else {
+                return SslContext.newServerContext(connector.certificatePath(), connector.keyPath(), connector.keyPassword());
+            }
+        });
+    }
+
     protected abstract R self();
 
+    private static class HttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
+
+        private final SslContext sslCtx;
+
+        private final Settings settings;
+
+        private final Router router;
+
+        public HttpServerChannelInitializer(SslContext sslCtx, Settings settings, Router router) {
+            this.sslCtx = sslCtx;
+            this.settings = settings;
+            this.router = router;
+        }
+
+        @Override
+        protected void initChannel(SocketChannel ch) throws Exception {
+            ChannelPipeline pipeline = ch.pipeline();
+
+            if (sslCtx != null) {
+                pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+            }
+
+            pipeline
+                .addLast(new HttpRequestDecoder())
+                .addLast(new HttpResponseEncoder())
+                .addLast(new ChunkedWriteHandler())
+                .addLast(new HttpServerHandler(sslCtx != null, settings.maxRequestSize(), settings.maxMultipartRequestSize(), router));
+        }
+
+    }
 }

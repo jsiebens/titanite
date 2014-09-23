@@ -18,6 +18,7 @@ package org.nosceon.titanite;
 /**
  * @author Johan Siebens
  */
+@Deprecated
 public final class DefaultHttpServerConfig implements HttpServerConfig {
 
     public static DefaultHttpServerConfig config() {

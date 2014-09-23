@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
 
 import java.io.*;
 import java.net.URI;
@@ -408,7 +409,12 @@ public final class Response {
                 ctx.write(response);
 
                 if (!request.method().equals(Method.HEAD)) {
-                    ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+                    if (request.isSecure()) {
+                        ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, length, 8192)), ctx.newProgressivePromise());
+                    }
+                    else {
+                        ctx.write(new DefaultFileRegion(raf.getChannel(), 0, length), ctx.newProgressivePromise());
+                    }
                 }
 
                 writeFlushAndClose(ctx, LastHttpContent.EMPTY_LAST_CONTENT, isKeepAlive(rawRequest));

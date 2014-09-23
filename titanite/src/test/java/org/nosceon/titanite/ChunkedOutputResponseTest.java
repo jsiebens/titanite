@@ -26,9 +26,13 @@ import static org.nosceon.titanite.Response.ok;
 /**
  * @author Johan Siebens
  */
-public class ChunkedOutputResponseTest extends AbstractE2ETest {
+public class ChunkedOutputResponseTest extends AbstractMultiE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+
+    public ChunkedOutputResponseTest(boolean secure) {
+        super(secure);
+    }
 
     @Override
     protected Shutdownable configureAndStartHttpServer(HttpServer server) {

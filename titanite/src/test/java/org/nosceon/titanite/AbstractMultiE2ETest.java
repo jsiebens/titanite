@@ -15,21 +15,58 @@
  */
 package org.nosceon.titanite;
 
+import com.jayway.restassured.RestAssured;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.net.ServerSocket;
-
-import static org.nosceon.titanite.ImmutableSettings.newSettings;
+import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 /**
  * @author Johan Siebens
  */
-public abstract class AbstractE2ETest {
+@RunWith(value = Parameterized.class)
+public abstract class AbstractMultiE2ETest {
+
+    private static SelfSignedCertificate ssc;
+
+    static {
+        RestAssured.useRelaxedHTTPSValidation();
+    }
+
+    @Parameterized.Parameters(name = "secure: {0}")
+    public static Iterable<Object[]> data1() {
+        return Arrays.asList(new Object[][]{
+            {false},
+            {true}
+        });
+    }
 
     private int port;
 
     private Shutdownable shutdownable;
+
+    private final boolean secure;
+
+    protected AbstractMultiE2ETest(boolean secure) {
+        this.secure = secure;
+    }
+
+    @BeforeClass
+    public static void setupSelfSignedCertificate() throws CertificateException {
+        ssc = new SelfSignedCertificate();
+    }
+
+    @AfterClass
+    public static void clearSelfSignedCertificate() {
+        ssc.delete();
+    }
 
     @Before
     public void setUpHttpServer() throws Exception {
@@ -45,11 +82,11 @@ public abstract class AbstractE2ETest {
     protected abstract Shutdownable configureAndStartHttpServer(HttpServer server) throws Exception;
 
     protected String uri(String path) {
-        return "http://localhost:" + port + path;
+        return (secure ? "https" : "http") + "://localhost:" + port + path;
     }
 
     protected String ws(String path) {
-        return "ws://localhost:" + port + path;
+        return (secure ? "wss" : "ws") + "://localhost:" + port + path;
     }
 
     private int findFreePort() {
@@ -66,7 +103,14 @@ public abstract class AbstractE2ETest {
     }
 
     private HttpServer newServer(int port) {
-        return new HttpServer(newSettings().setIoWorkerCount(2).setMaxRequestSize(maxRequestSize()).addHttpConnector(port).build());
+        ImmutableSettings.Builder builder = ImmutableSettings.newSettings();
+        if (secure) {
+            builder.addHttpsConnector(port, ssc.certificate(), ssc.privateKey());
+        }
+        else {
+            builder.addHttpConnector(port);
+        }
+        return new HttpServer(builder.setIoWorkerCount(2).setMaxRequestSize(maxRequestSize()).build());
     }
 
     protected long maxRequestSize() {

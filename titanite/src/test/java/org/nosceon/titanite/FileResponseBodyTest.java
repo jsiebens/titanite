@@ -32,9 +32,13 @@ import static org.nosceon.titanite.Response.ok;
 /**
  * @author Johan Siebens
  */
-public class FileResponseBodyTest extends AbstractE2ETest {
+public class FileResponseBodyTest extends AbstractMultiE2ETest {
 
     private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+
+    public FileResponseBodyTest(boolean secure) {
+        super(secure);
+    }
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
