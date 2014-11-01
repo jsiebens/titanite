@@ -65,6 +65,7 @@
     <module>titanite-scope-session</module>
     <module>titanite-json-jackson</module>
     <module>titanite-json-gson</module>
+    <module>titanite-xml-jaxb</module>
     <module>titanite-view-mustache</module>
     <module>titanite-view-freemarker</module>
     <module>titanite-auth</module>
