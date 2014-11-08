@@ -22,8 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -201,10 +200,28 @@ public abstract class AbstractHttpServerBuilder<R extends AbstractHttpServerBuil
 
             pipeline
                 .addLast(new HttpRequestDecoder())
+                .addLast(new HttpContentDecompressor())
                 .addLast(new HttpResponseEncoder())
+                .addLast(new CustomHttpContentCompressor())
                 .addLast(new ChunkedWriteHandler())
                 .addLast(new HttpServerHandler(sslCtx != null, settings.maxRequestSize(), settings.maxMultipartRequestSize(), router));
         }
 
     }
+
+    private static class CustomHttpContentCompressor extends HttpContentCompressor {
+
+        @Override
+        protected Result beginEncode(HttpResponse headers, String acceptEncoding) throws Exception {
+            String contentEncoding = headers.headers().get(HttpHeaders.Names.CONTENT_ENCODING);
+            if (contentEncoding != null && HttpHeaders.Values.IDENTITY.equalsIgnoreCase(contentEncoding)) {
+                return null;
+            }
+            else {
+                return super.beginEncode(headers, acceptEncoding);
+            }
+        }
+
+    }
+
 }

@@ -406,6 +406,11 @@ public final class Response {
                 setContentLength(response, length);
                 setKeepAlive(response, isKeepAlive(rawRequest));
 
+                // setting encoding to 'identity' so CustomCompressor will be skip compression when using FileRegion
+                if (!request.isSecure()) {
+                    response.headers().set(Names.CONTENT_ENCODING, Values.IDENTITY);
+                }
+
                 ctx.write(response);
 
                 if (!request.method().equals(Method.HEAD)) {
