@@ -16,6 +16,8 @@
 package org.nosceon.titanite;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +25,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.CharBuffer;
+import java.security.Key;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -194,6 +197,47 @@ public class Utils {
                 .orElseGet(Collections::emptyMap);
     }
 
+    private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+
+    public static String sign(String secret, String message) {
+        return
+            callUnchecked(() -> {
+                Key secretKey = new SecretKeySpec(secret.getBytes(UTF_8), HMAC_SHA1_ALGORITHM);
+                Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+                mac.init(secretKey);
+                byte[] bytes = mac.doFinal(message.getBytes(UTF_8));
+                return encodeHexString(bytes);
+            });
+    }
+
+    public static boolean verify(String secret, String signature, String message) {
+        String a = signature;
+        String b = sign(secret, message);
+
+        if (a.length() != b.length()) {
+            return false;
+        }
+        else {
+            int equal = 0;
+            for (int i = 0; i < a.length(); i++) {
+                equal |= a.charAt(i) ^ b.charAt(i);
+            }
+            return equal == 0;
+        }
+    }
+
+    private static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    private static String encodeHexString(final byte[] data) {
+        final int l = data.length;
+        final char[] out = new char[l << 1];
+        for (int i = 0, j = 0; i < l; i++) {
+            out[j++] = DIGITS[(0xF0 & data[i]) >>> 4];
+            out[j++] = DIGITS[0x0F & data[i]];
+        }
+        return new String(out);
+    }
+
     private static String urlencode(String key, String value) {
         return callUnchecked(() -> URLEncoder.encode(key, UTF_8) + '=' + URLEncoder.encode(value, UTF_8));
     }
@@ -232,4 +276,5 @@ public class Utils {
         void run() throws Exception;
 
     }
+
 }
